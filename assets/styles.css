@@ -219,6 +219,9 @@ img { max-width: 100%; display: block; }
   z-index: 0;
   pointer-events: none;
   overflow: hidden;
+  /* Duration multiplier — smaller is faster. Tuned per breakpoint below so the
+     fog drifts at a comparable perceived rate on a phone and a 1920 display. */
+  --fog-speed: 1;
   /* Thinner through the middle so the cards stay legible, banking up at the
      edges. Static — see the note above. */
   -webkit-mask-image: radial-gradient(ellipse 72% 62% at 50% 48%,
@@ -265,25 +268,44 @@ img { max-width: 100%; display: block; }
 
    The negative delays start each sheet mid-cycle, so the three are never in
    phase and no two reverse direction together. */
+/* Drift distance is a percentage of the sheet, and the sheet is sized off the
+   viewport — so raw speed in px/s scales with screen width. Left alone, the
+   same amplitude that reads correctly on a laptop drops to ~2.5px/s on a phone
+   (invisible, the original bug) and climbs past 30px/s on a 1920 display
+   (distracting). --fog-speed rescales every duration to hold the perceived
+   rate inside roughly 5-23px/s across the range. Durations are longhand
+   because calc() needs to reach the duration without the shorthand mistaking
+   it for the delay. */
+.fog__sheet::before {
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+}
+
 .fog__sheet--far::before {
   background-image: url('img/fog-b.svg');
-  animation: fog-drift-a 70s linear -23s infinite alternate,
-             fog-breathe-a 31s ease-in-out -7s infinite alternate;
+  animation-name: fog-drift-a, fog-breathe-a;
+  animation-duration: calc(70s * var(--fog-speed)), calc(31s * var(--fog-speed));
+  animation-delay: -23s, -7s;
+  animation-timing-function: linear, ease-in-out;
 }
 
 .fog__sheet--mid::before {
   background-image: url('img/fog-a.svg');
   background-position: 40% 60%;
-  animation: fog-drift-b 52s linear -11s infinite alternate,
-             fog-breathe-b 43s ease-in-out -19s infinite alternate;
+  animation-name: fog-drift-b, fog-breathe-b;
+  animation-duration: calc(52s * var(--fog-speed)), calc(43s * var(--fog-speed));
+  animation-delay: -11s, -19s;
+  animation-timing-function: linear, ease-in-out;
 }
 
 .fog__sheet--near::before {
   background-image: url('img/fog-a.svg');
   background-position: 70% 20%;
   transform: scaleX(-1);
-  animation: fog-drift-c 38s linear -30s infinite alternate,
-             fog-breathe-a 27s ease-in-out -3s infinite alternate;
+  animation-name: fog-drift-c, fog-breathe-a;
+  animation-duration: calc(38s * var(--fog-speed)), calc(27s * var(--fog-speed));
+  animation-delay: -30s, -3s;
+  animation-timing-function: linear, ease-in-out;
 }
 
 /* Amplitude is set from perceived speed, not from taste. Each sheet is 180% of
@@ -321,6 +343,14 @@ img { max-width: 100%; display: block; }
   from { opacity: 1;   }
   to   { opacity: .66; }
 }
+
+/* Hold perceived drift roughly constant across viewport widths. Narrow screens
+   shorten the loops; wide screens stretch them. */
+@media (max-width: 600px)  { .fog { --fog-speed: .45; } }
+
+@media (min-width: 601px) and (max-width: 1000px) { .fog { --fog-speed: .70; } }
+
+@media (min-width: 1601px) { .fog { --fog-speed: 1.35; } }
 
 /* Everything above the atmosphere. */
 .marquee, .roster, .site-foot { position: relative; z-index: 1; }
