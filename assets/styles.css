@@ -663,23 +663,48 @@ img { max-width: 100%; display: block; }
 .deck {
   position: absolute;
   inset: 0;
+  transition: transform 420ms var(--ease-out);
 }
 
-/* Every shot composes its transform from the same four custom properties in the
-   same order, so hover only has to restate the ones it changes. The order is
-   load-bearing: `transform` interpolates function-by-function, and two lists
-   that disagree on order fall back to a matrix decomposition that would swing
-   the phone through an arc instead of lifting it.
+/* The deck reacts as ONE object. Hovering any single phone used to lift and
+   straighten just that phone, which read badly: three separate targets inside a
+   card that is a single link, each fighting the card's own 1.05 pop underneath.
+   Now touching any phone bounces the whole fan.
 
-   --rest-tilt is the fan angle and --tilt is the live one. They are separate so
-   the touch override further down can put a shot back on its resting angle
-   without knowing what that angle is. */
+   `:has(.deck__shot:hover)` rather than `.deck:hover` on purpose — .deck spans
+   the full art box, so plain :hover would also fire in the empty gaps between
+   phones and the deck would react to a pointer that is not on anything.
+
+   Scale is 1.035, not the card's 1.05. The outer phones sit 8px from the frame
+   edge and .card__art clips, so a larger scale pulls their outer edges under
+   the clip and the fan looks cropped rather than lifted. */
+.deck:has(.deck__shot:hover) {
+  transform: translateY(-12px) scale(1.035);
+  animation: deck-pop 460ms var(--ease-out);
+}
+
+/* B3's squash-and-stretch, borrowed wholesale including its trap: the animation
+   runs with `fill: none`, so when it ends the value falls back to the rule
+   above. The 100% keyframe must therefore resolve to exactly that matrix or the
+   deck snaps at the handoff. scaleX/scaleY are separate functions here while
+   the rule uses scale() — different lists, identical matrix, which is fine
+   because this is a value swap at the end and not an interpolation. */
+@keyframes deck-pop {
+  0%   { transform: translateY(0)     scaleX(1)     scaleY(1);     }
+  28%  { transform: translateY(-15px) scaleX(1.052) scaleY(1.012); }
+  52%  { transform: translateY(-8px)  scaleX(1.014) scaleY(1.052); }
+  76%  { transform: translateY(-14px) scaleX(1.044) scaleY(1.028); }
+  100% { transform: translateY(-12px) scaleX(1.035) scaleY(1.035); }
+}
+
+/* The fan angles are the only per-shot transform left. An earlier pass had each
+   shot composing its transform from --tilt/--rise/--pop so that hover could
+   restate them individually; the group bounce replaced all of that, so those
+   properties are gone rather than left sitting unused. --x survives because the
+   hero centres itself with a percentage translate. */
 .deck__shot {
-  --rest-tilt: 0deg;
-  --tilt: var(--rest-tilt);
   --x: 0px;
-  --rise: 0px;
-  --pop: 1;
+  --tilt: 0deg;
 
   position: absolute;
   overflow: hidden;
@@ -694,13 +719,8 @@ img { max-width: 100%; display: block; }
     0 18px 34px -10px rgba(0, 0, 0, .78),
     0 0 0 1px rgba(0, 0, 0, .5),
     0 0 22px -4px color-mix(in srgb, var(--accent) 26%, transparent);
-  transform:
-    translateX(var(--x))
-    translateY(var(--rise))
-    rotate(var(--tilt))
-    scale(var(--pop));
+  transform: translateX(var(--x)) rotate(var(--tilt));
   transition:
-    transform 420ms var(--ease-out),
     border-color 420ms var(--ease),
     box-shadow 420ms var(--ease);
 }
@@ -727,7 +747,7 @@ img { max-width: 100%; display: block; }
 }
 
 .deck__shot--left {
-  --rest-tilt: -8deg;
+  --tilt: -8deg;
   z-index: 1;
   left: 6%;
   top: 15%;
@@ -735,22 +755,17 @@ img { max-width: 100%; display: block; }
 }
 
 .deck__shot--right {
-  --rest-tilt: 8deg;
+  --tilt: 8deg;
   z-index: 1;
   right: 6%;
   top: 15%;
   width: 30.5%;
 }
 
-/* Pick one up off the table: it rises, rights itself, and grows a little. Its
-   neighbours are deliberately left alone — the card underneath is already
-   running its own 1.05 pop, and dimming siblings on top of that made the whole
-   card flicker as the pointer crossed between phones. */
-.deck__shot:hover {
-  --tilt: 0deg;
-  --rise: -14px;
-  --pop: 1.08;
-  z-index: 3;
+/* All three light up together with the bounce. No phone moves relative to its
+   neighbours — the fan keeps its shape and only the group transform carries the
+   motion, which is what makes it read as one object rather than three. */
+.deck:has(.deck__shot:hover) .deck__shot {
   border-color: color-mix(in srgb, var(--accent) 88%, transparent);
   box-shadow:
     0 26px 46px -10px rgba(0, 0, 0, .85),
@@ -1870,7 +1885,7 @@ img { max-width: 100%; display: block; }
   background: none;
   font: inherit;
   font-size: .82rem;
-  color: var(--text-dim);
+  color: #0000ff;
   text-decoration: none;
   cursor: pointer;
   transition: color 220ms var(--ease);
@@ -2615,9 +2630,10 @@ img { max-width: 100%; display: block; }
   .card:hover .card__inner      { transform: none; }
   .card:hover .card__art > img  { transform: scale(1.02); }
   .card:hover .card__sheen      { opacity: 0; }
-  /* :hover sticks after a tap, so a tapped phone would stay lifted and
-     straightened with no way to put it back. The deck sits at rest instead. */
-  .deck__shot:hover             { --rise: 0px; --pop: 1; --tilt: var(--rest-tilt); }
+  /* :hover sticks after a tap, so a tapped deck would stay bounced with no way
+     to put it back. It sits at rest instead — and `animation: none` matters,
+     or the pop would still run once on the tap and hold its last frame. */
+  .deck:has(.deck__shot:hover)  { transform: none; animation: none; }
   .card:active .card__inner     { transform: scale(.985); transition-duration: 120ms; }
   .card__tilt                   { transform: none !important; }
   .case-next:hover              { padding-inline: 0; }
