@@ -237,29 +237,9 @@
       });
     }
 
-    /* -------------------------------------------------------------------
-       Split the name into per-character spans so it can wave. Progressive
-       enhancement: without this the name renders as ordinary text and the
-       glow, which lives on the parent, is unaffected.
-       ------------------------------------------------------------------- */
-
-    var nameEl = panel.querySelector('[data-wave]');
-    if (nameEl && !reduced()) {
-      var chars = nameEl.textContent.split('');
-      nameEl.textContent = '';
-      chars.forEach(function (ch, i) {
-        var span = document.createElement('span');
-        span.textContent = ch;
-        span.style.setProperty('--d',  (i * 55) + 'ms');   // idle wave stagger
-        span.style.setProperty('--dh', (i * 28) + 'ms');   // faster on hover
-        span.setAttribute('aria-hidden', 'true');
-        nameEl.appendChild(span);
-      });
-      /* The split text is decorative once it is per-character; give assistive
-         tech the intact string back. */
-      nameEl.setAttribute('aria-label', chars.join(''));
-      nameEl.setAttribute('role', 'text');
-    }
+    /* The name used to be split into per-character spans for an idle wave.
+       Cut deliberately — it read as a glitch rather than as charm. The name is
+       now plain text with a CSS glow, so there is nothing to enhance here. */
   }
 
   /* ---------------------------------------------------------------------

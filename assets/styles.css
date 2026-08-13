@@ -682,6 +682,7 @@ img { max-width: 100%; display: block; }
 .card__title {
   margin: 0;
   font-family: var(--display);
+  font-weight: 400;
   font-size: clamp(1.9rem, 3.4vw, 2.6rem);
   letter-spacing: .03em;
   line-height: .9;
@@ -810,28 +811,90 @@ img { max-width: 100%; display: block; }
   justify-content: center;
 }
 
+/* Liquid blob button. The "liquid" is an animated border-radius morph plus a
+   gradient that drifts underneath — deliberately not an SVG goo filter, which
+   would re-rasterize every frame for the same reason the fog does not filter
+   its moving layers. */
 .me__dot {
   position: relative;
-  width: 20px;
-  height: 20px;
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
   padding: 0;
   border: 0;
-  border-radius: 50%;
   cursor: pointer;
-  background: radial-gradient(circle at 38% 34%,
-              color-mix(in srgb, var(--mist-glow) 92%, #fff) 0%,
-              var(--mist-core) 58%,
-              color-mix(in srgb, var(--mist-deep) 70%, var(--mist-core)) 100%);
+  font: inherit;
+  color: var(--text);
+  background:
+    linear-gradient(135deg,
+      color-mix(in srgb, var(--mist-glow) 78%, #fff) 0%,
+      var(--mist-core) 38%,
+      color-mix(in srgb, var(--mist-deep) 55%, var(--mist-core)) 72%,
+      var(--mist-core) 100%);
+  background-size: 260% 260%;
   box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--mist-glow) 45%, transparent),
-    0 0 18px 2px color-mix(in srgb, var(--mist-core) 55%, transparent);
+    inset 0 1px 0 rgba(255, 255, 255, .22),
+    0 0 22px 2px color-mix(in srgb, var(--mist-core) 55%, transparent);
+  border-radius: 52% 48% 45% 55% / 50% 45% 55% 50%;
+  animation:
+    liquid-morph 11s ease-in-out infinite,
+    liquid-flow  14s ease-in-out infinite,
+    liquid-fade  6.5s ease-in-out infinite;
   transition: transform 320ms var(--ease-out), box-shadow 320ms var(--ease);
 }
 
-.me__dot:hover,
-.me__dot:focus-visible { transform: scale(1.25); }
+.me__dot-label {
+  position: relative;
+  z-index: 1;
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: 1rem;
+  letter-spacing: .04em;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, .45);
+}
 
-.me__dot[aria-expanded="true"] { transform: scale(.82); }
+/* The blob never returns to a circle, so the surface always looks unsettled. */
+@keyframes liquid-morph {
+  0%, 100% { border-radius: 52% 48% 45% 55% / 50% 45% 55% 50%; }
+  25%      { border-radius: 44% 56% 55% 45% / 57% 52% 48% 43%; }
+  50%      { border-radius: 56% 44% 48% 52% / 44% 57% 43% 56%; }
+  75%      { border-radius: 47% 53% 58% 42% / 52% 46% 54% 48%; }
+}
+
+@keyframes liquid-flow {
+  0%, 100% { background-position:   0%  50%; }
+  50%      { background-position: 100%  50%; }
+}
+
+/* Breathes between roughly half and 85% so it reads as pulsing light rather
+   than a solid control sitting there. */
+@keyframes liquid-fade {
+  0%, 100% { opacity: .52; }
+  50%      { opacity: .85; }
+}
+
+/* Hover and open both drop liquid-fade from the animation list rather than
+   pausing it. A paused animation still owns the property, so `opacity: 1`
+   alongside `animation-play-state: paused` would be silently ignored and the
+   button could sit at half opacity under the cursor. Morph and flow keep their
+   durations from the list above; only the third entry falls away. */
+.me__dot:hover,
+.me__dot:focus-visible {
+  transform: scale(1.12);
+  opacity: 1;
+  animation-name: liquid-morph, liquid-flow;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .3),
+    0 0 34px 4px color-mix(in srgb, var(--mist-core) 72%, transparent);
+}
+
+/* Open: hold full opacity and shrink back, so the panel is the subject. */
+.me__dot[aria-expanded="true"] {
+  transform: scale(.9);
+  opacity: 1;
+  animation-name: liquid-morph, liquid-flow;
+}
 
 /* Breathing halo, so the dot reads as alive and clickable without a label. */
 .me__halo {
@@ -899,17 +962,21 @@ img { max-width: 100%; display: block; }
   position: relative;
   display: grid;
   place-items: center;
-  height: 132px;
-  margin-bottom: .5rem;
+  height: 196px;
+  margin-bottom: .35rem;
 }
 
 .me__portrait {
   position: relative;
   z-index: 2;
-  width: 104px;
-  height: 104px;
+  width: 132px;
+  height: 132px;
   border-radius: 50%;
-  animation: portrait-in 520ms var(--ease-out) 60ms both;
+  /* `backwards`, not `both`. A forwards fill would keep the 100% keyframe in
+     control of transform for good, and the hover zoom below would never
+     apply. Backwards fills only during the delay, then hands the element back
+     to the static rule — which resolves to the same value, so nothing jumps. */
+  animation: portrait-in 520ms var(--ease-out) 60ms backwards;
 }
 
 .me__portrait img,
@@ -921,7 +988,7 @@ img { max-width: 100%; display: block; }
 }
 
 .me__portrait img {
-  border: 1px solid color-mix(in srgb, var(--mist-glow) 55%, transparent);
+  border: 3px solid color-mix(in srgb, var(--mist-glow) 62%, transparent);
   box-shadow: 0 0 22px -2px color-mix(in srgb, var(--mist-core) 75%, transparent);
 }
 
@@ -935,23 +1002,26 @@ img { max-width: 100%; display: block; }
    keyframe lists translate/rotate/scale in the same order so the browser
    interpolates the functions rather than falling back to matrix decomposition,
    which would swing them through a visibly wrong path. */
+/* Mouse ears: up and outward, overlapping the portrait's upper edge and
+   sitting behind it (z-index below .me__portrait), each tilted away from
+   centre. See the note on `backwards` above — same reason here. */
 .me__bubble {
   position: absolute;
   z-index: 1;
-  width: 62px;
-  height: 62px;
+  width: 88px;
+  height: 88px;
   margin: 0;
   transform: translate(var(--tx), var(--ty)) rotate(var(--rot)) scale(1);
-  animation: bubble-in 620ms var(--ease-out) both;
+  animation: bubble-in 620ms var(--ease-out) backwards;
 }
 
 .me__bubble img {
-  border: 1px solid color-mix(in srgb, var(--mist-glow) 40%, transparent);
+  border: 3px solid color-mix(in srgb, var(--mist-glow) 55%, transparent);
   box-shadow: 0 0 16px -3px color-mix(in srgb, var(--mist-core) 70%, transparent);
 }
 
-.me__bubble--sky { --tx: -88px; --ty: -14px; --rot: -9deg; animation-delay: 150ms; }
-.me__bubble--run { --tx:  88px; --ty: -20px; --rot:  8deg; animation-delay: 215ms; }
+.me__bubble--sky { --tx: -74px; --ty: -56px; --rot: -13deg; animation-delay: 150ms; }
+.me__bubble--run { --tx:  74px; --ty: -56px; --rot:  13deg; animation-delay: 215ms; }
 
 @keyframes bubble-in {
   0%   { transform: translate(0, 0) rotate(0deg) scale(.2); opacity: 0; }
@@ -959,50 +1029,105 @@ img { max-width: 100%; display: block; }
   100% { transform: translate(var(--tx), var(--ty)) rotate(var(--rot)) scale(1);    opacity: 1; }
 }
 
-/* Name, tagline, links ----------------------------------------------------- */
+/* Examining a photo ---------------------------------------------------------
+   Hovering (or keyboard-focusing) any shot enlarges it and pulls everything
+   else back: the other photos, the panel's own text, the cards behind, and a
+   full-viewport veil. Driven by :has() so it needs no JS.
+   -------------------------------------------------------------------------- */
 
-/* D2: the faint white glow. */
+.me__shot {
+  transition: transform 380ms var(--ease-out), opacity 300ms var(--ease),
+              filter 300ms var(--ease);
+  cursor: zoom-in;
+}
+
+.me__shot:focus-visible { outline-offset: 6px; }
+
+.me__portrait:hover,
+.me__portrait:focus-visible { transform: scale(1.62); z-index: 4; }
+
+.me__bubble:hover,
+.me__bubble:focus-visible {
+  transform: translate(var(--tx), var(--ty)) rotate(0deg) scale(2.1);
+  z-index: 4;
+}
+
+/* Non-hovered shots recede. */
+.me__shots:has(.me__shot:hover) .me__shot:not(:hover),
+.me__shots:has(.me__shot:focus-visible) .me__shot:not(:focus-visible) {
+  opacity: .22;
+  filter: blur(2px);
+}
+
+/* So does the panel's text. */
+.me__panel:has(.me__shot:hover) .me__motto,
+.me__panel:has(.me__shot:hover) .me__name,
+.me__panel:has(.me__shot:hover) .me__links {
+  opacity: .12;
+  transition: opacity 300ms var(--ease);
+}
+
+.me__veil {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(6, 5, 11, .78);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 320ms var(--ease);
+}
+
+.me:has(.me__shot:hover) .me__veil,
+.me:has(.me__shot:focus-visible) .me__veil { opacity: 1; }
+
+/* Name, motto, links ------------------------------------------------------- */
+
+/* Regular 400 with a faint white glow. The per-character wave that used to
+   live here was cut — it read as a glitch rather than as charm. Hover is now
+   just a lift in the glow. */
 .me__name {
   margin: 0;
   font-family: var(--display);
-  font-weight: 600;
+  font-weight: 400;
   font-size: 1.4rem;
   letter-spacing: .015em;
   color: var(--text);
   text-shadow:
     0 0 16px rgba(255, 255, 255, .38),
     0 0 40px rgba(255, 255, 255, .15);
+  transition: text-shadow 320ms var(--ease);
 }
 
-/* D3: an occasional wave. main.js splits the name into per-character spans and
-   sets --d; without JS the name simply sits still, which is why the glow above
-   lives on the parent rather than the spans. */
-.me__name span {
-  display: inline-block;
-  white-space: pre;
-  animation: name-wave 9s ease-in-out var(--d, 0ms) infinite;
+.me__name:hover {
+  text-shadow:
+    0 0 14px rgba(255, 255, 255, .6),
+    0 0 34px rgba(255, 255, 255, .28);
 }
 
-/* Mostly flat: the wave occupies the first ~14% of a 9s loop, so it reads as
-   something the name does now and then rather than a perpetual ripple. */
-@keyframes name-wave {
-  0%, 14%, 100% { transform: translateY(0) scale(1); }
-  4%            { transform: translateY(-5px) scale(1.07); }
-  9%            { transform: translateY(1px) scale(.99); }
+/* Motto, set on an arc that mirrors the portrait's lower edge. Light 300
+   against the name's 400. Fades in only after both ear bubbles have finished
+   arriving (215ms delay + 620ms run = 835ms), so the panel resolves in order
+   rather than all at once. */
+.me__motto {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 0 auto .1rem;
+  overflow: visible;
+  animation: motto-in 620ms var(--ease-out) 880ms backwards;
 }
 
-.me__name:hover span { animation: name-wave-hover 900ms var(--ease-out) var(--dh, 0ms) both; }
-
-@keyframes name-wave-hover {
-  0%, 100% { transform: translateY(0) scale(1); }
-  35%      { transform: translateY(-7px) scale(1.09); }
-  70%      { transform: translateY(2px) scale(.985); }
+.me__motto text {
+  font-family: var(--display);
+  font-weight: 300;
+  font-size: 13px;
+  letter-spacing: .045em;
+  fill: var(--text-dim);
 }
 
-.me__tagline {
-  margin: .3rem 0 0;
-  color: var(--text-dim);
-  font-size: .8rem;
+@keyframes motto-in {
+  from { opacity: 0; transform: translateY(7px); }
+  to   { opacity: 1; transform: none; }
 }
 
 .me__links {
@@ -1763,11 +1888,15 @@ img { max-width: 100%; display: block; }
   /* The panel still opens and every photo still lands in its final place —
      it simply arrives rather than springing. */
   .me__halo        { animation: none; }
-  .me__name span   { animation: none; }
+  .me__dot         { animation: none; opacity: .85; }
   .me__panel,
   .me__portrait,
+  .me__motto,
   .me__bubble      { animation: none; }
   .me__bubble      { opacity: 1; }
+  /* The zoom is an intentional inspect action, so it stays — just without the
+     easing ramp. */
+  .me__shot        { transition: none; }
   .me-open .roster,
   .me-open .marquee { filter: none; opacity: .45; }
 
