@@ -124,13 +124,23 @@
   var panel = me && me.querySelector('.me__panel');
 
   if (me && dot && panel) {
-    var CLOSE_MS = 200;   // keep in sync with .me.is-closing in styles.css
     var closeTimer = 0;
 
+    /* The close duration lives in CSS, on `.me` as `--me-close`, and is read
+       back here rather than restated. This used to be a constant with a "keep
+       in sync" comment above it, which is a comment doing a job the cascade can
+       do — and it picks up any per-breakpoint override for free. */
+    function closeMs() {
+      var raw = getComputedStyle(me).getPropertyValue('--me-close').trim();
+      var n = parseFloat(raw);
+      if (!n) return 280;                        /* token missing or unparseable */
+      return /ms$/.test(raw) ? n : n * 1000;     /* `280ms` or `.28s` both work  */
+    }
+
     /* A panel that is mid-close counts as closed. Without the second test, a
-       click landing inside the 200ms close window would re-run closeMe and just
+       click landing inside the close window would re-run closeMe and just
        restart the timer — so the dot would look dead for a fifth of a second
-       right as it fades back in. */
+       right as it comes back up. */
     function isOpen() {
       return !panel.hasAttribute('hidden') && !me.classList.contains('is-closing');
     }
@@ -140,14 +150,30 @@
        on its content and on the breakpoint, so this is measured rather than
        assumed — the CSS carries a desktop fallback for when this never runs.
 
-       Read after the panel is shown and before aria-expanded flips, so the
-       measurement happens while both boxes are still at their resting size. */
+       Measure LAYOUT boxes, not rendered ones. getBoundingClientRect() reports
+       the *transformed* rect, and a mouse user's pointer is on the ball at the
+       moment they click it — so this used to measure the 60.5px hovered ball
+       rather than the 54px resting one. Opening still looked right, since that
+       first frame did match the ball as it stood; but the close then landed the
+       skin ~6px wide of a ball that had gone back to rest.
+
+       Both boxes scale about their own centre, and a centred scale leaves the
+       centre exactly where it was — so the rendered rect still gives an honest
+       position, while offsetWidth/Height give the size with the transform taken
+       back out. */
+    function restingBox(el) {
+      var r = el.getBoundingClientRect();
+      var w = el.offsetWidth;
+      var h = el.offsetHeight;
+      return { w: w, h: h, bottom: r.top + r.height / 2 + h / 2 };
+    }
+
     function sizeMorph() {
-      var p = panel.getBoundingClientRect();
-      var d = dot.getBoundingClientRect();
-      if (!p.width || !p.height || !d.width) return;
-      me.style.setProperty('--me-sx', (d.width / p.width).toFixed(4));
-      me.style.setProperty('--me-sy', (d.height / p.height).toFixed(4));
+      var p = restingBox(panel);
+      var d = restingBox(dot);
+      if (!p.w || !p.h || !d.w) return;
+      me.style.setProperty('--me-sx', (d.w / p.w).toFixed(4));
+      me.style.setProperty('--me-sy', (d.h / p.h).toFixed(4));
       me.style.setProperty('--me-dy', (d.bottom - p.bottom).toFixed(1) + 'px');
     }
 
@@ -179,7 +205,7 @@
         finish();
       } else {
         me.classList.add('is-closing');
-        closeTimer = window.setTimeout(finish, CLOSE_MS);
+        closeTimer = window.setTimeout(finish, closeMs());
       }
 
       if (returnFocus) dot.focus();

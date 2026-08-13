@@ -1022,6 +1022,36 @@ img { max-width: 100%; display: block; }
   transform: scale(1);
 }
 
+/* Coming back. `aria-expanded` is already false by the time `is-closing` lands,
+   so without this the ball falls straight through to the base rule, and two
+   things go wrong there. Its transform runs 320ms against the close, so the
+   ball is still easing outward after the panel has gone. And `liquid-fade`
+   re-enters the animation list on the first frame and restarts at its own 0%,
+   snapping opacity .34 → .44 with nothing to hide it — the ball sits below the
+   panel and is not covered until the very last frame of the collapse.
+
+   So: hold the breathing off for the length of the close and walk the ball up
+   to .44 by hand. That is exactly liquid-fade's 0% keyframe, so when the class
+   lifts, the breathing resumes from where the transition left off. */
+.me.is-closing .me__dot {
+  opacity: .44;
+  /* Back to resting size, and held there even under the pointer. The morph's
+     last frame is the ball's *resting* 54px box (see sizeMorph in main.js), so
+     a hover scale still running underneath would leave the ball poking out from
+     behind the skin at the one frame the two are meant to coincide — and
+     dismissing by clicking the ball is exactly when the pointer is on it. */
+  transform: none;
+  animation-name: liquid-morph;
+  transition: opacity var(--me-close) var(--ease-out),
+              transform var(--me-close) var(--ease-out),
+              box-shadow var(--me-close) var(--ease);
+}
+
+/* Dismissing by clicking the ball leaves the pointer on it, and the rule above
+   outranks `.me__dot:hover`, so the hover strength has to be restated here. */
+.me.is-closing .me__dot:hover,
+.me.is-closing .me__dot:focus-visible { opacity: 1; }
+
 /* Breathing halo, so the dot reads as alive and clickable without a label. */
 .me__halo {
   position: absolute;
@@ -1075,6 +1105,10 @@ img { max-width: 100%; display: block; }
   --me-sx: .159;
   --me-sy: .166;
   --me-dy: 74px;
+  /* One source of truth for the close. main.js reads this back off .me to time
+     the unmount, so the timer that hides the panel cannot drift away from the
+     animation that empties it. */
+  --me-close: 280ms;
 }
 
 .me__skin {
@@ -1145,8 +1179,28 @@ img { max-width: 100%; display: block; }
   animation: me-skin-cool 460ms var(--ease) both;
 }
 
+/* Closing is its own keyframe set, not the opening one played backwards.
+   `reverse` looks like a free inverse and is not one — it replays the opening
+   overshoot on the way down, so the panel swelled to 1.028 before it collapsed.
+   A collapse has to gather inward. */
 .me.is-closing .me__skin {
-  animation: me-skin-open 200ms var(--ease-in) reverse both;
+  animation: me-skin-close var(--me-close) var(--ease-in) forwards;
+}
+
+/* The ball's violet comes back as the box shrinks, so the last frame of the
+   panel is already the ball's own colour.
+
+   Before this rule there was nothing at all: `me-skin-cool` hangs off
+   `.me:not(.is-closing)`, so the instant `is-closing` landed the selector
+   stopped matching, the animation was dropped, and the overlay reverted to its
+   base value — which is 1, because the base rule never states one. Measured:
+   settled open it reads 0, one class change later it reads 1, with nothing in
+   flight to carry it. The panel flashed violet as it left. */
+.me.is-closing .me__skin::before {
+  /* Lands a beat before the box does, mirroring the way the cool-down on open
+     finishes 60ms inside the morph. The colour should arrive first; a panel
+     that is still grey at ball size reads as a swap. */
+  animation: me-skin-warm calc(var(--me-close) * .86) var(--ease) forwards;
 }
 
 /* Growth and bounce are one keyframe set, and every step lists translate
@@ -1175,9 +1229,44 @@ img { max-width: 100%; display: block; }
   }
 }
 
+/* Gather, then drop. The dip at 20% is anticipation — one beat of inward
+   compression before the collapse, which is the *mirror* of the opening
+   overshoot rather than a replay of it. Per-keyframe timing functions do the
+   real work: the gather eases out so it settles into the pause, and everything
+   after it eases in so the box accelerates away and is pulled into the ball.
+
+   Same transform-function order as me-skin-open, for the same reason — a step
+   that omits one falls back to matrix decomposition and swings through a
+   visibly wrong path. Radius ends at a plain 50% so the final frame is a
+   circle at ball size, indistinguishable from the ball it lands on. */
+@keyframes me-skin-close {
+  0%   {
+    transform: translateY(0) scale(1, 1);
+    border-radius: 19% 22% 18% 21% / 20% 17% 22% 19%;
+    animation-timing-function: var(--ease-out);
+  }
+  24%  {
+    /* Y squashes harder than X, and the origin is the bottom edge, so the
+       panel squats *toward* the ball rather than shrinking in place — about
+       15px of drop against 11px of narrowing at desktop size. */
+    transform: translateY(0) scale(.968, .954);
+    border-radius: 23% 26% 22% 25% / 24% 21% 26% 23%;
+    animation-timing-function: var(--ease-in);
+  }
+  100% {
+    transform: translateY(var(--me-dy)) scale(var(--me-sx), var(--me-sy));
+    border-radius: 50%;
+  }
+}
+
 @keyframes me-skin-cool {
   0%   { opacity: 1; }
   100% { opacity: 0; }
+}
+
+@keyframes me-skin-warm {
+  0%   { opacity: 0; }
+  100% { opacity: 1; }
 }
 
 /* Content resolves after the liquid has mostly arrived. */
@@ -1185,7 +1274,12 @@ img { max-width: 100%; display: block; }
   animation: me-content-in 300ms var(--ease-out) 190ms backwards;
 }
 
-.me.is-closing .me__content { animation: me-content-in 140ms var(--ease-in) reverse both; }
+/* The content clears in the first half, so the box is empty before it drops.
+   `reverse` is safe on this one — it is a straight two-keyframe fade with no
+   overshoot in it to replay. */
+.me.is-closing .me__content {
+  animation: me-content-in calc(var(--me-close) * .5) var(--ease-in) reverse both;
+}
 
 @keyframes me-content-in {
   from { opacity: 0; transform: translateY(6px); }
@@ -1252,7 +1346,24 @@ img { max-width: 100%; display: block; }
     bloom-breathe 7.5s ease-in-out infinite;
 }
 
+/* The glow has to leave with the panel. Left alone it kept breathing at full
+   strength right through the close and then went out with the [hidden], which
+   reads as the light being cut rather than withdrawn.
+
+   Breathe stays first in the list so it keeps its hold on transform; the fade
+   is second and therefore wins opacity, which is the only property it names. */
+.me.is-closing .me__bloom {
+  animation:
+    bloom-breathe 7.5s ease-in-out infinite,
+    bloom-out calc(var(--me-close) * .8) var(--ease-in) forwards;
+}
+
 @keyframes bloom-in   { from { opacity: 0; } to { opacity: 1; } }
+
+/* No `from`: the implicit 0% keyframe is built from the underlying value, so
+   the fade starts wherever the breathe happens to be rather than jumping to a
+   fixed 1 first. */
+@keyframes bloom-out  { to { opacity: 0; } }
 
 @keyframes bloom-breathe {
   0%, 100% { opacity: .78; transform: scale(1); }
