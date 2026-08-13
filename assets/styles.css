@@ -987,7 +987,9 @@ img { max-width: 100%; display: block; }
    cleared.
    -------------------------------------------------------------------------- */
 .me__dot[aria-expanded="true"] {
-  opacity: .34;
+  /* Quiet, but not so faint it reads as broken. .34 was the first pass and sat
+     on the wrong side of that line. */
+  opacity: .5;
   transform: scale(.82);
   animation-name: liquid-morph;
   transition: opacity 380ms var(--ease) 140ms,
@@ -1027,7 +1029,7 @@ img { max-width: 100%; display: block; }
    things go wrong there. Its transform runs 320ms against the close, so the
    ball is still easing outward after the panel has gone. And `liquid-fade`
    re-enters the animation list on the first frame and restarts at its own 0%,
-   snapping opacity .34 → .44 with nothing to hide it — the ball sits below the
+   snapping opacity to .44 with nothing to hide it — the ball sits below the
    panel and is not covered until the very last frame of the collapse.
 
    So: hold the breathing off for the length of the close and walk the ball up
