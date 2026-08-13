@@ -127,7 +127,13 @@
     var CLOSE_MS = 200;   // keep in sync with .me.is-closing in styles.css
     var closeTimer = 0;
 
-    function isOpen() { return !panel.hasAttribute('hidden'); }
+    /* A panel that is mid-close counts as closed. Without the second test, a
+       click landing inside the 200ms close window would re-run closeMe and just
+       restart the timer — so the dot would look dead for a fifth of a second
+       right as it fades back in. */
+    function isOpen() {
+      return !panel.hasAttribute('hidden') && !me.classList.contains('is-closing');
+    }
 
     function openMe() {
       window.clearTimeout(closeTimer);
@@ -166,6 +172,17 @@
       e.stopPropagation();
       if (isOpen()) closeMe(false); else openMe();
     });
+
+    /* The dot dissolves into the panel on open, so it is not available as a
+       close target while the panel is up. Esc and clicking away both work, but
+       neither is visible — hence a real control. */
+    var closeBtn = panel.querySelector('.me__close');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        closeMe(true);
+      });
+    }
 
     /* Clicks inside the panel must not reach the document handler below. */
     panel.addEventListener('click', function (e) { e.stopPropagation(); });

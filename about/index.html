@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>About — William Dooling</title>
+<meta name="description" content="About William Dooling — product designer.">
+<link rel="canonical" href="https://www.williamdooling.com/about/">
+<meta name="theme-color" content="#0A0A0A">
+
+<meta property="og:title" content="About — William Dooling">
+<meta property="og:description" content="About William Dooling — product designer.">
+<meta property="og:type" content="profile">
+<meta property="og:url" content="https://www.williamdooling.com/about/">
+<meta property="og:image" content="https://www.williamdooling.com/assets/img/og-card.jpg">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Quicksand:wght@300..700&display=swap">
+<link rel="stylesheet" href="../assets/styles.css">
+
+<script>
+/* Paints the arrival fog before this document's first frame. See assets/main.js. */
+(function () {
+  try {
+    var raw = sessionStorage.getItem('wd:mist');
+    if (!raw) return;
+    var m = JSON.parse(raw);
+    if (!m || Date.now() - m.t > 6000) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var s = document.documentElement.style;
+    s.setProperty('--ox', m.ox + 'px');
+    s.setProperty('--oy', m.oy + 'px');
+    s.setProperty('--mist-max', m.max + 'px');
+    s.setProperty('--tint', m.tint);
+    document.documentElement.classList.add('is-arriving');
+  } catch (e) {}
+})();
+</script>
+</head>
+<body class="case">
+
+<div class="case-wrap">
+
+  <nav class="case-nav" aria-label="Breadcrumb">
+    <a class="case-back" href="../" data-mist><span aria-hidden="true">←</span> Back</a>
+  </nav>
+
+  <header class="case-head">
+    <p class="case-eyebrow">About</p>
+    <h1 class="case-title">William Dooling</h1>
+    <p class="case-sub todo">
+      Two or three lines. Who you are and what you make — the longer version of
+      "Risk PM by day, game dev by night", in your own voice rather than as a
+      slogan.
+    </p>
+
+    <hr class="rule case-rule">
+
+    <dl class="case-facts">
+      <div class="case-fact"><dt>Now</dt><dd class="todo">[current role]</dd></div>
+      <div class="case-fact"><dt>Based</dt><dd class="todo">[city]</dd></div>
+      <div class="case-fact"><dt>Making</dt><dd>bevfantasy · Into the Storm</dd></div>
+    </dl>
+  </header>
+
+  <main class="case-body">
+
+    <h2>How I got here</h2>
+    <p class="todo">
+      The path into design and into building things. Worth being specific about
+      the risk-management side rather than treating it as the thing you do
+      instead of design — the two informing each other is the interesting part.
+    </p>
+
+    <h2>How I work</h2>
+    <p class="todo">
+      What you actually do when you pick up a problem. The playtest → friction →
+      iterate loop from the Into the Storm case study is the honest version of
+      this; say it here in general terms.
+    </p>
+
+    <h2>Outside of work</h2>
+    <p class="todo">
+      The skydiving, the marathon, the dog. These are already the three photos
+      in the profile panel on the homepage, so this is the place they get their
+      sentence.
+    </p>
+
+    <h2>Get in touch</h2>
+    <p>
+      Email is <a href="mailto:william.dooling@outlook.com">william.dooling@outlook.com</a>,
+      or find me on <a href="https://www.linkedin.com/in/wgd/" target="_blank" rel="noopener noreferrer">LinkedIn</a>.
+    </p>
+
+  </main>
+</div>
+
+<footer class="case-foot">
+  <a class="case-next" href="../work/bevfantasy/" data-mist data-label="bevfantasy"
+     style="--next-accent: var(--bev);">
+    <div>
+      <p class="micro case-next__label">Case study</p>
+      <p class="case-next__name">bevfantasy</p>
+    </div>
+    <span class="case-next__arrow" aria-hidden="true">→</span>
+  </a>
+</footer>
+
+<div class="mist" aria-hidden="true">
+  <div class="mist__blur"></div>
+  <div class="mist__veil"></div>
+  <div class="mist__wisp mist__wisp--c"></div>
+  <div class="mist__wisp mist__wisp--a"></div>
+  <div class="mist__wisp mist__wisp--b"></div>
+  <div class="mist__label"><span>About</span></div>
+</div>
+
+<svg class="mist-defs" aria-hidden="true" focusable="false" width="0" height="0">
+  <defs>
+    <filter id="mist-warp-a" x="-35%" y="-35%" width="170%" height="170%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.0055 0.011" numOctaves="4" seed="7" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="170" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <filter id="mist-warp-b" x="-35%" y="-35%" width="170%" height="170%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.009 0.006" numOctaves="3" seed="23" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="120" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </defs>
+</svg>
+
+<script src="../assets/main.js"></script>
+</body>
+</html>

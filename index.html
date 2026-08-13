@@ -139,11 +139,35 @@
            .me carries no transform, so it stays viewport-anchored. -->
       <div class="me__veil" aria-hidden="true"></div>
 
+      <!-- Metaball filter. Blurs, then hard-thresholds the ALPHA channel only
+           (the last matrix row), so blobs fuse where they overlap while their
+           colour is left untouched. The CSS blur+contrast version of this trick
+           mangles colour, because contrast() acts on RGB and needs an opaque
+           backdrop to work against; this does not. -->
+      <svg class="me__goo-def" aria-hidden="true" focusable="false">
+        <!-- Explicit region: the default is 120% of the element box, which would
+             crop the blobs (they are 260% of it) before the clip does. -->
+        <filter id="me-goo" x="-25%" y="-25%" width="150%" height="150%"
+                color-interpolation-filters="sRGB">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur"/>
+          <feColorMatrix in="blur" type="matrix"
+            values="1 0 0 0 0
+                    0 1 0 0 0
+                    0 0 1 0 0
+                    0 0 0 22 -10"/>
+        </filter>
+      </svg>
+
       <button class="me__dot" type="button" aria-expanded="false" aria-controls="me-panel">
-        <!-- The liquid fill. Clips to the button's (morphing) shape and holds
-             two counter-rotating blobs whose upper edges read as a wobbling
-             surface. Hover raises the level. -->
-        <span class="me__liquid" aria-hidden="true"></span>
+        <!-- The liquid fill. .me__liquid clips to the button's morphing shape;
+             .me__goo inside it is the filtered group, so the blobs fuse with
+             each other but the blur never softens the button's silhouette. -->
+        <span class="me__liquid" aria-hidden="true">
+          <span class="me__goo">
+            <span class="me__mote me__mote--a"></span>
+            <span class="me__mote me__mote--b"></span>
+          </span>
+        </span>
         <span class="me__dot-label">me</span>
         <span class="vh">— about William Dooling</span>
         <span class="me__halo" aria-hidden="true"></span>
@@ -157,6 +181,23 @@
            lie to assistive tech. Esc closes it and focus returns to the dot. -->
       <div class="me__panel" id="me-panel" role="dialog"
            aria-label="About William Dooling" hidden>
+
+        <!-- The skin is the grown drop of liquid: it carries the panel's own
+             background, border and glow, and it is the thing that morphs. The
+             panel box itself is transparent, so the zoomed photos can still
+             overhang its top edge without being clipped by the morph. -->
+        <div class="me__skin" aria-hidden="true">
+          <div class="me__aura"></div>
+        </div>
+        <!-- Sits behind the skin and is deliberately outside its clip, so the
+             glow radiates past the border instead of stopping at it. -->
+        <div class="me__bloom" aria-hidden="true"></div>
+
+        <div class="me__content">
+
+        <button class="me__close" type="button" aria-label="Close">
+          <span aria-hidden="true">×</span>
+        </button>
 
         <div class="me__shots">
           <figure class="me__bubble me__shot me__bubble--sky" tabindex="0">
@@ -198,11 +239,12 @@
           </button>
           <a class="me__link" href="https://www.linkedin.com/in/wgd/"
              target="_blank" rel="noopener noreferrer">LinkedIn</a>
-          <!-- Placeholder destination — real URL is Will's to supply. -->
-          <a class="me__link" href="https://site.com/about">About</a>
+          <a class="me__link" href="about/">About</a>
         </nav>
 
         <p class="me__status" role="status" aria-live="polite"></p>
+
+        </div><!-- /.me__content -->
       </div>
     </div>
   </footer>
