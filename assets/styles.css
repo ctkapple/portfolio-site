@@ -1586,7 +1586,7 @@ img { max-width: 100%; display: block; }
   height: auto;
   margin: -14px auto .1rem;
   overflow: visible;
-  animation: motto-in 620ms var(--ease-out) 1000ms backwards;
+  animation: motto-in 380ms var(--ease-out) 1000ms backwards;
   /* The negative top margin pulls this band up under the portrait, so the SVG
      box overlaps it. Nothing here should be able to intercept a hover meant for
      the photo — only the glyphs below opt back in. */
@@ -1605,18 +1605,19 @@ img { max-width: 100%; display: block; }
      deliberate: `motto-in` above animates opacity and resolves to 1. An
      `opacity` here would be owned by that animation for its first 620ms and
      then snap to the reduced value the instant it handed the property back. */
-  fill: color-mix(in srgb, var(--me-hot) 58%, transparent);
+  fill: color-mix(in srgb, var(--me-hot) 80%, transparent);
   /* Glyph-only hit testing on a 13px 300-weight arc is a miserable target, so
      take the bounding box where it is supported. The first declaration is the
      fallback for engines that drop the second — without it they would inherit
      the `none` above and the line could never be hovered at all. */
   pointer-events: visiblePainted;
   pointer-events: bounding-box;
-  transition: fill 220ms var(--ease);
+  transition: fill 130ms var(--ease);
 }
 
-/* Hovering brings it up to full strength. Matches the contact links' 220ms, so
-   the two pieces of interactive text in the panel respond at the same rate. */
+/* Hovering brings it up to full strength. Faster than the contact links' 220ms
+   at Will's call — the line sits at 80% already, so the hover is a short hop
+   and a slow ramp over it read as sluggish. */
 .me__motto text:hover { fill: var(--me-hot); }
 
 @keyframes motto-in {
