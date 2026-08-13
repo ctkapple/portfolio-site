@@ -1,10 +1,26 @@
 /* ==========================================================================
    William Dooling — Portfolio
-   Tokens and motion follow _internal/portfolio-design-guide.md §4
+   Tokens follow _internal/portfolio-design-guide.md §4.
+
+   Two deliberate additions beyond the guide:
+
+   1. A violet "mist" ramp. §4 rejects a portfolio-wide accent, and this does
+      not break that rule — violet is never applied to a project. It belongs to
+      the site's atmosphere (transition fog, photo badge, page chrome) while
+      bevfantasy orange and Into the Storm teal stay exclusively on their own
+      cards. The mist is the connective tissue the near-black background was
+      doing alone.
+   2. A broadcast/scoreboard framing layer — ghost numerals, hairline rules with
+      tick marks, tracked micro-labels. §2 asks for sports-coded personality;
+      previously only the typeface carried it.
    ========================================================================== */
 
+/* --------------------------------------------------------------------------
+   1. Tokens
+   -------------------------------------------------------------------------- */
+
 :root {
-  /* Color */
+  /* Guide §4 palette */
   --bg:          #0A0A0A;
   --text:        #F5F5F0;
   --text-dim:    #8A8A85;
@@ -12,18 +28,88 @@
   --storm:       #7FDBB6;
   --storm-gold:  #E8C368;
 
+  /* Atmosphere — site chrome only, never a project accent */
+  --mist-deep:   #140B24;
+  --mist-mid:    #2E1E52;
+  --mist-core:   #6B54A8;
+  --mist-glow:   #9B84D9;
+
+  /* Surfaces */
+  --surface:     #121114;
+  --surface-lo:  #0D0D0F;
+  --line:        rgba(245, 245, 240, .10);
+  --line-soft:   rgba(245, 245, 240, .055);
+  --line-tick:   rgba(245, 245, 240, .28);
+
   /* Type */
-  --display: 'Bebas Neue', Impact, sans-serif;
-  --body:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  --display: 'Bebas Neue', 'Bebas Fallback', Impact, sans-serif;
+  --body:    'Inter', 'Inter Fallback', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+
+  /* Per-project accent. Overridden by .card--* and .theme-*; the violet default
+     only ever applies to site chrome, never to a project. */
+  --accent: var(--mist-glow);
+
+  /* Rhythm */
+  --gutter:  clamp(1.25rem, 4.5vw, 4rem);
+  --measure: 34rem;   /* ~70 characters at 16px Inter */
 
   /* Motion */
   --float-range: 14px;
   --ease:        cubic-bezier(.4, 0, .2, 1);
+  --ease-out:    cubic-bezier(.16, 1, .3, 1);    /* fast start, long settle */
+  --ease-in:     cubic-bezier(.5, 0, .78, .4);   /* accelerates away        */
+
+  /* The fog's own curve. Tuned so the radius reaches roughly 18% / 43% / 72%
+     at the quarter marks: it gathers visibly from the first frames instead of
+     sitting still and then lunging, which is what a plain ease-in does here. */
+  --ease-fog:    cubic-bezier(.4, .2, .9, .95);
 }
+
+/* Metric-matched fallbacks so the Google Fonts swap doesn't shift layout.
+   Bebas is very narrow; Impact unadjusted overshoots badly. */
+@font-face {
+  font-family: 'Bebas Fallback';
+  src: local('Impact'), local('Haettenschweiler'), local('Arial Narrow Bold'), local('Arial Bold');
+  size-adjust: 88%;
+  ascent-override: 94%;
+  descent-override: 12%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: 'Inter Fallback';
+  src: local('Segoe UI'), local('Helvetica Neue'), local('Arial');
+  size-adjust: 100%;
+  ascent-override: 90%;
+  descent-override: 22%;
+  line-gap-override: 0%;
+}
+
+/* Registered so the mist radius can actually interpolate. Everything about the
+   fog's shape derives from this one animated length. */
+@property --mr {
+  syntax: '<length>';
+  inherits: true;
+  initial-value: 0px;
+}
+
+/* Set by main.js to the distance from the click point to the furthest corner. */
+@property --mist-max {
+  syntax: '<length>';
+  inherits: true;
+  initial-value: 120vmax;
+}
+
+/* --------------------------------------------------------------------------
+   2. Base
+   -------------------------------------------------------------------------- */
 
 *, *::before, *::after { box-sizing: border-box; }
 
-html { -webkit-text-size-adjust: 100%; }
+html {
+  -webkit-text-size-adjust: 100%;
+  background: var(--bg);
+}
 
 body {
   margin: 0;
@@ -33,12 +119,7 @@ body {
   font-size: 16px;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
-  animation: page-in 480ms var(--ease) both;
-}
-
-@keyframes page-in {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  text-rendering: optimizeLegibility;
 }
 
 a { color: inherit; }
@@ -46,13 +127,44 @@ a { color: inherit; }
 img { max-width: 100%; display: block; }
 
 :focus-visible {
-  outline: 2px solid var(--text);
+  outline: 2px solid var(--mist-glow);
   outline-offset: 4px;
-  border-radius: 2px;
+  border-radius: 3px;
+}
+
+::selection { background: color-mix(in srgb, var(--mist-core) 60%, transparent); }
+
+/* Shared micro-label: tracked, uppercase, scoreboard-adjacent. */
+.micro {
+  font-size: .68rem;
+  font-weight: 600;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Hairline rule with broadcast tick marks. */
+.rule {
+  position: relative;
+  height: 1px;
+  background: var(--line);
+  border: 0;
+  margin: 0;
+}
+
+.rule::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 6px;
+  background-image: repeating-linear-gradient(
+    90deg, var(--line-tick) 0 1px, transparent 1px 12.5%);
+  opacity: .55;
 }
 
 /* --------------------------------------------------------------------------
-   Homepage
+   3. Homepage shell
    -------------------------------------------------------------------------- */
 
 .home {
@@ -60,56 +172,169 @@ img { max-width: 100%; display: block; }
   min-height: 100svh;
   display: flex;
   flex-direction: column;
-  overflow-x: hidden;
-}
-
-.site-head {
+  overflow-x: clip;
   position: relative;
-  z-index: 2;
-  padding: clamp(1.5rem, 4vw, 2.75rem);
 }
 
-.site-head__name {
+/* A very slow violet wash so the page itself reads as "in the mist" before
+   anything is clicked. Pure decoration, zero layout cost. */
+.home::before {
+  content: '';
+  position: fixed;
+  inset: -20%;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(50% 40% at 18% 8%,  color-mix(in srgb, var(--mist-core) 20%, transparent), transparent 70%),
+    radial-gradient(45% 45% at 85% 92%, color-mix(in srgb, var(--mist-mid)  32%, transparent), transparent 70%);
+  filter: blur(40px);
+  opacity: .75;
+  animation: drift-slow 34s ease-in-out infinite alternate;
+}
+
+@keyframes drift-slow {
+  from { transform: translate3d(-2%, -1%, 0) scale(1);    }
+  to   { transform: translate3d( 3%,  2%, 0) scale(1.08); }
+}
+
+/* Everything above the atmosphere. */
+.marquee, .roster, .site-foot { position: relative; z-index: 1; }
+
+/* Recede: applied to the whole page except the clicked card while the mist
+   closes, so the transition reads as depth rather than an overlay. */
+.is-leaving .marquee,
+.is-leaving .site-foot,
+.is-leaving .card:not(.is-chosen),
+.is-leaving .case-wrap,
+.is-leaving .case-foot {
+  transition: opacity 320ms var(--ease), filter 320ms var(--ease), transform 420ms var(--ease);
+  opacity: .18;
+  filter: blur(7px);
+  transform: scale(.985);
+}
+
+/* --------------------------------------------------------------------------
+   4. Marquee (header)
+   -------------------------------------------------------------------------- */
+
+.marquee {
+  padding: clamp(1.5rem, 3.5vw, 2.75rem) var(--gutter) 0;
+}
+
+.marquee__top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: .75rem;
+}
+
+.marquee__name {
   margin: 0;
   font-family: var(--display);
-  font-size: clamp(1.75rem, 4vw, 2.5rem);
-  letter-spacing: .04em;
-  line-height: 1;
-}
-
-.site-head__tagline {
-  margin: .5rem 0 0;
-  color: var(--text-dim);
-  font-size: clamp(.8rem, 1.4vw, .9rem);
+  font-size: clamp(3rem, 11vw, 8.5rem);
+  line-height: .82;
   letter-spacing: .01em;
+  text-transform: uppercase;
+  /* A faint violet bleed off the letterforms, as if lit through fog. */
+  background: linear-gradient(178deg, var(--text) 58%, color-mix(in srgb, var(--mist-glow) 70%, var(--text)) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
-/* Cards ------------------------------------------------------------------- */
+.marquee__rule { margin: clamp(.75rem, 2vw, 1.15rem) 0 .9rem; }
 
-.cards {
+.marquee__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: .5rem 1.5rem;
+}
+
+.marquee__role {
+  margin: 0;
+  font-family: var(--display);
+  font-size: clamp(1rem, 2.2vw, 1.4rem);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--mist-glow);
+}
+
+.marquee__tagline {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: clamp(.85rem, 1.4vw, .95rem);
+}
+
+/* Optional one-line intro — copy is Will's to write (see class="todo"). */
+.marquee__intro {
+  margin: 1rem 0 0;
+  max-width: 34rem;
+  color: var(--text-dim);
+  font-size: clamp(.88rem, 1.5vw, 1rem);
+}
+
+/* --------------------------------------------------------------------------
+   5. Roster (the two project cards)
+   -------------------------------------------------------------------------- */
+
+.roster {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: clamp(1.5rem, 5vw, 4.5rem);
-  padding: clamp(1.5rem, 4vw, 3rem) clamp(1.5rem, 4vw, 3rem) clamp(4rem, 10vw, 7rem);
-  flex-wrap: wrap;
+  gap: clamp(1.75rem, 6vw, 5.5rem);
+  padding: clamp(1.5rem, 3.5vw, 2.75rem) var(--gutter) clamp(1.5rem, 3vw, 2.5rem);
+  perspective: 1400px;
 }
 
 .card {
   display: block;
+  position: relative;
   text-decoration: none;
-  width: clamp(260px, 32vw, 400px);
+  width: clamp(280px, 34vw, 430px);
   flex: 0 1 auto;
+  -webkit-tap-highlight-color: transparent;
 }
 
-/* Float lives on its own element so the hover transform never fights it. */
+/* Stagger — asymmetry by position, not by size, so neither project reads as
+   ranked above the other. */
+.card--storm { margin-top: clamp(1.5rem, 4vw, 3.5rem); }
+
+/* Ghost roster numeral. */
+.card__index {
+  position: absolute;
+  top: clamp(-3.5rem, -6vw, -2rem);
+  left: -.06em;
+  z-index: 0;
+  font-family: var(--display);
+  font-size: clamp(4rem, 11vw, 8rem);
+  line-height: .8;
+  letter-spacing: .02em;
+  color: transparent;
+  -webkit-text-stroke: 1px color-mix(in srgb, var(--accent) 42%, transparent);
+  opacity: .5;
+  pointer-events: none;
+  transition: opacity 420ms var(--ease), transform 420ms var(--ease-out),
+              -webkit-text-stroke-color 420ms var(--ease);
+}
+
+.card:hover .card__index,
+.card:focus-visible .card__index {
+  opacity: .95;
+  transform: translateY(-6px);
+  -webkit-text-stroke-color: color-mix(in srgb, var(--accent) 85%, transparent);
+}
+
+/* Each transform gets its own element so idle float, pointer tilt, and hover
+   lift never overwrite one another. */
 .card__float {
   animation: float 7s ease-in-out infinite;
   will-change: transform;
 }
 
-.card:nth-of-type(2) .card__float {
+.card--storm .card__float {
   animation-duration: 7.8s;
   animation-delay: -2.6s; /* offset — the two cards must never drift in sync */
 }
@@ -119,133 +344,396 @@ img { max-width: 100%; display: block; }
   50%      { transform: translateY(calc(var(--float-range) /  2)); }
 }
 
-.card__inner {
-  position: relative;
-  border-radius: 14px;
-  padding: clamp(1.25rem, 2.5vw, 1.75rem);
-  background: #101010;
-  border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
-  box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--accent) 8%, transparent),
-    0 18px 50px -12px color-mix(in srgb, var(--accent) 30%, transparent);
-  transition: transform 340ms var(--ease), box-shadow 340ms var(--ease);
+.card__tilt {
+  transform: rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
+  transform-style: preserve-3d;
+  transition: transform 420ms var(--ease-out);
 }
 
-/* Soft outer bloom, separate from the card so it can bloom independently. */
-.card__inner::before {
+.card:hover .card__tilt { transition-duration: 90ms; } /* track the pointer live */
+
+.card__inner {
+  position: relative;
+  z-index: 1;
+  border-radius: 18px;
+  padding: clamp(1rem, 2vw, 1.35rem);
+  overflow: hidden;
+  background:
+    linear-gradient(180deg,
+      color-mix(in srgb, var(--accent) 7%, var(--surface)) 0%,
+      var(--surface-lo) 62%);
+  border: 1px solid color-mix(in srgb, var(--accent) 24%, transparent);
+  box-shadow:
+    inset 0 1px 0 rgba(245, 245, 240, .08),
+    0 1px 0 0 rgba(0, 0, 0, .6),
+    0 22px 58px -14px color-mix(in srgb, var(--accent) 32%, transparent);
+  transition: transform 360ms var(--ease-out), box-shadow 360ms var(--ease),
+              border-color 360ms var(--ease);
+}
+
+/* Outer bloom, on its own element so it can swell independently of the card. */
+.card__inner::after {
   content: '';
   position: absolute;
-  inset: -18%;
+  inset: -22%;
   z-index: -1;
   border-radius: 50%;
   background: radial-gradient(closest-side,
-              color-mix(in srgb, var(--accent) 38%, transparent), transparent 78%);
-  filter: blur(34px);
-  opacity: .55;
-  transition: opacity 340ms var(--ease);
+              color-mix(in srgb, var(--accent) 40%, transparent), transparent 78%);
+  filter: blur(38px);
+  opacity: .5;
+  transition: opacity 360ms var(--ease);
   pointer-events: none;
 }
+
+/* Pointer-tracked specular sweep. --mx/--my are set by main.js. */
+.card__sheen {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 320ms var(--ease);
+  background: radial-gradient(38% 50% at var(--mx, 50%) var(--my, 50%),
+              color-mix(in srgb, var(--accent) 26%, transparent) 0%,
+              transparent 68%);
+  mix-blend-mode: screen;
+}
+
+.card:hover .card__sheen,
+.card:focus-visible .card__sheen { opacity: 1; }
 
 .card:hover .card__float,
 .card:focus-visible .card__float { animation-play-state: paused; }
 
 .card:hover .card__inner,
 .card:focus-visible .card__inner {
-  transform: translateY(-6px) scale(1.02);
+  transform: translateY(-8px) scale(1.018);
+  border-color: color-mix(in srgb, var(--accent) 52%, transparent);
   box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--accent) 20%, transparent),
-    0 26px 66px -10px color-mix(in srgb, var(--accent) 46%, transparent);
+    inset 0 1px 0 rgba(245, 245, 240, .12),
+    0 1px 0 0 rgba(0, 0, 0, .6),
+    0 34px 78px -12px color-mix(in srgb, var(--accent) 50%, transparent);
 }
 
-.card:hover .card__inner::before,
-.card:focus-visible .card__inner::before { opacity: .9; }
+.card:hover .card__inner::after,
+.card:focus-visible .card__inner::after { opacity: .95; }
+
+.card:active .card__inner { transform: translateY(-2px) scale(.995); transition-duration: 110ms; }
+
+/* The chosen card advances toward the viewer as the mist takes it. */
+.card.is-chosen .card__float { animation-play-state: paused; }
+
+.card.is-chosen .card__inner {
+  transition: transform 620ms var(--ease-in), box-shadow 620ms var(--ease);
+  transform: translateY(-14px) scale(1.07);
+  box-shadow:
+    inset 0 1px 0 rgba(245, 245, 240, .14),
+    0 48px 110px -10px color-mix(in srgb, var(--accent) 68%, transparent);
+}
+
+.card.is-chosen .card__index { opacity: 0; transform: translateY(-22px); }
 
 .card--bev   { --accent: var(--bev); }
 .card--storm { --accent: var(--storm); }
 
+/* Card art ---------------------------------------------------------------- */
+
 .card__art {
-  aspect-ratio: 4 / 3;
-  border-radius: 8px;
+  position: relative;
+  aspect-ratio: 16 / 10;   /* was 4/3, which cropped ~27% off the capsule art */
+  border-radius: 11px;
   overflow: hidden;
-  background: #0C0C0C;
-  margin-bottom: 1.15rem;
+  background: #0A0A0C;
+  border: 1px solid var(--line-soft);
 }
 
-.card__art img { width: 100%; height: 100%; object-fit: cover; }
+.card__art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.02);
+  transition: transform 700ms var(--ease-out);
+}
+
+.card:hover .card__art img { transform: scale(1.06); }
+
+/* Bottom vignette so the art never fights the title block. */
+.card__art::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 42%;
+  background: linear-gradient(to top, var(--surface-lo), transparent);
+  opacity: .55;
+  pointer-events: none;
+}
+
+.card__foot {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1.1rem;
+}
 
 .card__title {
   margin: 0;
   font-family: var(--display);
-  font-size: clamp(1.6rem, 3vw, 2.15rem);
+  font-size: clamp(1.9rem, 3.4vw, 2.6rem);
   letter-spacing: .03em;
-  line-height: 1;
+  line-height: .9;
   color: var(--accent);
 }
 
 .card__meta {
-  margin: .45rem 0 0;
+  margin: .4rem 0 0;
   color: var(--text-dim);
-  font-size: .82rem;
+  font-size: .84rem;
+  line-height: 1.35;
 }
 
-/* Stylized bevfantasy mock — §6 keeps "real screenshot vs. mock" open, so this
-   is intentionally illustrative rather than a product capture. */
+.card__status {
+  flex: none;
+  padding: .3rem .6rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  color: color-mix(in srgb, var(--accent) 82%, var(--text));
+  font-size: .62rem;
+  font-weight: 600;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* Stylized bevfantasy mock. §6 leaves "real screenshot vs. mock" open and Will
+   has agreed to swap in real product UI — this slot is sized to receive it.
+   Until then the mock is dressed to hold its own next to painted key art. */
 .mock {
-  height: 100%;
-  padding: .9rem 1rem;
+  position: absolute;
+  inset: 0;
+  padding: clamp(.85rem, 1.8vw, 1.15rem);
   display: flex;
   flex-direction: column;
-  gap: .5rem;
-  font-size: .7rem;
+  background:
+    radial-gradient(120% 90% at 12% 0%, color-mix(in srgb, var(--accent) 13%, transparent), transparent 62%),
+    linear-gradient(168deg, #131113, #0A0A0C);
 }
 
 .mock__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-bottom: .5rem;
+  margin-bottom: .6rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 26%, transparent);
+}
+
+.mock__title {
   font-family: var(--display);
   letter-spacing: .12em;
   color: var(--accent);
-  font-size: .78rem;
+  font-size: clamp(.8rem, 1.5vw, .95rem);
 }
 
-.mock__row { display: flex; align-items: center; gap: .55rem; }
-
-.mock__rank {
-  width: 1.1rem;
-  text-align: right;
+.mock__week {
+  font-size: .58rem;
+  font-weight: 600;
+  letter-spacing: .16em;
   color: var(--text-dim);
   font-variant-numeric: tabular-nums;
-  font-size: .68rem;
+}
+
+.mock__rows { display: flex; flex-direction: column; gap: .42rem; flex: 1; justify-content: center; }
+
+.mock__row { display: flex; align-items: center; gap: .5rem; }
+
+.mock__rank {
+  width: 1.15rem;
+  flex: none;
+  text-align: right;
+  color: var(--text);
+  opacity: .5;
+  font-variant-numeric: tabular-nums;
+  font-size: .6rem;
+  font-weight: 600;
+}
+
+.mock__track {
+  flex: 1;
+  height: .46rem;
+  border-radius: 999px;
+  background: rgba(245, 245, 240, .05);
+  overflow: hidden;
 }
 
 .mock__bar {
-  height: .5rem;
+  display: block;
+  height: 100%;
   width: var(--w);
   border-radius: 999px;
   background: linear-gradient(90deg,
-              var(--accent), color-mix(in srgb, var(--accent) 25%, transparent));
+              var(--accent), color-mix(in srgb, var(--accent) 22%, transparent));
 }
 
-/* Photo badge — §3 calls for this to be present, not tucked away. */
-.badge {
-  position: fixed;
-  right: clamp(1.25rem, 3vw, 2.25rem);
-  bottom: clamp(1.25rem, 3vw, 2.25rem);
-  z-index: 3;
+.mock__delta {
+  width: 1.5rem;
+  flex: none;
+  font-size: .55rem;
+  font-weight: 600;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.mock__delta--up   { color: color-mix(in srgb, var(--accent) 75%, var(--text)); }
+
+/* --------------------------------------------------------------------------
+   6. Site footer — photo badge + contact
+   -------------------------------------------------------------------------- */
+
+.site-foot {
   display: flex;
   align-items: center;
-  gap: .7rem;
-  color: var(--text-dim);
-  font-size: .76rem;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1.25rem 2rem;
+  padding: 0 var(--gutter) clamp(1.5rem, 3.5vw, 2.5rem);
 }
 
-.badge img {
-  width: 52px;
-  height: 52px;
+/* §3: the photo is deliberately present, not tucked away. The lavender studio
+   backdrop is turned into an asset here — the violet mist bloom absorbs it. */
+.badge {
+  display: flex;
+  align-items: center;
+  gap: .85rem;
+  color: var(--text-dim);
+  font-size: .78rem;
+}
+
+/* The bloom is drawn by pseudo-elements that spill far outside the photo, and
+   absolutely-positioned overflow counts toward the document's scroll height —
+   enough to put a scrollbar on a homepage that otherwise fits exactly. This
+   wrapper bounds it: padding opens a clipping box around the photo, the equal
+   negative margin cancels that padding so the badge's layout position is
+   unchanged, and overflow:hidden stops the spill from reaching the document.
+   The gradients fade to transparent well inside the box, so nothing visible is
+   actually cut. Bottom is tightest because down is the only direction that can
+   lengthen the page. */
+.badge__aura {
+  position: relative;
+  flex: none;
+  padding: 48px 48px 20px;
+  margin: -48px -48px -20px;
+  overflow: hidden;
+}
+
+.badge__shot {
+  position: relative;
+  width: 64px;
+  height: 64px;
+}
+
+.badge__shot img {
+  width: 100%;
+  height: 100%;
   border-radius: 50%;
   object-fit: cover;
-  border: 1px solid rgba(245, 245, 240, .16);
+  position: relative;
+  z-index: 1;
+  border: 1px solid color-mix(in srgb, var(--mist-glow) 34%, transparent);
 }
 
-/* Mist transition — §4, the signature moment ------------------------------ */
+/* Violet bloom behind the photo. */
+.badge__shot::before {
+  content: '';
+  position: absolute;
+  inset: -45%;
+  z-index: 0;
+  border-radius: 50%;
+  background: radial-gradient(closest-side,
+              color-mix(in srgb, var(--mist-core) 62%, transparent), transparent 74%);
+  filter: blur(16px);
+  opacity: .8;
+  animation: badge-pulse 6.5s ease-in-out infinite;
+}
+
+/* A wisp curling off the photo, so it reads as part of the same fog system. */
+.badge__shot::after {
+  content: '';
+  position: absolute;
+  inset: -60% -60% -25% -60%;
+  z-index: 0;
+  border-radius: 50%;
+  background:
+    radial-gradient(38% 34% at 30% 68%, color-mix(in srgb, var(--mist-glow) 34%, transparent), transparent 70%),
+    radial-gradient(30% 40% at 72% 34%, color-mix(in srgb, var(--mist-mid) 52%, transparent), transparent 72%);
+  filter: blur(11px);
+  opacity: .7;
+  animation: badge-curl 13s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+@keyframes badge-pulse {
+  0%, 100% { opacity: .58; transform: scale(1);    }
+  50%      { opacity: .92; transform: scale(1.09); }
+}
+
+@keyframes badge-curl {
+  from { transform: rotate(0deg)  translate3d(0, 0, 0)    scale(1);    }
+  to   { transform: rotate(14deg) translate3d(2%, -3%, 0) scale(1.06); }
+}
+
+.badge__text { margin: 0; }
+.badge__name { display: block; font-weight: 600; color: var(--text); }
+.badge__note { display: block; font-size: .72rem; }
+
+.contact {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .4rem 1.35rem;
+}
+
+.contact a {
+  position: relative;
+  text-decoration: none;
+  font-size: .82rem;
+  color: var(--text-dim);
+  padding: .15rem 0;
+  transition: color 220ms var(--ease);
+}
+
+.contact a::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 300ms var(--ease-out);
+}
+
+.contact a:hover { color: var(--mist-glow); }
+.contact a:hover::after { transform: scaleX(1); }
+
+/* --------------------------------------------------------------------------
+   7. The mist — §4's signature moment
+   Layered masks over a single animated radius. Turbulence warps each layer's
+   painted fog once (filters resolve before masking, so expanding the mask does
+   not re-rasterize the noise).
+   -------------------------------------------------------------------------- */
+
+/* Origin and tint live on :root so the inline head script on an arriving page
+   can set them before first paint — the fog must already be there when the new
+   document paints, or the navigation seam shows. */
+:root {
+  --ox:   50%;
+  --oy:   50%;
+  --tint: var(--mist-glow);
+}
 
 .mist {
   position: fixed;
@@ -253,166 +741,482 @@ img { max-width: 100%; display: block; }
   z-index: 90;
   visibility: hidden;
   pointer-events: none;
-  background: radial-gradient(circle at var(--ox, 50%) var(--oy, 50%),
-              color-mix(in srgb, var(--tint, #FFF) 10%, rgba(10, 10, 10, .55)) 0%,
-              rgba(10, 10, 10, .97) 58%);
-  clip-path: circle(0% at var(--ox, 50%) var(--oy, 50%));
 }
 
-.mist.is-active {
-  visibility: visible;
-  pointer-events: auto;
-  animation: mist-in 900ms var(--ease) forwards;
-}
+.mist.is-entering { visibility: visible; pointer-events: auto; }
 
-@keyframes mist-in {
-  from { clip-path: circle(0%   at var(--ox) var(--oy)); backdrop-filter: blur(0px);  }
-  to   { clip-path: circle(150% at var(--ox) var(--oy)); backdrop-filter: blur(16px); }
-}
-
-.mist__label {
+.mist > * {
   position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
+  inset: 0;
+  pointer-events: none;
+}
+
+/* Shared soft-edged reveal. The feather spans the outer ~45% of the radius —
+   this is the whole difference between fog and a circle wipe. */
+.mist__blur,
+.mist__veil,
+.mist__wisp {
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+.mist__blur {
+  backdrop-filter: blur(18px) saturate(.7);
+  -webkit-backdrop-filter: blur(18px) saturate(.7);
+  -webkit-mask-image: radial-gradient(circle calc(var(--mr) * .96) at var(--ox) var(--oy),
+                      #000 0%, #000 62%, rgba(0,0,0,.4) 84%, transparent 100%);
+  mask-image: radial-gradient(circle calc(var(--mr) * .96) at var(--ox) var(--oy),
+              #000 0%, #000 62%, rgba(0,0,0,.4) 84%, transparent 100%);
+}
+
+.mist__veil {
+  background:
+    radial-gradient(circle 58vmax at var(--ox) var(--oy),
+      color-mix(in srgb, var(--tint) 24%, var(--mist-mid)) 0%,
+      var(--mist-deep) 40%,
+      rgba(7, 6, 11, .97) 76%);
+  -webkit-mask-image: radial-gradient(circle var(--mr) at var(--ox) var(--oy),
+                      #000 0%, #000 55%, rgba(0,0,0,.55) 78%, transparent 100%);
+  mask-image: radial-gradient(circle var(--mr) at var(--ox) var(--oy),
+              #000 0%, #000 55%, rgba(0,0,0,.55) 78%, transparent 100%);
+}
+
+/* Wisps: turbulence-warped fog blobs, each on its own radius multiplier and
+   drift, so the leading edge is lumpy and never a clean circle. */
+.mist__wisp {
+  mix-blend-mode: screen;
+  opacity: .85;
+  will-change: transform;
+}
+
+.mist__wisp--a {
+  background:
+    radial-gradient(46% 38% at calc(var(--ox) - 12vmin) calc(var(--oy) - 8vmin),
+      color-mix(in srgb, var(--mist-core) 58%, transparent), transparent 68%),
+    radial-gradient(34% 30% at calc(var(--ox) + 16vmin) calc(var(--oy) + 10vmin),
+      color-mix(in srgb, var(--tint) 30%, transparent), transparent 70%);
+  filter: url(#mist-warp-a);
+  -webkit-mask-image: radial-gradient(circle calc(var(--mr) * 1.16) at var(--ox) var(--oy),
+                      #000 0%, #000 38%, transparent 100%);
+  mask-image: radial-gradient(circle calc(var(--mr) * 1.16) at var(--ox) var(--oy),
+              #000 0%, #000 38%, transparent 100%);
+}
+
+.mist__wisp--b {
+  background:
+    radial-gradient(52% 44% at calc(var(--ox) + 10vmin) calc(var(--oy) - 14vmin),
+      color-mix(in srgb, var(--mist-glow) 42%, transparent), transparent 72%);
+  filter: url(#mist-warp-b);
+  opacity: .6;
+  -webkit-mask-image: radial-gradient(circle calc(var(--mr) * 1.3) at var(--ox) var(--oy),
+                      #000 0%, #000 28%, transparent 100%);
+  mask-image: radial-gradient(circle calc(var(--mr) * 1.3) at var(--ox) var(--oy),
+              #000 0%, #000 28%, transparent 100%);
+}
+
+.mist__wisp--c {
+  background:
+    radial-gradient(60% 50% at var(--ox) var(--oy),
+      color-mix(in srgb, var(--mist-mid) 72%, transparent), transparent 66%);
+  filter: url(#mist-warp-a);
+  opacity: .5;
+  -webkit-mask-image: radial-gradient(circle calc(var(--mr) * .82) at var(--ox) var(--oy),
+                      #000 0%, #000 46%, transparent 100%);
+  mask-image: radial-gradient(circle calc(var(--mr) * .82) at var(--ox) var(--oy),
+              #000 0%, #000 46%, transparent 100%);
+}
+
+/* Enter: 700ms of fog. --mist-max is set to ~2.2x the distance to the furthest
+   corner, because the mask's opaque core only reaches 55% of the radius — at a
+   smaller max the screen corners would still be see-through at the moment we
+   navigate, and the page swap would show. */
+.mist.is-entering {
+  animation: mist-grow 700ms var(--ease-fog) forwards;
+}
+
+@keyframes mist-grow {
+  from { --mr: 0px; }
+  to   { --mr: var(--mist-max, 120vmax); }
+}
+
+.mist.is-entering .mist__wisp--a { animation: wisp-a 700ms var(--ease-out) forwards; }
+.mist.is-entering .mist__wisp--b { animation: wisp-b 700ms var(--ease-out) forwards; }
+.mist.is-entering .mist__wisp--c { animation: wisp-c 820ms var(--ease-out) forwards; }
+
+@keyframes wisp-a {
+  from { transform: translate3d(0, 0, 0) rotate(0deg) scale(.8); }
+  to   { transform: translate3d(-3%, -4%, 0) rotate(9deg) scale(1.25); }
+}
+
+@keyframes wisp-b {
+  from { transform: translate3d(0, 0, 0) rotate(0deg) scale(.85); }
+  to   { transform: translate3d(4%, 3%, 0) rotate(-11deg) scale(1.3); }
+}
+
+@keyframes wisp-c {
+  from { transform: translate3d(0, 0, 0) rotate(0deg) scale(.9); }
+  to   { transform: translate3d(2%, -6%, 0) rotate(5deg) scale(1.18); }
+}
+
+/* Exit: the fog the visitor arrived inside, thinning and lifting away.
+   Not a reverse wipe — it disperses, which is how fog actually clears.
+
+   Driven entirely by a class the inline head script puts on <html>, so the fog
+   is painted with the very first frame of the new document and clears without
+   waiting on main.js. If the script never runs, no class is set and the page
+   simply renders normally. */
+.is-arriving .mist {
+  visibility: visible;
+  --mr: var(--mist-max);
+  animation: mist-clear 980ms var(--ease-out) 80ms forwards;
+}
+
+@keyframes mist-clear {
+  from { opacity: 1; }
+  to   { opacity: 0; visibility: hidden; }
+}
+
+.is-arriving .mist__blur { animation: blur-clear 980ms var(--ease-out) 80ms forwards; }
+
+@keyframes blur-clear {
+  from { backdrop-filter: blur(18px) saturate(.7); -webkit-backdrop-filter: blur(18px) saturate(.7); }
+  to   { backdrop-filter: blur(0px) saturate(1);   -webkit-backdrop-filter: blur(0px) saturate(1);   }
+}
+
+.is-arriving .mist__wisp--a { animation: wisp-lift-a 1180ms var(--ease-out) forwards; }
+.is-arriving .mist__wisp--b { animation: wisp-lift-b 1180ms var(--ease-out) forwards; }
+.is-arriving .mist__wisp--c { animation: wisp-lift-c 1180ms var(--ease-out) forwards; }
+
+/* Content surfaces from under the fog rather than starting fully present. */
+.is-arriving .case-wrap,
+.is-arriving .case-foot,
+.is-arriving .notfound > * {
+  animation: surface 760ms var(--ease-out) 120ms both;
+}
+
+@keyframes surface {
+  from { opacity: 0; transform: translateY(10px); filter: blur(3px); }
+  to   { opacity: 1; transform: none;             filter: blur(0);   }
+}
+
+@keyframes wisp-lift-a {
+  from { transform: translate3d(-3%, -4%, 0) rotate(9deg)  scale(1.25); opacity: .85; }
+  to   { transform: translate3d(-8%, -16%, 0) rotate(19deg) scale(1.7); opacity: 0; }
+}
+
+@keyframes wisp-lift-b {
+  from { transform: translate3d(4%, 3%, 0)   rotate(-11deg) scale(1.3); opacity: .6; }
+  to   { transform: translate3d(10%, -12%, 0) rotate(-22deg) scale(1.8); opacity: 0; }
+}
+
+@keyframes wisp-lift-c {
+  from { transform: translate3d(2%, -6%, 0)  rotate(5deg)  scale(1.18); opacity: .5; }
+  to   { transform: translate3d(-4%, -20%, 0) rotate(12deg) scale(1.65); opacity: 0; }
+}
+
+/* Label — the project name, held inside the fog across the navigation. */
+.mist__label {
+  display: grid;
+  place-content: center;
+  text-align: center;
+}
+
+.mist__label span {
+  display: block;
   font-family: var(--display);
-  font-size: clamp(1.5rem, 4vw, 2.4rem);
-  letter-spacing: .08em;
-  color: var(--tint, var(--text));
+  font-size: clamp(2rem, 7vw, 4.75rem);
+  letter-spacing: .1em;
+  line-height: 1;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--tint) 78%, var(--text));
+  text-shadow: 0 0 42px color-mix(in srgb, var(--tint) 45%, transparent);
   opacity: 0;
 }
 
-.mist.is-active .mist__label {
-  animation: label-in 460ms var(--ease) 340ms forwards;
+.mist.is-entering .mist__label span {
+  animation: label-rise 300ms var(--ease-out) 240ms forwards;
 }
 
-@keyframes label-in {
-  from { opacity: 0; transform: translate(-50%, -46%); }
-  to   { opacity: 1; transform: translate(-50%, -50%); }
+@keyframes label-rise {
+  from { opacity: 0; transform: translateY(14px) scale(.97); filter: blur(6px); }
+  to   { opacity: 1; transform: none;                        filter: blur(0);   }
+}
+
+.is-arriving .mist__label span {
+  opacity: 1;
+  animation: label-dissolve 520ms var(--ease) 80ms forwards;
+}
+
+@keyframes label-dissolve {
+  from { opacity: 1; transform: none;                          filter: blur(0);    }
+  to   { opacity: 0; transform: translateY(-16px) scale(1.04); filter: blur(10px); }
+}
+
+/* The turbulence <svg> is inline in the document but must never take up space. */
+.mist-defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
 }
 
 /* --------------------------------------------------------------------------
-   Case study pages
-   §5: quieter than the homepage. Readability over flair.
+   8. Case study pages — §5: quieter than the homepage, readability over flair.
    -------------------------------------------------------------------------- */
 
-.case { --accent: var(--text); }
+.case { --accent: var(--mist-glow); }
 .case.theme-bev   { --accent: var(--bev); }
 .case.theme-storm { --accent: var(--storm); }
 
 .case-wrap {
-  max-width: 44rem;
+  max-width: 64rem;
   margin: 0 auto;
-  padding: clamp(1.5rem, 4vw, 2.5rem) clamp(1.25rem, 5vw, 2rem) 6rem;
+  padding: clamp(1.25rem, 3vw, 2rem) var(--gutter) 0;
+}
+
+.case-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: clamp(2rem, 6vw, 3.5rem);
 }
 
 .case-back {
-  display: inline-block;
-  margin-bottom: clamp(2.5rem, 7vw, 4.5rem);
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
   color: var(--text-dim);
   text-decoration: none;
   font-size: .82rem;
-  transition: color 200ms var(--ease);
+  transition: color 220ms var(--ease), gap 220ms var(--ease-out);
 }
 
-.case-back:hover { color: var(--text); }
+.case-back:hover { color: var(--text); gap: .75rem; }
+
+/* Accent carry-through: enough that the page you land on clearly belongs to
+   the card you clicked, without breaking §5's calm. */
+.case-head {
+  position: relative;
+  padding-bottom: clamp(1.5rem, 4vw, 2.25rem);
+}
+
+.case-head__index {
+  position: absolute;
+  top: -.28em;
+  right: 0;
+  font-family: var(--display);
+  font-size: clamp(5rem, 16vw, 12rem);
+  line-height: .8;
+  color: transparent;
+  -webkit-text-stroke: 1px color-mix(in srgb, var(--accent) 26%, transparent);
+  opacity: .35;
+  pointer-events: none;
+  user-select: none;
+}
 
 .case-eyebrow {
-  margin: 0 0 .6rem;
+  margin: 0 0 .7rem;
   color: var(--accent);
-  font-size: .74rem;
+  font-size: .7rem;
   font-weight: 600;
-  letter-spacing: .14em;
+  letter-spacing: .22em;
   text-transform: uppercase;
 }
 
 .case-title {
   margin: 0;
   font-family: var(--display);
-  font-size: clamp(2.4rem, 7vw, 3.8rem);
+  font-size: clamp(2.75rem, 9vw, 5.5rem);
   letter-spacing: .02em;
-  line-height: 1;
+  line-height: .88;
+  text-transform: uppercase;
 }
 
 .case-sub {
-  margin: 1rem 0 0;
+  margin: 1.15rem 0 0;
   color: var(--text-dim);
-  font-size: 1.02rem;
-  max-width: 34rem;
+  font-size: clamp(1rem, 1.8vw, 1.1rem);
+  max-width: 32rem;
 }
+
+.case-rule { margin: clamp(1.5rem, 4vw, 2.25rem) 0 0; }
 
 .case-facts {
   display: flex;
   flex-wrap: wrap;
-  gap: 1.75rem;
-  margin: 2.5rem 0 0;
-  padding: 1.25rem 0;
-  border-top: 1px solid rgba(245, 245, 240, .1);
-  border-bottom: 1px solid rgba(245, 245, 240, .1);
+  gap: 1.5rem 2.5rem;
+  margin: 0;
+  padding: 1.35rem 0;
+  border-bottom: 1px solid var(--line);
 }
 
 .case-fact dt {
-  margin: 0 0 .3rem;
+  margin: 0 0 .35rem;
   color: var(--text-dim);
-  font-size: .7rem;
-  letter-spacing: .1em;
+  font-size: .66rem;
+  font-weight: 600;
+  letter-spacing: .2em;
   text-transform: uppercase;
 }
 
-.case-fact dd { margin: 0; font-size: .92rem; }
+.case-fact dd { margin: 0; font-size: .94rem; }
 
-.case-body { margin-top: clamp(2.5rem, 6vw, 3.5rem); }
-
-.case-body h2 {
-  margin: 3.25rem 0 1rem;
-  font-size: 1.35rem;
-  font-weight: 600;
-  letter-spacing: -.01em;
+/* Text stays at a readable measure; figures are allowed to break out wider. */
+.case-body {
+  display: grid;
+  grid-template-columns:
+    [full-start] minmax(0, 1fr)
+    [text-start] minmax(0, var(--measure))
+    [text-end]   minmax(0, 1fr)
+    [full-end];
+  margin-top: clamp(2.5rem, 6vw, 4rem);
 }
 
-.case-body h2:first-child { margin-top: 0; }
+.case-body > * { grid-column: text; }
+
+.case-body h2 {
+  grid-column: text;
+  position: relative;
+  margin: 3.5rem 0 1.1rem;
+  font-family: var(--display);
+  font-size: clamp(1.6rem, 3vw, 2.1rem);
+  font-weight: 400;
+  letter-spacing: .06em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.case-body h2::before {
+  content: '';
+  position: absolute;
+  left: -1.25rem;
+  top: .12em;
+  bottom: .12em;
+  width: 2px;
+  background: var(--accent);
+  border-radius: 2px;
+}
+
+.case-body > h2:first-child { margin-top: 0; }
 
 .case-body h3 {
-  margin: 2.25rem 0 .75rem;
+  margin: 2.5rem 0 .8rem;
   font-size: 1.02rem;
   font-weight: 600;
+  letter-spacing: -.005em;
   color: var(--accent);
 }
 
-.case-body p { margin: 0 0 1.15rem; }
+.case-body p { margin: 0 0 1.2rem; }
 
-.case-body ul { margin: 0 0 1.15rem; padding-left: 1.15rem; }
-.case-body li { margin-bottom: .5rem; }
+.case-body ul { margin: 0 0 1.2rem; padding-left: 1.15rem; }
+.case-body li { margin-bottom: .55rem; }
 
-.case-figure { margin: 2rem 0; }
+.case-figure {
+  grid-column: full;
+  margin: 2.5rem 0;
+}
 
-.case-figure img { border-radius: 8px; width: 100%; }
+.case-figure img {
+  border-radius: 12px;
+  width: 100%;
+  border: 1px solid var(--line-soft);
+}
+
+/* Empty placeholder figures shouldn't render as a stray caption. */
+.case-figure--empty {
+  border: 1px dashed color-mix(in srgb, var(--accent) 28%, transparent);
+  border-radius: 12px;
+  padding: clamp(2rem, 6vw, 3.5rem) 1.5rem;
+  text-align: center;
+  background: color-mix(in srgb, var(--accent) 3%, transparent);
+}
 
 .case-figure figcaption {
-  margin-top: .7rem;
+  margin-top: .8rem;
   color: var(--text-dim);
   font-size: .8rem;
 }
 
+.case-figure--empty figcaption { margin: 0; }
+
 .case-note {
-  margin: 2.5rem 0 0;
+  grid-column: text;
+  margin: 3rem 0 0;
   padding-top: 1.25rem;
-  border-top: 1px solid rgba(245, 245, 240, .1);
+  border-top: 1px solid var(--line);
   color: var(--text-dim);
   font-size: .85rem;
 }
 
-/* Scaffolding marker — delete these along with the placeholder copy. */
+/* Scaffolding markers — delete these along with the placeholder content.
+   Note: one .todo is on the homepage and carries a second class, so the old
+   `grep -rn 'class="todo"' work/` no longer finds everything. Use:
+   grep -rn --include=*.html -E 'class="[^"]*todo|todo-mark' . */
+.todo-mark {
+  color: color-mix(in srgb, var(--accent) 78%, var(--text));
+  font-weight: 600;
+  letter-spacing: .04em;
+}
+
 .todo {
-  border-left: 2px solid var(--accent);
+  border-left: 2px solid color-mix(in srgb, var(--accent) 55%, transparent);
   padding: .1rem 0 .1rem 1rem;
-  margin: 0 0 1.15rem;
+  margin: 0 0 1.2rem;
   color: var(--text-dim);
   font-size: .9rem;
 }
 
+/* Case study footer: next project + contact ------------------------------- */
+
+.case-foot {
+  max-width: 64rem;
+  margin: clamp(4rem, 10vw, 7rem) auto 0;
+  padding: 0 var(--gutter) clamp(3rem, 6vw, 4.5rem);
+}
+
+.case-next {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: clamp(1.5rem, 4vw, 2.25rem) 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  text-decoration: none;
+  transition: padding-inline 300ms var(--ease-out);
+}
+
+.case-next:hover { padding-inline: .75rem; }
+
+.case-next__label { margin: 0 0 .4rem; }
+
+.case-next__name {
+  margin: 0;
+  font-family: var(--display);
+  font-size: clamp(1.75rem, 5vw, 3rem);
+  line-height: .9;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+  color: var(--next-accent, var(--text));
+  transition: color 260ms var(--ease);
+}
+
+.case-next__arrow {
+  flex: none;
+  font-size: 1.5rem;
+  color: var(--text-dim);
+  transition: transform 320ms var(--ease-out), color 260ms var(--ease);
+}
+
+.case-next:hover .case-next__arrow { transform: translateX(6px); color: var(--next-accent, var(--text)); }
+
+.case-foot .contact { margin-top: clamp(1.75rem, 4vw, 2.5rem); }
+
 /* --------------------------------------------------------------------------
-   404
+   9. 404
    -------------------------------------------------------------------------- */
 
 .notfound {
@@ -422,29 +1226,120 @@ img { max-width: 100%; display: block; }
   place-content: center;
   text-align: center;
   padding: 2rem;
+  position: relative;
+  overflow: hidden;
 }
+
+.notfound::before {
+  content: '';
+  position: absolute;
+  inset: -25%;
+  background: radial-gradient(40% 40% at 50% 45%,
+              color-mix(in srgb, var(--mist-core) 34%, transparent), transparent 70%);
+  filter: blur(50px);
+  animation: drift-slow 26s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+.notfound > * { position: relative; }
 
 .notfound h1 {
   font-family: var(--display);
-  font-size: clamp(3rem, 12vw, 6rem);
+  font-size: clamp(5rem, 22vw, 12rem);
   margin: 0;
+  line-height: .85;
   letter-spacing: .04em;
+  color: transparent;
+  background: linear-gradient(180deg, var(--text) 40%, var(--mist-core) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
 }
 
 .notfound p { color: var(--text-dim); }
 
+.notfound a { color: var(--mist-glow); }
+
 /* --------------------------------------------------------------------------
-   Responsive
+   10. Responsive
    -------------------------------------------------------------------------- */
 
+/* Cards get cramped well before they stack — pull the stagger back first. */
+@media (max-width: 1180px) {
+  .card--storm { margin-top: clamp(1.5rem, 4vw, 3rem); }
+}
+
+@media (max-width: 1000px) {
+  .roster { gap: clamp(1.25rem, 3.5vw, 2.5rem); }
+  .card   { width: clamp(260px, 40vw, 360px); }
+  .card__index { font-size: clamp(3.5rem, 9vw, 6rem); top: -2.5rem; }
+}
+
 @media (max-width: 820px) {
-  .cards { flex-direction: column; padding-bottom: 8rem; }
-  .card  { width: min(400px, 82vw); }
-  .badge { position: static; margin: 0 auto 2.5rem; justify-content: center; }
+  .roster {
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(3.5rem, 9vw, 5rem);
+    padding-top: clamp(3rem, 8vw, 4rem);
+  }
+  .card         { width: min(430px, 84vw); }
+  .card--storm  { margin-top: 0; }
+  .card__index  { top: -2.75rem; }
+  .site-foot    { flex-direction: column; align-items: flex-start; }
+  .case-head__index { font-size: clamp(4rem, 18vw, 7rem); opacity: .22; }
+}
+
+@media (max-width: 600px) {
+  .marquee__top    { flex-direction: column; align-items: flex-start; gap: .35rem; }
+  .card__foot      { flex-direction: column; align-items: flex-start; gap: .7rem; }
+  .case-body h2::before { left: -.75rem; }
+  .case-next       { flex-wrap: wrap; }
+}
+
+@media (max-width: 420px) {
+  .card        { width: 100%; }
+  .card__index { font-size: 3.25rem; top: -2rem; }
+  .badge__shot { width: 54px; height: 54px; }
+}
+
+/* Short viewports: the homepage is a composition, not a scroll. Two tiers —
+   the first covers ordinary laptops once browser chrome is subtracted, the
+   second covers genuinely cramped windows and phone landscape. */
+@media (max-height: 900px) and (min-width: 821px) {
+  .marquee        { padding-top: clamp(1.25rem, 2.5vw, 2rem); }
+  .marquee__name  { font-size: clamp(2.5rem, 7.5vw, 5.5rem); }
+  .marquee__intro { margin-top: .75rem; }
+  .roster         { padding-block: clamp(1rem, 2vw, 1.5rem) clamp(1rem, 2vw, 1.25rem); }
+  .card           { width: clamp(250px, 29vw, 370px); }
+  .card--storm    { margin-top: clamp(1rem, 2.5vw, 2rem); }
+  .card__index    { font-size: clamp(3rem, 7.5vw, 5.5rem); top: -2.4rem; }
+  .site-foot      { padding-bottom: clamp(1rem, 2vw, 1.5rem); }
+}
+
+@media (max-height: 700px) and (min-width: 821px) {
+  .marquee__name  { font-size: clamp(2.25rem, 6vw, 4.25rem); }
+  .marquee__intro { display: none; } /* the tagline already carries the hook */
+  .card           { width: clamp(230px, 25vw, 310px); }
+  .card--storm    { margin-top: clamp(.75rem, 2vh, 1.5rem); }
+  .card__index    { font-size: clamp(2.75rem, 6vw, 4.5rem); top: -2rem; }
+}
+
+/* Touch: :hover sticks after a tap, and hover-only affordances mislead. */
+@media (hover: none) {
+  .card:hover .card__float      { animation-play-state: running; }
+  .card:hover .card__inner      { transform: none; }
+  .card:hover .card__art img    { transform: scale(1.02); }
+  .card:hover .card__sheen      { opacity: 0; }
+  .card:hover .card__index      { opacity: .5; transform: none; }
+  .card:active .card__inner     { transform: scale(.985); transition-duration: 120ms; }
+  .card__tilt                   { transform: none !important; }
+  .case-next:hover              { padding-inline: 0; }
 }
 
 /* --------------------------------------------------------------------------
-   Reduced motion — §4 requires this in the final build.
+   11. Reduced motion — §4 requires this.
+   Idle drift, tilt, float and fog are all removed. The transition degrades to
+   a short cross-fade, which carries no vestibular risk but still marks the
+   navigation rather than snapping.
    -------------------------------------------------------------------------- */
 
 @media (prefers-reduced-motion: reduce) {
@@ -452,7 +1347,46 @@ img { max-width: 100%; display: block; }
     animation-duration: .001ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: .001ms !important;
+    scroll-behavior: auto !important;
   }
-  .card__float { animation: none; }
-  .card:hover .card__inner { transform: none; }
+
+  .home::before,
+  .notfound::before,
+  .badge__shot::before,
+  .badge__shot::after { animation: none; }
+
+  .card__float               { animation: none; }
+  .card__tilt                { transform: none !important; }
+  .card:hover .card__inner   { transform: none; }
+  .card:hover .card__art img { transform: scale(1.02); }
+  .card.is-chosen .card__inner { transform: none; }
+
+  .is-leaving .marquee,
+  .is-leaving .site-foot,
+  .is-leaving .card:not(.is-chosen),
+  .is-leaving .case-wrap,
+  .is-leaving .case-foot { opacity: 1; filter: none; transform: none; }
+
+  /* Fade only — no expanding fog, no wisps, no label motion. The fade itself is
+     driven by main.js through the Web Animations API, because the blanket
+     transition-duration override above would otherwise flatten it to nothing. */
+  .mist__wisp { display: none; }
+  .mist__blur { display: none; }
+
+  .mist.is-entering,
+  .is-arriving .mist { animation: none !important; }
+
+  .mist__veil {
+    -webkit-mask-image: none;
+    mask-image: none;
+    background: var(--bg);
+  }
+
+  .is-arriving .mist { visibility: hidden; }
+
+  .is-arriving .case-wrap,
+  .is-arriving .case-foot,
+  .is-arriving .notfound > * { animation: none; opacity: 1; filter: none; transform: none; }
+
+  .mist__label span { opacity: 0 !important; animation: none !important; }
 }

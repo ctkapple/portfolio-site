@@ -5,20 +5,52 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>bevfantasy — William Dooling</title>
 <meta name="description" content="Designing a fantasy football stats platform for a real league.">
+<link rel="canonical" href="https://www.williamdooling.com/work/bevfantasy/">
+<meta name="theme-color" content="#0A0A0A">
+
+<meta property="og:title" content="bevfantasy — William Dooling">
+<meta property="og:description" content="Designing a fantasy football stats platform for a real league.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://www.williamdooling.com/work/bevfantasy/">
+<meta property="og:image" content="https://www.williamdooling.com/assets/img/og-card.jpg">
+<meta name="twitter:card" content="summary_large_image">
 
 <link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600&display=swap">
 <link rel="stylesheet" href="../../assets/styles.css">
+
+<script>
+/* Paints the arrival fog before this document's first frame. See assets/main.js. */
+(function () {
+  try {
+    var raw = sessionStorage.getItem('wd:mist');
+    if (!raw) return;
+    var m = JSON.parse(raw);
+    if (!m || Date.now() - m.t > 6000) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var s = document.documentElement.style;
+    s.setProperty('--ox', m.ox + 'px');
+    s.setProperty('--oy', m.oy + 'px');
+    s.setProperty('--mist-max', m.max + 'px');
+    s.setProperty('--tint', m.tint);
+    document.documentElement.classList.add('is-arriving');
+  } catch (e) {}
+})();
+</script>
 </head>
 <body class="case theme-bev">
 
 <div class="case-wrap">
 
-  <a class="case-back" href="../../index.html">← Back</a>
+  <nav class="case-nav" aria-label="Breadcrumb">
+    <a class="case-back" href="../../index.html" data-mist><span aria-hidden="true">←</span> Back</a>
+    <p class="micro">01 / 02</p>
+  </nav>
 
-  <header>
+  <header class="case-head">
+    <span class="case-head__index" aria-hidden="true">01</span>
     <p class="case-eyebrow">Case Study</p>
     <h1 class="case-title">bevfantasy</h1>
     <p class="case-sub">
@@ -27,6 +59,8 @@
       users who tell me directly when something doesn't work.
     </p>
 
+    <hr class="rule case-rule">
+
     <dl class="case-facts">
       <div class="case-fact"><dt>Role</dt><dd>Design, product, build</dd></div>
       <div class="case-fact"><dt>Status</dt><dd>Live at bevfantasy.com</dd></div>
@@ -34,7 +68,7 @@
     </dl>
   </header>
 
-  <div class="case-body">
+  <main class="case-body">
 
     <h2>The problem</h2>
     <p class="todo">
@@ -62,8 +96,8 @@
       Why this format. What it replaced. What made it stick.
     </p>
 
-    <figure class="case-figure">
-      <!-- <img src="../../assets/img/bev-ap-poll.png" alt="..."> -->
+    <figure class="case-figure case-figure--empty">
+      <!-- <img src="../../assets/img/bev-ap-poll.webp" alt="..."> -->
       <figcaption>[Screenshot or before/after]</figcaption>
     </figure>
 
@@ -84,8 +118,48 @@
       Built with AI-assisted development.
     </p>
 
-  </div>
+  </main>
 </div>
 
+<footer class="case-foot">
+  <a class="case-next" href="../into-the-storm/" data-mist data-label="Into the Storm"
+     style="--next-accent: var(--storm);">
+    <div>
+      <p class="micro case-next__label">Next project</p>
+      <p class="case-next__name">Into the Storm</p>
+    </div>
+    <span class="case-next__arrow" aria-hidden="true">→</span>
+  </a>
+
+  <nav class="contact" aria-label="Contact">
+    <a href="#"><span class="todo-mark">[email]</span></a>
+    <a href="#"><span class="todo-mark">[LinkedIn]</span></a>
+    <a href="#"><span class="todo-mark">[résumé]</span></a>
+  </nav>
+</footer>
+
+<div class="mist" aria-hidden="true">
+  <div class="mist__blur"></div>
+  <div class="mist__veil"></div>
+  <div class="mist__wisp mist__wisp--c"></div>
+  <div class="mist__wisp mist__wisp--a"></div>
+  <div class="mist__wisp mist__wisp--b"></div>
+  <div class="mist__label"><span>bevfantasy</span></div>
+</div>
+
+<svg class="mist-defs" aria-hidden="true" focusable="false" width="0" height="0">
+  <defs>
+    <filter id="mist-warp-a" x="-35%" y="-35%" width="170%" height="170%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.0055 0.011" numOctaves="4" seed="7" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="170" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <filter id="mist-warp-b" x="-35%" y="-35%" width="170%" height="170%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.009 0.006" numOctaves="3" seed="23" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="120" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </defs>
+</svg>
+
+<script src="../../assets/main.js"></script>
 </body>
 </html>

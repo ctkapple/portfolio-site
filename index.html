@@ -5,66 +5,187 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>William Dooling — Product Designer</title>
 <meta name="description" content="Product designer. Risk PM by day, game dev by night. A fantasy football stats platform and a roguelite deckbuilder.">
+<link rel="canonical" href="https://www.williamdooling.com/">
+<meta name="theme-color" content="#0A0A0A">
 
 <meta property="og:title" content="William Dooling — Product Designer">
 <meta property="og:description" content="Risk PM by day, game dev by night.">
 <meta property="og:type" content="website">
+<meta property="og:url" content="https://www.williamdooling.com/">
+<!-- Absolute by necessity: crawlers don't resolve relative og: URLs. -->
+<meta property="og:image" content="https://www.williamdooling.com/assets/img/og-card.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600&display=swap">
 <link rel="stylesheet" href="assets/styles.css">
+
+<script>
+/* Paints the arrival fog before the first frame of this document, so the two
+   halves of the transition read as one continuous piece of weather. Pure
+   progressive enhancement: if this never runs, no class is set and the page
+   renders normally. Dissipation is CSS-driven — see .is-arriving in styles.css. */
+(function () {
+  try {
+    var raw = sessionStorage.getItem('wd:mist');
+    if (!raw) return;
+    var m = JSON.parse(raw);
+    if (!m || Date.now() - m.t > 6000) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var s = document.documentElement.style;
+    s.setProperty('--ox', m.ox + 'px');
+    s.setProperty('--oy', m.oy + 'px');
+    s.setProperty('--mist-max', m.max + 'px');
+    s.setProperty('--tint', m.tint);
+    document.documentElement.classList.add('is-arriving');
+  } catch (e) {}
+})();
+</script>
 </head>
 <body class="home">
 
-  <header class="site-head">
-    <h1 class="site-head__name">William Dooling</h1>
-    <p class="site-head__tagline">Product Designer · Risk PM by day, game dev by night.</p>
+  <header class="marquee">
+    <div class="marquee__top">
+      <p class="micro">Portfolio</p>
+      <p class="micro">Two projects · Both shipped</p>
+    </div>
+
+    <h1 class="marquee__name">William Dooling</h1>
+
+    <hr class="rule marquee__rule">
+
+    <div class="marquee__meta">
+      <p class="marquee__role">Product Designer</p>
+      <p class="marquee__tagline">Risk PM by day, game dev by night.</p>
+    </div>
+
+    <!-- §6 asks whether one line of intro beyond the tagline is needed. The slot
+         is here and sized; the sentence is Will's to write. -->
+    <p class="marquee__intro todo">
+      One line: what you're looking for and what these two projects demonstrate.
+      The tagline is the hook — this is the part that says what you want.
+    </p>
   </header>
 
-  <main class="cards">
+  <main class="roster">
 
-    <a class="card card--bev" href="work/bevfantasy/" data-label="bevfantasy">
+    <a class="card card--bev" href="work/bevfantasy/" data-mist data-label="bevfantasy">
+      <span class="card__index" aria-hidden="true">01</span>
       <div class="card__float">
-        <div class="card__inner">
-          <div class="card__art">
-            <!-- Stylized AP Poll mock. §6 leaves real-screenshot-vs-mock open. -->
-            <div class="mock" aria-hidden="true">
-              <div class="mock__head">AP POLL · WEEK 12</div>
-              <div class="mock__row"><span class="mock__rank">1</span><span class="mock__bar" style="--w:92%"></span></div>
-              <div class="mock__row"><span class="mock__rank">2</span><span class="mock__bar" style="--w:78%"></span></div>
-              <div class="mock__row"><span class="mock__rank">3</span><span class="mock__bar" style="--w:64%"></span></div>
-              <div class="mock__row"><span class="mock__rank">4</span><span class="mock__bar" style="--w:55%"></span></div>
-              <div class="mock__row"><span class="mock__rank">5</span><span class="mock__bar" style="--w:41%"></span></div>
+        <div class="card__tilt">
+          <div class="card__inner">
+            <span class="card__sheen" aria-hidden="true"></span>
+
+            <div class="card__art">
+              <!-- Placeholder for real product UI. §6 left screenshot-vs-mock open;
+                   Will has since chosen a real, tightly-cropped capture. This slot
+                   is sized 16:10 to receive it — drop an <img> in and delete .mock. -->
+              <div class="mock" aria-hidden="true">
+                <div class="mock__head">
+                  <span class="mock__title">AP Poll</span>
+                  <span class="mock__week">WK 12</span>
+                </div>
+                <div class="mock__rows">
+                  <div class="mock__row"><span class="mock__rank">1</span><span class="mock__track"><span class="mock__bar" style="--w:94%"></span></span><span class="mock__delta mock__delta--up">+2</span></div>
+                  <div class="mock__row"><span class="mock__rank">2</span><span class="mock__track"><span class="mock__bar" style="--w:81%"></span></span><span class="mock__delta">—</span></div>
+                  <div class="mock__row"><span class="mock__rank">3</span><span class="mock__track"><span class="mock__bar" style="--w:67%"></span></span><span class="mock__delta mock__delta--up">+4</span></div>
+                  <div class="mock__row"><span class="mock__rank">4</span><span class="mock__track"><span class="mock__bar" style="--w:58%"></span></span><span class="mock__delta">−1</span></div>
+                  <div class="mock__row"><span class="mock__rank">5</span><span class="mock__track"><span class="mock__bar" style="--w:44%"></span></span><span class="mock__delta">—</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card__foot">
+              <div>
+                <h2 class="card__title">bevfantasy</h2>
+                <p class="card__meta">Fantasy football stats platform</p>
+              </div>
+              <span class="card__status">Live</span>
             </div>
           </div>
-          <h2 class="card__title">bevfantasy</h2>
-          <p class="card__meta">Fantasy football stats platform · Live</p>
         </div>
       </div>
     </a>
 
-    <a class="card card--storm" href="work/into-the-storm/" data-label="Into the Storm">
+    <a class="card card--storm" href="work/into-the-storm/" data-mist data-label="Into the Storm">
+      <span class="card__index" aria-hidden="true">02</span>
       <div class="card__float">
-        <div class="card__inner">
-          <div class="card__art">
-            <img src="assets/img/into-the-storm-capsule.png" alt="" width="920" height="690" loading="eager">
+        <div class="card__tilt">
+          <div class="card__inner">
+            <span class="card__sheen" aria-hidden="true"></span>
+
+            <div class="card__art">
+              <img src="assets/img/into-the-storm-capsule.webp" alt=""
+                   width="1000" height="625" loading="eager" decoding="async">
+            </div>
+
+            <div class="card__foot">
+              <div>
+                <h2 class="card__title">Into the Storm</h2>
+                <p class="card__meta">Roguelite deckbuilder</p>
+              </div>
+              <span class="card__status">In alpha</span>
+            </div>
           </div>
-          <h2 class="card__title">Into the Storm</h2>
-          <p class="card__meta">Roguelite deckbuilder · In alpha</p>
         </div>
       </div>
     </a>
 
   </main>
 
-  <aside class="badge">
-    <img src="assets/img/will-and-gibbles.png" alt="William Dooling with his dog, Gibbles." width="52" height="52">
-    <span>Will &amp; Gibbles</span>
-  </aside>
+  <footer class="site-foot">
+    <!-- §3: present, not tucked away. The studio portrait's lavender backdrop is
+         absorbed by the violet mist bloom rather than fought. -->
+    <div class="badge">
+      <div class="badge__aura">
+        <div class="badge__shot">
+          <img src="assets/img/will-and-gibbles.webp"
+               alt="William Dooling with his dog, Gibbles."
+               width="64" height="64" loading="eager" decoding="async">
+        </div>
+      </div>
+      <p class="badge__text">
+        <span class="badge__name">Will &amp; Gibbles</span>
+        <span class="badge__note">Chief morale officer, allegedly.</span>
+      </p>
+    </div>
 
-  <div class="mist" aria-hidden="true"><div class="mist__label"></div></div>
+    <nav class="contact" aria-label="Contact">
+      <a href="#"><span class="todo-mark">[email]</span></a>
+      <a href="#"><span class="todo-mark">[LinkedIn]</span></a>
+      <a href="#"><span class="todo-mark">[résumé]</span></a>
+    </nav>
+  </footer>
+
+  <!-- Mist. Duplicated on every page rather than injected, because the arrival
+       half must exist in the very first painted frame. -->
+  <div class="mist" aria-hidden="true">
+    <div class="mist__blur"></div>
+    <div class="mist__veil"></div>
+    <div class="mist__wisp mist__wisp--c"></div>
+    <div class="mist__wisp mist__wisp--a"></div>
+    <div class="mist__wisp mist__wisp--b"></div>
+    <div class="mist__label"><span></span></div>
+  </div>
+
+  <svg class="mist-defs" aria-hidden="true" focusable="false" width="0" height="0">
+    <defs>
+      <!-- Static noise: filters resolve before masking, so expanding the mask
+           never re-rasterizes the turbulence. The fog is warped once. -->
+      <filter id="mist-warp-a" x="-35%" y="-35%" width="170%" height="170%" color-interpolation-filters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency="0.0055 0.011" numOctaves="4" seed="7" result="n"/>
+        <feDisplacementMap in="SourceGraphic" in2="n" scale="170" xChannelSelector="R" yChannelSelector="G"/>
+      </filter>
+      <filter id="mist-warp-b" x="-35%" y="-35%" width="170%" height="170%" color-interpolation-filters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency="0.009 0.006" numOctaves="3" seed="23" result="n"/>
+        <feDisplacementMap in="SourceGraphic" in2="n" scale="120" xChannelSelector="R" yChannelSelector="G"/>
+      </filter>
+    </defs>
+  </svg>
 
   <script src="assets/main.js"></script>
 </body>
