@@ -1423,6 +1423,11 @@ img { max-width: 100%; display: block; }
      motto. The ears overhang the top by ~14px into the panel's own padding. */
   height: 172px;
   margin-bottom: 0;
+  /* 172px of mostly empty box, and the motto is pulled up underneath it by a
+     negative margin — so this container was swallowing the hover meant for the
+     motto's glyphs. The photos opt back in below; keyboard focus is unaffected,
+     since pointer-events has no bearing on tabbing. */
+  pointer-events: none;
 }
 
 .me__portrait {
@@ -1503,6 +1508,7 @@ img { max-width: 100%; display: block; }
   transition: transform 220ms var(--ease-out), opacity 200ms var(--ease),
               filter 200ms var(--ease);
   cursor: zoom-in;
+  pointer-events: auto;   /* back on, against the container's `none` above */
 }
 
 .me__shot:focus-visible { outline-offset: 6px; }
@@ -1581,6 +1587,10 @@ img { max-width: 100%; display: block; }
   margin: -14px auto .1rem;
   overflow: visible;
   animation: motto-in 620ms var(--ease-out) 1000ms backwards;
+  /* The negative top margin pulls this band up under the portrait, so the SVG
+     box overlaps it. Nothing here should be able to intercept a hover meant for
+     the photo — only the glyphs below opt back in. */
+  pointer-events: none;
 }
 
 .me__motto text {
@@ -1588,8 +1598,26 @@ img { max-width: 100%; display: block; }
   font-weight: 300;
   font-size: 13px;
   letter-spacing: .045em;
-  fill: var(--text-dim);
+  /* The photo rings' pink, alpha and all — the same
+     `color-mix(--me-hot 58%, transparent)` the portrait's border carries.
+
+     The reduction lives in the FILL, not in an element opacity, and that is
+     deliberate: `motto-in` above animates opacity and resolves to 1. An
+     `opacity` here would be owned by that animation for its first 620ms and
+     then snap to the reduced value the instant it handed the property back. */
+  fill: color-mix(in srgb, var(--me-hot) 58%, transparent);
+  /* Glyph-only hit testing on a 13px 300-weight arc is a miserable target, so
+     take the bounding box where it is supported. The first declaration is the
+     fallback for engines that drop the second — without it they would inherit
+     the `none` above and the line could never be hovered at all. */
+  pointer-events: visiblePainted;
+  pointer-events: bounding-box;
+  transition: fill 220ms var(--ease);
 }
+
+/* Hovering brings it up to full strength. Matches the contact links' 220ms, so
+   the two pieces of interactive text in the panel respond at the same rate. */
+.me__motto text:hover { fill: var(--me-hot); }
 
 @keyframes motto-in {
   from { opacity: 0; transform: translateY(7px); }
