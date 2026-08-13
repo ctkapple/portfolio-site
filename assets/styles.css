@@ -994,15 +994,15 @@ img { max-width: 100%; display: block; }
               transform 380ms var(--ease-out) 140ms;
 }
 
-/* Resting level, exactly as when closed. The dimming is what says "not the
-   subject right now"; the liquid itself has not changed state. */
-.me__dot[aria-expanded="true"] .me__goo::before { top: 100px; }
-.me__dot[aria-expanded="true"] .me__goo::after  { top: 106px; }
+/* Full, and held full. A moving fill line inside a ball this small was the
+   problem: at 54px the surface is only a few pixels of travel, so draining it
+   read as the ball breaking rather than as a state change. A solid violet
+   ball, dimmed, says "still here, not the subject" with no moving parts. */
+.me__dot[aria-expanded="true"] .me__goo::before { top: 72px; }
+.me__dot[aria-expanded="true"] .me__goo::after  { top: 78px; }
 
-/* Hovering the ball while the panel is open DRAINS it, where hovering it while
-   closed fills it to the brim. Same gesture, opposite direction — that
-   inversion is the affordance. It says this puts the liquid back, without
-   resorting to an × or a second control. */
+/* Hover carries the whole affordance now: the ball comes back up to strength
+   and tightens slightly, which is enough to mark it as the way out. */
 .me__dot[aria-expanded="true"]:hover,
 .me__dot[aria-expanded="true"]:focus-visible {
   opacity: .94;
@@ -1010,13 +1010,13 @@ img { max-width: 100%; display: block; }
 }
 
 .me__dot[aria-expanded="true"]:hover .me__goo::before,
-.me__dot[aria-expanded="true"]:focus-visible .me__goo::before { top: 120px; }
+.me__dot[aria-expanded="true"]:focus-visible .me__goo::before { top: 72px; }
 
 .me__dot[aria-expanded="true"]:hover .me__goo::after,
-.me__dot[aria-expanded="true"]:focus-visible .me__goo::after { top: 126px; }
+.me__dot[aria-expanded="true"]:focus-visible .me__goo::after { top: 78px; }
 
-/* The label holds still while open. Growing it on hover is the "more of this"
-   cue from the closed state and would contradict the drain. */
+/* The label holds still while open. Growing it is the closed state's "more of
+   this" cue and would misread here. */
 .me__dot[aria-expanded="true"]:hover .me__dot-label,
 .me__dot[aria-expanded="true"]:focus-visible .me__dot-label {
   transform: scale(1);
