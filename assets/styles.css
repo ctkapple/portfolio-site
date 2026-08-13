@@ -258,39 +258,68 @@ img { max-width: 100%; display: block; }
 .fog__sheet--mid  { --depth: 11px; opacity: .20; }
 .fog__sheet--near { --depth: 20px; opacity: .15; }
 
+/* Timing is `linear`, deliberately. With `alternate`, an eased curve puts zero
+   velocity at both ends of every cycle — and since a cycle starts on page
+   load, the first thing a visitor sees is the fog at its most stationary.
+   Linear holds a constant speed the whole way.
+
+   The negative delays start each sheet mid-cycle, so the three are never in
+   phase and no two reverse direction together. */
 .fog__sheet--far::before {
   background-image: url('img/fog-b.svg');
-  animation: fog-drift-a 118s ease-in-out infinite alternate;
+  animation: fog-drift-a 70s linear -23s infinite alternate,
+             fog-breathe-a 31s ease-in-out -7s infinite alternate;
 }
 
 .fog__sheet--mid::before {
   background-image: url('img/fog-a.svg');
   background-position: 40% 60%;
-  animation: fog-drift-b 86s ease-in-out infinite alternate;
+  animation: fog-drift-b 52s linear -11s infinite alternate,
+             fog-breathe-b 43s ease-in-out -19s infinite alternate;
 }
 
 .fog__sheet--near::before {
   background-image: url('img/fog-a.svg');
   background-position: 70% 20%;
   transform: scaleX(-1);
-  animation: fog-drift-c 61s ease-in-out infinite alternate;
+  animation: fog-drift-c 38s linear -30s infinite alternate,
+             fog-breathe-a 27s ease-in-out -3s infinite alternate;
 }
 
-/* Long, offset, and never returning to the same pose — three banks of weather
-   crossing at different speeds rather than one texture sliding. */
+/* Amplitude is set from perceived speed, not from taste. Each sheet is 180% of
+   the viewport (inset -40%), so a ±13% translate is ~590px of travel; over 70s
+   that reads as ~8px/s. Below roughly 5px/s a low-contrast texture this soft
+   stops looking like it is moving at all, which is exactly what the first pass
+   got wrong at 2.6px/s. The 40% overhang is what keeps an edge from swinging
+   into view at these amplitudes.
+
+   Adjacent layers travel in opposite directions: relative motion between banks
+   is far more visible than any single layer's absolute motion. */
 @keyframes fog-drift-a {
-  from { transform: translate3d(-4%, 2%, 0)  scale(1.05) rotate(-1.5deg); }
-  to   { transform: translate3d( 5%, -3%, 0) scale(1.18) rotate(2deg);    }
+  from { transform: translate3d(-13%,  1.5%, 0) scale(1.06) rotate(-1deg);   }
+  to   { transform: translate3d( 13%, -1.5%, 0) scale(1.14) rotate(1.5deg);  }
 }
 
 @keyframes fog-drift-b {
-  from { transform: translate3d( 6%, -2%, 0) scale(1.12) rotate(1deg);    }
-  to   { transform: translate3d(-5%, 4%, 0)  scale(1.02) rotate(-2.5deg); }
+  from { transform: translate3d( 15%, -2%,   0) scale(1.12) rotate(1deg);    }
+  to   { transform: translate3d(-15%,  2.5%, 0) scale(1.04) rotate(-1.5deg); }
 }
 
 @keyframes fog-drift-c {
-  from { transform: scaleX(-1) translate3d(-3%, 4%, 0) scale(1.08); }
-  to   { transform: scaleX(-1) translate3d( 4%, -5%, 0) scale(1.22); }
+  from { transform: scaleX(-1) translate3d(-17%,  2%, 0) scale(1.10); }
+  to   { transform: scaleX(-1) translate3d( 17%, -3%, 0) scale(1.20); }
+}
+
+/* Density drift. Periods are coprime-ish with the drift loops so the layers
+   never resynchronise into a visibly repeating pattern. */
+@keyframes fog-breathe-a {
+  from { opacity: .70; }
+  to   { opacity: 1;   }
+}
+
+@keyframes fog-breathe-b {
+  from { opacity: 1;   }
+  to   { opacity: .66; }
 }
 
 /* Everything above the atmosphere. */
