@@ -1532,6 +1532,39 @@ img { max-width: 100%; display: block; }
   transition: opacity 320ms var(--ease), filter 320ms var(--ease);
 }
 
+/* The cards stop responding entirely while the panel is up. A card that is
+   dimmed and blurred but still pops and tilts under the cursor is claiming to
+   be the target when the click will actually dismiss the panel.
+
+   pointer-events does the whole job in one line — it kills the CSS hover
+   states and the JS tilt together, since that listener is bound to the card
+   itself. The explicit tilt reset covers the case where the pointer is already
+   over a card at the moment the panel opens and no pointerleave arrives. */
+.me-open .roster { pointer-events: none; }
+.me-open .card__tilt { transform: none !important; }
+.me-open .card { cursor: default; }
+
+/* --------------------------------------------------------------------------
+   Telegraphing the dismiss. With the pointer anywhere that is not the panel or
+   the ball, the next click will close — so say so before it happens: the page
+   behind lifts back toward normal and the panel eases down a touch, handing
+   attention over.
+   -------------------------------------------------------------------------- */
+.me__panel {
+  transition: transform 300ms var(--ease-out), opacity 300ms var(--ease);
+}
+
+.me-open:hover:not(:has(.me__panel:hover)):not(:has(.me__dot:hover)) .roster,
+.me-open:hover:not(:has(.me__panel:hover)):not(:has(.me__dot:hover)) .marquee {
+  filter: blur(1px);
+  opacity: .82;
+}
+
+.me-open:hover:not(:has(.me__panel:hover)):not(:has(.me__dot:hover)) .me__panel {
+  transform: scale(.975);
+  opacity: .9;
+}
+
 .roster, .marquee { transition: opacity 320ms var(--ease), filter 320ms var(--ease); }
 
 @keyframes badge-pulse {
