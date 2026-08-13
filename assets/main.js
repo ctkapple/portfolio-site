@@ -82,6 +82,93 @@
         card.style.setProperty('--mx', '50%');
         card.style.setProperty('--my', '50%');
       });
+
+      /* --- The pops (A9) ------------------------------------------------
+         Both bounces used to be declared inside their own :hover rule. A CSS
+         animation named in a conditional rule is added when the rule starts
+         matching and removed when it stops, so every momentary loss of hover
+         restarted it from 0%.
+
+         Hover does flicker here, and the animations cause most of it
+         themselves: card-pop rings through four reversals over 460ms, moving
+         the whole card between -16px and -11px, and deck-pop translates the
+         fan -15px and scales it 1.052 on top of that. Either can slide a phone
+         edge past a pointer that has not moved. The phones are also fanned at
+         ±8° with gaps between them, so a real crossing passes over bare deck
+         for a frame or two. Every one of those was a fresh bounce.
+
+         The fix is to own the animation's lifetime here instead: start it once
+         per genuine entry, let it finish, and give the trigger enough
+         hysteresis that the effect cannot cancel its own cause. */
+
+      /* Restart honestly: a class that is already present will not re-fire an
+         animation, so it has to come off and the style be flushed first. Only
+         costs a reflow when the pointer re-enters mid-bounce. */
+      function fire(el, cls) {
+        if (el.classList.contains(cls)) {
+          el.classList.remove(cls);
+          void el.offsetWidth;
+        }
+        el.classList.add(cls);
+      }
+
+      /* The card. Its own layout box does not move — transforms live on the
+         wrappers inside it — so :hover is stable across most of the card and
+         this is belt-and-braces there. It is not belt-and-braces in the ~13px
+         band the 1.05 scale and the -14px lift push OUTSIDE that box, where
+         hovering the overflow really does oscillate. GRACE swallows a flicker
+         without swallowing a deliberate re-entry, which is a much slower move
+         than a dropped frame. */
+      var GRACE = 140;
+      var cool  = 0;
+
+      card.addEventListener('pointerenter', function () {
+        if (cool) { window.clearTimeout(cool); cool = 0; return; }
+        if (card.classList.contains('is-chosen')) return;
+        fire(card, 'is-popping');
+      });
+
+      card.addEventListener('pointerleave', function () {
+        if (cool) window.clearTimeout(cool);
+        cool = window.setTimeout(function () { cool = 0; }, GRACE);
+      });
+
+      /* The deck. Geometric latch rather than a timed one: it lifts the moment
+         the pointer touches a phone and holds until the pointer leaves the art
+         box, so crossing between phones — or a phone stepping out from under a
+         stationary pointer — cannot drop it. .card__art clips, and the phones
+         only bleed past its lower edge, so leaving that box means the pointer
+         is genuinely off every visible pixel of the deck. No timer, so there is
+         no window in which the state is ambiguous.
+
+         Entry is still "on an actual phone", which is the whole reason the CSS
+         uses :has(.deck__shot:hover) and not .deck:hover. */
+      var art  = card.querySelector('.card__art');
+      var deck = card.querySelector('.deck');
+
+      if (art && deck) {
+        art.addEventListener('pointerover', function (e) {
+          var el = e.target;
+          if (!el || !el.closest || !el.closest('.deck__shot')) return;
+          if (deck.classList.contains('is-lifted')) return;
+          deck.classList.add('is-lifted');
+          fire(deck, 'is-popping');
+        });
+
+        art.addEventListener('pointerleave', function () {
+          deck.classList.remove('is-lifted');
+          deck.classList.remove('is-popping');
+        });
+      }
+
+      /* animationend bubbles, and the deck's ambient shine and orbit bubble
+         through here too — hence the name check. Dropping the class on the way
+         out means the next entry starts from a clean slate rather than from
+         fire()'s reflow. */
+      card.addEventListener('animationend', function (e) {
+        if (e.animationName === 'card-pop') card.classList.remove('is-popping');
+        else if (e.animationName === 'deck-pop' && deck) deck.classList.remove('is-popping');
+      });
     });
   }
 
@@ -184,6 +271,16 @@
       sizeMorph();
       dot.setAttribute('aria-expanded', 'true');
       document.body.classList.add('me-open');
+
+      /* The deck's lift is a JS latch (A9), and `.me-open .roster` kills the
+         roster's pointer events rather than moving the pointer — so no
+         pointerleave arrives to release it, the same gap that makes the CSS
+         reset .card__tilt by hand. Let go of it here or the deck stays lifted
+         after the panel closes. */
+      Array.prototype.forEach.call(document.querySelectorAll('.deck'), function (d) {
+        d.classList.remove('is-lifted');
+        d.classList.remove('is-popping');
+      });
 
       /* Move focus in so keyboard and screen-reader users land on the content
          they just opened rather than staying on the dot. */

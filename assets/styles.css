@@ -563,13 +563,34 @@ img { max-width: 100%; display: block; }
 .card:hover .card__inner,
 .card:focus-visible .card__inner {
   transform: translateY(-14px) scale(1.05);
-  animation: card-pop 460ms var(--ease-out);
   border-color: color-mix(in srgb, var(--accent) 52%, transparent);
   box-shadow:
     inset 0 1px 0 rgba(245, 245, 240, .12),
     0 1px 0 0 rgba(0, 0, 0, .6),
     0 34px 78px -12px color-mix(in srgb, var(--accent) 50%, transparent);
 }
+
+/* The pop is declared OUTSIDE the hover rule, and that separation is the whole
+   of A9's fix (the same fix is applied to the deck below).
+
+   A CSS animation named inside a conditional rule is *added* the moment the
+   rule starts matching and *removed* the moment it stops. So every momentary
+   loss of the trigger restarts the bounce from 0% — and under a moving pointer
+   the trigger does flicker, because the card's live tilt and the pop's own
+   16px lift both slide the geometry out from under a pointer that has barely
+   moved. The animation cancels its own trigger; that feedback loop is why it
+   read as "rapidly repeating" rather than as a single re-fire.
+
+   :focus-visible cannot flicker under a moving pointer, so it keeps declaring
+   the animation directly and still pops with JS off. Hover fires `is-popping`
+   from main.js instead: added once per genuine entry, dropped on animationend,
+   and held through a short grace period so a flicker cannot re-fire it.
+
+   These must stay ABOVE the :active and .is-chosen rules — all three are
+   (0,3,0) and (0,2,1), so source order is what lets their `animation: none`
+   guards win. */
+.card:focus-visible .card__inner { animation: card-pop 460ms var(--ease-out); }
+.card.is-popping    .card__inner { animation: card-pop 460ms var(--ease-out); }
 
 /* Squash and stretch. The card leaps wide-and-flat, overcorrects to
    narrow-and-tall, then rings down onto the hover pose. scaleX and scaleY are
@@ -677,9 +698,28 @@ img { max-width: 100%; display: block; }
 
    Scale is 1.035, not the card's 1.05. The outer phones sit 8px from the frame
    edge and .card__art clips, so a larger scale pulls their outer edges under
-   the clip and the fan looks cropped rather than lifted. */
-.deck:has(.deck__shot:hover) {
+   the clip and the fan looks cropped rather than lifted.
+
+   A9: the pose and the bounce are now two separate rules, for the reason
+   written out over `.card.is-popping` above. `:has(.deck__shot:hover)` still
+   carries the POSE, so the deck still lifts with JS off and the touch override
+   still has something to cancel. `.is-lifted` is main.js's latch and `.is-popping`
+   its one-shot bounce.
+
+   The latch IS a widened trigger, deliberately and explicitly: entering still
+   requires the pointer to be on an actual phone, but once it is, the deck stays
+   lifted until the pointer leaves .card__art entirely. It does not drop in the
+   gaps between phones any more. That is the hysteresis — without it the phones
+   move out from under the pointer (the fan translates -15px mid-bounce, and the
+   card's own pop rings through four reversals under it) and the pose chatters.
+   The original reason for `:has()` over `.deck:hover` is untouched: you still
+   cannot start the lift by pointing at empty deck. */
+.deck:has(.deck__shot:hover),
+.deck.is-lifted {
   transform: translateY(-12px) scale(1.035);
+}
+
+.deck.is-popping {
   animation: deck-pop 460ms var(--ease-out);
 }
 
@@ -765,7 +805,8 @@ img { max-width: 100%; display: block; }
 /* All three light up together with the bounce. No phone moves relative to its
    neighbours — the fan keeps its shape and only the group transform carries the
    motion, which is what makes it read as one object rather than three. */
-.deck:has(.deck__shot:hover) .deck__shot {
+.deck:has(.deck__shot:hover) .deck__shot,
+.deck.is-lifted .deck__shot {
   border-color: color-mix(in srgb, var(--accent) 88%, transparent);
   box-shadow:
     0 26px 46px -10px rgba(0, 0, 0, .85),
@@ -1972,6 +2013,10 @@ img { max-width: 100%; display: block; }
    over a card at the moment the panel opens and no pointerleave arrives. */
 .me-open .roster { pointer-events: none; }
 .me-open .card__tilt { transform: none !important; }
+/* Same case, one layer down. The deck's lift is a JS latch now (A9), and a
+   latch has to be told to let go — pointer-events: none stops :hover matching
+   but does not reliably deliver the pointerleave that would clear the class. */
+.me-open .deck { transform: none !important; animation: none !important; }
 .me-open .card { cursor: default; }
 
 /* --------------------------------------------------------------------------
@@ -2633,7 +2678,13 @@ img { max-width: 100%; display: block; }
   /* :hover sticks after a tap, so a tapped deck would stay bounced with no way
      to put it back. It sits at rest instead — and `animation: none` matters,
      or the pop would still run once on the tap and hold its last frame. */
-  .deck:has(.deck__shot:hover)  { transform: none; animation: none; }
+  .deck:has(.deck__shot:hover),
+  .deck.is-lifted,
+  .deck.is-popping              { transform: none; animation: none; }
+  /* main.js never adds these on a coarse pointer (same `fine` gate as the
+     tilt), but the override lists them so the rule is true of the markup
+     rather than true only because of a condition living in another file. */
+  .card.is-popping .card__inner { animation: none; }
   .card:active .card__inner     { transform: scale(.985); transition-duration: 120ms; }
   .card__tilt                   { transform: none !important; }
   .case-next:hover              { padding-inline: 0; }
@@ -2706,7 +2757,15 @@ img { max-width: 100%; display: block; }
   /* No pop, no squash. The hover still reads through border, glow and sheen,
      which are colour changes rather than motion. */
   .card:hover .card__inner,
-  .card:focus-visible .card__inner { transform: none; animation: none; }
+  .card:focus-visible .card__inner,
+  .card.is-popping .card__inner { transform: none; animation: none; }
+  /* The deck was missed when A5 landed. Reduced motion collapses the
+     transition to ~0, so the lift became a hard snap that chattered every time
+     a phone edge crossed the pointer — motion, and the twitchy kind. It sits
+     still now, exactly like the card above it. */
+  .deck:has(.deck__shot:hover),
+  .deck.is-lifted,
+  .deck.is-popping             { transform: none; animation: none; }
   .card:hover .card__art > img { transform: scale(1.02); }
   .card.is-chosen .card__inner { transform: none; }
 
