@@ -606,9 +606,13 @@ img { max-width: 100%; display: block; }
 .card:hover .card__float,
 .card:focus-visible .card__float { animation-play-state: paused; }
 
+/* Hover pose. The pop animation below must land on exactly this transform:
+   the animation runs with fill none, so when it finishes the value falls back
+   to this rule. If the two disagree, the card snaps at the handoff. */
 .card:hover .card__inner,
 .card:focus-visible .card__inner {
-  transform: translateY(-8px) scale(1.018);
+  transform: translateY(-14px) scale(1.05);
+  animation: card-pop 460ms var(--ease-out);
   border-color: color-mix(in srgb, var(--accent) 52%, transparent);
   box-shadow:
     inset 0 1px 0 rgba(245, 245, 240, .12),
@@ -616,15 +620,41 @@ img { max-width: 100%; display: block; }
     0 34px 78px -12px color-mix(in srgb, var(--accent) 50%, transparent);
 }
 
+/* Squash and stretch. The card leaps wide-and-flat, overcorrects to
+   narrow-and-tall, then rings down onto the hover pose. scaleX and scaleY are
+   kept as separate functions rather than a single scale() so the two axes can
+   disagree — that disagreement IS the effect.
+
+   Peak is ~1.072 against a 1.05 rest, so the overshoot is visible without the
+   card ever looking like it changed size permanently. */
+@keyframes card-pop {
+  0%   { transform: translateY(0)      scaleX(1)     scaleY(1);     }
+  18%  { transform: translateY(-16px)  scaleX(1.072) scaleY(1.028); }
+  38%  { transform: translateY(-11px)  scaleX(1.032) scaleY(1.066); }
+  58%  { transform: translateY(-15px)  scaleX(1.061) scaleY(1.042); }
+  78%  { transform: translateY(-13.5px) scaleX(1.046) scaleY(1.053); }
+  100% { transform: translateY(-14px)  scaleX(1.05)  scaleY(1.05);  }
+}
+
 .card:hover .card__inner::after,
 .card:focus-visible .card__inner::after { opacity: .95; }
 
-.card:active .card__inner { transform: translateY(-2px) scale(.995); transition-duration: 110ms; }
+/* Press. `animation: none` matters — without it the still-running pop keeps
+   control of transform and the card refuses to depress under the click. */
+.card:active .card__inner {
+  transform: translateY(-2px) scale(.995);
+  animation: none;
+  transition-duration: 110ms;
+}
 
 /* The chosen card advances toward the viewer as the mist takes it. */
 .card.is-chosen .card__float { animation-play-state: paused; }
 
 .card.is-chosen .card__inner {
+  /* The card is still hovered at click time, so the pop may be mid-flight and
+     would keep control of transform while the mist tries to advance the card.
+     Cancel it. */
+  animation: none;
   transition: transform 620ms var(--ease-in), box-shadow 620ms var(--ease);
   transform: translateY(-14px) scale(1.07);
   box-shadow:
@@ -1573,7 +1603,10 @@ img { max-width: 100%; display: block; }
 
   .card__float               { animation: none; }
   .card__tilt                { transform: none !important; }
-  .card:hover .card__inner   { transform: none; }
+  /* No pop, no squash. The hover still reads through border, glow and sheen,
+     which are colour changes rather than motion. */
+  .card:hover .card__inner,
+  .card:focus-visible .card__inner { transform: none; animation: none; }
   .card:hover .card__art img { transform: scale(1.02); }
   .card.is-chosen .card__inner { transform: none; }
 
