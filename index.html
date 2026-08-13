@@ -21,7 +21,7 @@
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Quicksand:wght@300..700&display=swap">
 <link rel="stylesheet" href="assets/styles.css">
 
 <script>
@@ -58,26 +58,13 @@
   </div>
 
   <header class="marquee">
-    <div class="marquee__top">
-      <p class="micro">Portfolio</p>
-      <p class="micro">Two projects · Both shipped</p>
-    </div>
-
-    <h1 class="marquee__name">William Dooling</h1>
-
-    <hr class="rule marquee__rule">
-
-    <div class="marquee__meta">
-      <p class="marquee__role">Product Designer</p>
-      <p class="marquee__tagline">Risk PM by day, game dev by night.</p>
-    </div>
-
-    <!-- §6 asks whether one line of intro beyond the tagline is needed. The slot
-         is here and sized; the sentence is Will's to write. -->
-    <p class="marquee__intro todo">
-      One line: what you're looking for and what these two projects demonstrate.
-      The tagline is the hook — this is the part that says what you want.
-    </p>
+    <!-- The name is deliberately not shown here. The domain already says it,
+         and it returns inside the profile dot below the cards. It stays as a
+         visually hidden h1 so the document still has a heading and so search
+         engines and screen readers get the name — removing it outright would
+         leave the page anonymous to both. -->
+    <h1 class="vh">William Dooling</h1>
+    <p class="micro marquee__label">Product Design Portfolio</p>
   </header>
 
   <main class="roster">

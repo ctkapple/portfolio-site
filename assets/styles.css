@@ -42,7 +42,7 @@
   --line-tick:   rgba(245, 245, 240, .28);
 
   /* Type */
-  --display: 'Bebas Neue', 'Bebas Fallback', Impact, sans-serif;
+  --display: 'Quicksand', 'Quicksand Fallback', 'Trebuchet MS', sans-serif;
   --body:    'Inter', 'Inter Fallback', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
 
   /* Per-project accent. Overridden by .card--* and .theme-*; the violet default
@@ -66,13 +66,14 @@
 }
 
 /* Metric-matched fallbacks so the Google Fonts swap doesn't shift layout.
-   Bebas is very narrow; Impact unadjusted overshoots badly. */
+   Quicksand is a rounded geometric sans with a large x-height; Trebuchet is
+   the closest thing installed on both Windows and macOS. */
 @font-face {
-  font-family: 'Bebas Fallback';
-  src: local('Impact'), local('Haettenschweiler'), local('Arial Narrow Bold'), local('Arial Bold');
-  size-adjust: 88%;
-  ascent-override: 94%;
-  descent-override: 12%;
+  font-family: 'Quicksand Fallback';
+  src: local('Trebuchet MS'), local('Verdana'), local('Segoe UI'), local('Arial');
+  size-adjust: 97%;
+  ascent-override: 95%;
+  descent-override: 24%;
   line-gap-override: 0%;
 }
 
@@ -130,6 +131,21 @@ img { max-width: 100%; display: block; }
   outline: 2px solid var(--mist-glow);
   outline-offset: 4px;
   border-radius: 3px;
+}
+
+/* Visually hidden, still read aloud and still indexed. Used for the h1, which
+   carries the name the design no longer shows. Not `display: none`, which
+   would remove it from the accessibility tree entirely. */
+.vh {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
 }
 
 ::selection { background: color-mix(in srgb, var(--mist-core) 60%, transparent); }
@@ -416,62 +432,16 @@ img { max-width: 100%; display: block; }
    4. Marquee (header)
    -------------------------------------------------------------------------- */
 
+/* The header is now a single quiet label. Everything it used to carry — the
+   display-size name, the role, the tagline, the intro slot — was cut so the
+   two project cards can hold the page on their own. */
 .marquee {
-  padding: clamp(1.5rem, 3.5vw, 2.75rem) var(--gutter) 0;
+  padding: clamp(1.25rem, 3vw, 2rem) var(--gutter) 0;
 }
 
-.marquee__top {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: .75rem;
-}
-
-.marquee__name {
-  margin: 0;
-  font-family: var(--display);
-  font-size: clamp(3rem, 11vw, 8.5rem);
-  line-height: .82;
-  letter-spacing: .01em;
-  text-transform: uppercase;
-  /* A faint violet bleed off the letterforms, as if lit through fog. */
-  background: linear-gradient(178deg, var(--text) 58%, color-mix(in srgb, var(--mist-glow) 70%, var(--text)) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-.marquee__rule { margin: clamp(.75rem, 2vw, 1.15rem) 0 .9rem; }
-
-.marquee__meta {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: .5rem 1.5rem;
-}
-
-.marquee__role {
-  margin: 0;
-  font-family: var(--display);
-  font-size: clamp(1rem, 2.2vw, 1.4rem);
-  letter-spacing: .16em;
-  text-transform: uppercase;
-  color: var(--mist-glow);
-}
-
-.marquee__tagline {
+.marquee__label {
   margin: 0;
   color: var(--text-dim);
-  font-size: clamp(.85rem, 1.4vw, .95rem);
-}
-
-/* Optional one-line intro — copy is Will's to write (see class="todo"). */
-.marquee__intro {
-  margin: 1rem 0 0;
-  max-width: 34rem;
-  color: var(--text-dim);
-  font-size: clamp(.88rem, 1.5vw, 1rem);
 }
 
 /* --------------------------------------------------------------------------
@@ -492,7 +462,9 @@ img { max-width: 100%; display: block; }
   display: block;
   position: relative;
   text-decoration: none;
-  width: clamp(280px, 34vw, 430px);
+  /* Widened now that the header no longer competes for the page: the cards are
+     meant to be the whole homepage, not an element within it. */
+  width: clamp(300px, 40vw, 540px);
   flex: 0 1 auto;
   -webkit-tap-highlight-color: transparent;
 }
@@ -1499,7 +1471,7 @@ img { max-width: 100%; display: block; }
 
 @media (max-width: 1000px) {
   .roster { gap: clamp(1.25rem, 3.5vw, 2.5rem); }
-  .card   { width: clamp(260px, 40vw, 360px); }
+  .card   { width: clamp(280px, 44vw, 430px); }
   .card__index { font-size: clamp(3.5rem, 9vw, 6rem); top: -2.5rem; }
 }
 
@@ -1510,7 +1482,7 @@ img { max-width: 100%; display: block; }
     gap: clamp(3.5rem, 9vw, 5rem);
     padding-top: clamp(3rem, 8vw, 4rem);
   }
-  .card         { width: min(430px, 84vw); }
+  .card         { width: min(520px, 88vw); }
   .card--storm  { margin-top: 0; }
   .card__index  { top: -2.75rem; }
   .site-foot    { flex-direction: column; align-items: flex-start; }
@@ -1518,7 +1490,6 @@ img { max-width: 100%; display: block; }
 }
 
 @media (max-width: 600px) {
-  .marquee__top    { flex-direction: column; align-items: flex-start; gap: .35rem; }
   .card__foot      { flex-direction: column; align-items: flex-start; gap: .7rem; }
   .case-body h2::before { left: -.75rem; }
   .case-next       { flex-wrap: wrap; }
@@ -1534,20 +1505,16 @@ img { max-width: 100%; display: block; }
    the first covers ordinary laptops once browser chrome is subtracted, the
    second covers genuinely cramped windows and phone landscape. */
 @media (max-height: 900px) and (min-width: 821px) {
-  .marquee        { padding-top: clamp(1.25rem, 2.5vw, 2rem); }
-  .marquee__name  { font-size: clamp(2.5rem, 7.5vw, 5.5rem); }
-  .marquee__intro { margin-top: .75rem; }
+  .marquee        { padding-top: clamp(1rem, 2vw, 1.5rem); }
   .roster         { padding-block: clamp(1rem, 2vw, 1.5rem) clamp(1rem, 2vw, 1.25rem); }
-  .card           { width: clamp(250px, 29vw, 370px); }
+  .card           { width: clamp(260px, 33vw, 440px); }
   .card--storm    { margin-top: clamp(1rem, 2.5vw, 2rem); }
   .card__index    { font-size: clamp(3rem, 7.5vw, 5.5rem); top: -2.4rem; }
   .site-foot      { padding-bottom: clamp(1rem, 2vw, 1.5rem); }
 }
 
 @media (max-height: 700px) and (min-width: 821px) {
-  .marquee__name  { font-size: clamp(2.25rem, 6vw, 4.25rem); }
-  .marquee__intro { display: none; } /* the tagline already carries the hook */
-  .card           { width: clamp(230px, 25vw, 310px); }
+  .card           { width: clamp(240px, 28vw, 370px); }
   .card--storm    { margin-top: clamp(.75rem, 2vh, 1.5rem); }
   .card__index    { font-size: clamp(2.75rem, 6vw, 4.5rem); top: -2rem; }
 }
