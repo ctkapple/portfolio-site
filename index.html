@@ -134,27 +134,57 @@
   </main>
 
   <footer class="site-foot">
-    <!-- §3: present, not tucked away. The studio portrait's lavender backdrop is
-         absorbed by the violet mist bloom rather than fought. -->
-    <div class="badge">
-      <div class="badge__aura">
-        <div class="badge__shot">
-          <img src="assets/img/will-and-gibbles.webp"
-               alt="William Dooling with his dog, Gibbles."
-               width="64" height="64" loading="eager" decoding="async">
-        </div>
-      </div>
-      <p class="badge__text">
-        <span class="badge__name">Will &amp; Gibbles</span>
-        <span class="badge__note">Chief morale officer, allegedly.</span>
-      </p>
-    </div>
+    <!-- The identity, condensed to a single glowing dot so the two cards keep
+         the page. Everything personal lives inside the panel it opens. -->
+    <div class="me">
+      <button class="me__dot" type="button" aria-expanded="false" aria-controls="me-panel">
+        <span class="vh">About William Dooling</span>
+        <span class="me__halo" aria-hidden="true"></span>
+      </button>
 
-    <nav class="contact" aria-label="Contact">
-      <a href="#"><span class="todo-mark">[email]</span></a>
-      <a href="#"><span class="todo-mark">[LinkedIn]</span></a>
-      <a href="#"><span class="todo-mark">[résumé]</span></a>
-    </nav>
+      <!-- `hidden` is removed by main.js on open. Kept in the markup so the
+           panel is genuinely inert (and unfocusable) when closed, rather than
+           merely transparent. -->
+      <!-- role=dialog without aria-modal: the panel does not trap focus and the
+           rest of the page stays reachable, so claiming modality would be a
+           lie to assistive tech. Esc closes it and focus returns to the dot. -->
+      <div class="me__panel" id="me-panel" role="dialog"
+           aria-label="About William Dooling" hidden>
+
+        <div class="me__shots">
+          <figure class="me__bubble me__bubble--sky">
+            <img src="assets/img/skydive.webp" alt="William skydiving over a lake."
+                 width="320" height="320" loading="lazy" decoding="async">
+          </figure>
+          <figure class="me__bubble me__bubble--run">
+            <img src="assets/img/marathon.webp" alt="William running a marathon."
+                 width="320" height="320" loading="lazy" decoding="async">
+          </figure>
+          <div class="me__portrait">
+            <img src="assets/img/will-and-gibbles.webp"
+                 alt="William Dooling with his dog."
+                 width="360" height="360" loading="lazy" decoding="async">
+          </div>
+        </div>
+
+        <p class="me__name" data-wave>William Dooling</p>
+        <p class="me__tagline">Risk PM by day, game dev by night.</p>
+
+        <nav class="me__links" aria-label="Contact">
+          <button class="me__link me__copy" type="button"
+                  data-copy="william.dooling@outlook.com">
+            <span class="me__copy-label">Email</span>
+            <span class="me__copy-done" aria-hidden="true">Copied</span>
+          </button>
+          <a class="me__link" href="https://www.linkedin.com/in/wgd/"
+             target="_blank" rel="noopener noreferrer">LinkedIn</a>
+          <!-- Placeholder destination — real URL is Will's to supply. -->
+          <a class="me__link" href="https://site.com/about">About</a>
+        </nav>
+
+        <p class="me__status" role="status" aria-live="polite"></p>
+      </div>
+    </div>
   </footer>
 
   <!-- Mist. Duplicated on every page rather than injected, because the arrival

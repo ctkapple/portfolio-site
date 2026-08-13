@@ -115,6 +115,154 @@
   }
 
   /* ---------------------------------------------------------------------
+     The profile dot — expands into the panel carrying the portrait, the two
+     action shots, the name and the contact links.
+     --------------------------------------------------------------------- */
+
+  var me    = document.querySelector('.me');
+  var dot   = me && me.querySelector('.me__dot');
+  var panel = me && me.querySelector('.me__panel');
+
+  if (me && dot && panel) {
+    var CLOSE_MS = 200;   // keep in sync with .me.is-closing in styles.css
+    var closeTimer = 0;
+
+    function isOpen() { return !panel.hasAttribute('hidden'); }
+
+    function openMe() {
+      window.clearTimeout(closeTimer);
+      me.classList.remove('is-closing');
+      panel.removeAttribute('hidden');
+      dot.setAttribute('aria-expanded', 'true');
+      document.body.classList.add('me-open');
+
+      /* Move focus in so keyboard and screen-reader users land on the content
+         they just opened rather than staying on the dot. */
+      var first = panel.querySelector('.me__link');
+      if (first) first.focus();
+    }
+
+    function closeMe(returnFocus) {
+      if (!isOpen()) return;
+      dot.setAttribute('aria-expanded', 'false');
+      document.body.classList.remove('me-open');
+
+      var finish = function () {
+        panel.setAttribute('hidden', '');
+        me.classList.remove('is-closing');
+      };
+
+      if (reduced()) {
+        finish();
+      } else {
+        me.classList.add('is-closing');
+        closeTimer = window.setTimeout(finish, CLOSE_MS);
+      }
+
+      if (returnFocus) dot.focus();
+    }
+
+    dot.addEventListener('click', function (e) {
+      e.stopPropagation();
+      if (isOpen()) closeMe(false); else openMe();
+    });
+
+    /* Clicks inside the panel must not reach the document handler below. */
+    panel.addEventListener('click', function (e) { e.stopPropagation(); });
+
+    document.addEventListener('click', function () { closeMe(false); });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && isOpen()) closeMe(true);
+    });
+
+    /* -------------------------------------------------------------------
+       Copy the address rather than opening a mail client. Clipboard API
+       first; the textarea path covers insecure origins and older browsers,
+       where navigator.clipboard is simply undefined.
+       ------------------------------------------------------------------- */
+
+    var copyBtn = panel.querySelector('.me__copy');
+    var status  = panel.querySelector('.me__status');
+    var copyTimer = 0;
+
+    function legacyCopy(text) {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';
+      ta.style.top = '-1000px';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      var ok = false;
+      try { ok = document.execCommand('copy'); } catch (err) { ok = false; }
+      document.body.removeChild(ta);
+      return ok;
+    }
+
+    var copyDone = copyBtn && copyBtn.querySelector('.me__copy-done');
+
+    /* Clipboard writes fail for reasons the visitor cannot act on — iOS Safari
+       outside a gesture, hardened browsers, a backgrounded document. Failing
+       silently would leave them clicking a button that does nothing, so the
+       fallback shows the address itself and holds it there long enough to
+       select by hand. */
+    function confirmCopy(ok, text) {
+      if (status) status.textContent = ok ? 'Email address copied' : ('Copy this address: ' + text);
+      if (copyDone) copyDone.textContent = ok ? 'Copied' : text;
+      copyBtn.classList.toggle('is-plain', !ok);
+
+      copyBtn.classList.remove('is-copied');
+      void copyBtn.offsetWidth;              // restart the pop if clicked twice
+      copyBtn.classList.add('is-copied');
+
+      window.clearTimeout(copyTimer);
+      copyTimer = window.setTimeout(function () {
+        copyBtn.classList.remove('is-copied');
+      }, ok ? 1500 : 6000);
+    }
+
+    if (copyBtn) {
+      copyBtn.addEventListener('click', function () {
+        var text = copyBtn.getAttribute('data-copy') || '';
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(
+            function () { confirmCopy(true, text); },
+            function () { confirmCopy(legacyCopy(text), text); }
+          );
+        } else {
+          confirmCopy(legacyCopy(text), text);
+        }
+      });
+    }
+
+    /* -------------------------------------------------------------------
+       Split the name into per-character spans so it can wave. Progressive
+       enhancement: without this the name renders as ordinary text and the
+       glow, which lives on the parent, is unaffected.
+       ------------------------------------------------------------------- */
+
+    var nameEl = panel.querySelector('[data-wave]');
+    if (nameEl && !reduced()) {
+      var chars = nameEl.textContent.split('');
+      nameEl.textContent = '';
+      chars.forEach(function (ch, i) {
+        var span = document.createElement('span');
+        span.textContent = ch;
+        span.style.setProperty('--d',  (i * 55) + 'ms');   // idle wave stagger
+        span.style.setProperty('--dh', (i * 28) + 'ms');   // faster on hover
+        span.setAttribute('aria-hidden', 'true');
+        nameEl.appendChild(span);
+      });
+      /* The split text is decorative once it is per-character; give assistive
+         tech the intact string back. */
+      nameEl.setAttribute('aria-label', chars.join(''));
+      nameEl.setAttribute('role', 'text');
+    }
+  }
+
+  /* ---------------------------------------------------------------------
      Prefetch on intent.
      --------------------------------------------------------------------- */
 

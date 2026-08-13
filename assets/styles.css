@@ -791,104 +791,318 @@ img { max-width: 100%; display: block; }
 .mock__delta--up   { color: color-mix(in srgb, var(--accent) 75%, var(--text)); }
 
 /* --------------------------------------------------------------------------
-   6. Site footer — photo badge + contact
+   6. Site footer — the profile dot and its panel
    -------------------------------------------------------------------------- */
 
 .site-foot {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 1.25rem 2rem;
+  justify-content: center;
   padding: 0 var(--gutter) clamp(1.5rem, 3.5vw, 2.5rem);
 }
 
-/* §3: the photo is deliberately present, not tucked away. The lavender studio
-   backdrop is turned into an asset here — the violet mist bloom absorbs it. */
-.badge {
+/* The identity, condensed to one glowing dot. §3 wanted the photo present
+   rather than tucked away; this keeps it present but folds it into a single
+   point of light so the two cards hold the page uncontested. */
+.me {
+  position: relative;
   display: flex;
-  align-items: center;
-  gap: .85rem;
-  color: var(--text-dim);
-  font-size: .78rem;
+  justify-content: center;
 }
 
-/* The bloom is drawn by pseudo-elements that spill far outside the photo, and
-   absolutely-positioned overflow counts toward the document's scroll height —
-   enough to put a scrollbar on a homepage that otherwise fits exactly. This
-   wrapper bounds it: padding opens a clipping box around the photo, the equal
-   negative margin cancels that padding so the badge's layout position is
-   unchanged, and overflow:hidden stops the spill from reaching the document.
-   The gradients fade to transparent well inside the box, so nothing visible is
-   actually cut. Bottom is tightest because down is the only direction that can
-   lengthen the page. */
-.badge__aura {
+.me__dot {
   position: relative;
-  flex: none;
-  padding: 48px 48px 20px;
-  margin: -48px -48px -20px;
-  overflow: hidden;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  background: radial-gradient(circle at 38% 34%,
+              color-mix(in srgb, var(--mist-glow) 92%, #fff) 0%,
+              var(--mist-core) 58%,
+              color-mix(in srgb, var(--mist-deep) 70%, var(--mist-core)) 100%);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--mist-glow) 45%, transparent),
+    0 0 18px 2px color-mix(in srgb, var(--mist-core) 55%, transparent);
+  transition: transform 320ms var(--ease-out), box-shadow 320ms var(--ease);
 }
 
-.badge__shot {
+.me__dot:hover,
+.me__dot:focus-visible { transform: scale(1.25); }
+
+.me__dot[aria-expanded="true"] { transform: scale(.82); }
+
+/* Breathing halo, so the dot reads as alive and clickable without a label. */
+.me__halo {
+  position: absolute;
+  inset: -14px;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(closest-side,
+              color-mix(in srgb, var(--mist-core) 55%, transparent), transparent 72%);
+  filter: blur(7px);
+  animation: badge-pulse 6.5s ease-in-out infinite;
+}
+
+/* --------------------------------------------------------------------------
+   The panel. Springs from the dot rather than fading in, and is anchored
+   bottom-centre so it grows upward out of the point of light.
+   -------------------------------------------------------------------------- */
+.me__panel {
+  position: absolute;
+  bottom: calc(100% + 20px);
+  left: 50%;
+  z-index: 60;
+  width: min(340px, 88vw);
+  margin-left: calc(min(340px, 88vw) / -2);
+  padding: 1.35rem 1.25rem 1.15rem;
+  text-align: center;
+  border-radius: 22px;
+  /* "Glowing purple border around" everything, per the brief. */
+  border: 1px solid color-mix(in srgb, var(--mist-glow) 46%, transparent);
+  background:
+    linear-gradient(180deg,
+      color-mix(in srgb, var(--mist-core) 13%, var(--surface)) 0%,
+      var(--surface-lo) 74%);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--mist-glow) 12%, transparent),
+    0 0 34px -4px color-mix(in srgb, var(--mist-core) 62%, transparent),
+    0 26px 60px -18px rgba(0, 0, 0, .8);
+  transform-origin: 50% 100%;
+}
+
+.me__panel[hidden] { display: none; }
+
+.me:not(.is-closing) .me__panel:not([hidden]) {
+  animation: me-pop 520ms var(--ease-out) both;
+}
+
+.me.is-closing .me__panel { animation: me-unpop 200ms var(--ease-in) both; }
+
+/* Overshoots to 1.06 before settling — the "bouncy" the brief asked for. */
+@keyframes me-pop {
+  0%   { transform: translateY(18px) scale(.30); opacity: 0; }
+  55%  { transform: translateY(-4px) scale(1.06); opacity: 1; }
+  78%  { transform: translateY(1px)  scale(.985); opacity: 1; }
+  100% { transform: translateY(0)    scale(1);    opacity: 1; }
+}
+
+@keyframes me-unpop {
+  from { transform: translateY(0) scale(1); opacity: 1; }
+  to   { transform: translateY(12px) scale(.4); opacity: 0; }
+}
+
+/* Photo cluster ------------------------------------------------------------ */
+
+.me__shots {
   position: relative;
-  width: 64px;
-  height: 64px;
+  display: grid;
+  place-items: center;
+  height: 132px;
+  margin-bottom: .5rem;
 }
 
-.badge__shot img {
+.me__portrait {
+  position: relative;
+  z-index: 2;
+  width: 104px;
+  height: 104px;
+  border-radius: 50%;
+  animation: portrait-in 520ms var(--ease-out) 60ms both;
+}
+
+.me__portrait img,
+.me__bubble img {
   width: 100%;
   height: 100%;
   border-radius: 50%;
   object-fit: cover;
-  position: relative;
+}
+
+.me__portrait img {
+  border: 1px solid color-mix(in srgb, var(--mist-glow) 55%, transparent);
+  box-shadow: 0 0 22px -2px color-mix(in srgb, var(--mist-core) 75%, transparent);
+}
+
+@keyframes portrait-in {
+  0%   { transform: scale(.35); opacity: 0; }
+  60%  { transform: scale(1.07); opacity: 1; }
+  100% { transform: scale(1);    opacity: 1; }
+}
+
+/* The two action shots fan outward from behind the portrait on an arc. Each
+   keyframe lists translate/rotate/scale in the same order so the browser
+   interpolates the functions rather than falling back to matrix decomposition,
+   which would swing them through a visibly wrong path. */
+.me__bubble {
+  position: absolute;
   z-index: 1;
-  border: 1px solid color-mix(in srgb, var(--mist-glow) 34%, transparent);
+  width: 62px;
+  height: 62px;
+  margin: 0;
+  transform: translate(var(--tx), var(--ty)) rotate(var(--rot)) scale(1);
+  animation: bubble-in 620ms var(--ease-out) both;
 }
 
-/* Violet bloom behind the photo. */
-.badge__shot::before {
-  content: '';
-  position: absolute;
-  inset: -45%;
-  z-index: 0;
-  border-radius: 50%;
-  background: radial-gradient(closest-side,
-              color-mix(in srgb, var(--mist-core) 62%, transparent), transparent 74%);
-  filter: blur(16px);
-  opacity: .8;
-  animation: badge-pulse 6.5s ease-in-out infinite;
+.me__bubble img {
+  border: 1px solid color-mix(in srgb, var(--mist-glow) 40%, transparent);
+  box-shadow: 0 0 16px -3px color-mix(in srgb, var(--mist-core) 70%, transparent);
 }
 
-/* A wisp curling off the photo, so it reads as part of the same fog system. */
-.badge__shot::after {
+.me__bubble--sky { --tx: -88px; --ty: -14px; --rot: -9deg; animation-delay: 150ms; }
+.me__bubble--run { --tx:  88px; --ty: -20px; --rot:  8deg; animation-delay: 215ms; }
+
+@keyframes bubble-in {
+  0%   { transform: translate(0, 0) rotate(0deg) scale(.2); opacity: 0; }
+  62%  { transform: translate(var(--tx), var(--ty)) rotate(var(--rot)) scale(1.16); opacity: 1; }
+  100% { transform: translate(var(--tx), var(--ty)) rotate(var(--rot)) scale(1);    opacity: 1; }
+}
+
+/* Name, tagline, links ----------------------------------------------------- */
+
+/* D2: the faint white glow. */
+.me__name {
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 1.4rem;
+  letter-spacing: .015em;
+  color: var(--text);
+  text-shadow:
+    0 0 16px rgba(255, 255, 255, .38),
+    0 0 40px rgba(255, 255, 255, .15);
+}
+
+/* D3: an occasional wave. main.js splits the name into per-character spans and
+   sets --d; without JS the name simply sits still, which is why the glow above
+   lives on the parent rather than the spans. */
+.me__name span {
+  display: inline-block;
+  white-space: pre;
+  animation: name-wave 9s ease-in-out var(--d, 0ms) infinite;
+}
+
+/* Mostly flat: the wave occupies the first ~14% of a 9s loop, so it reads as
+   something the name does now and then rather than a perpetual ripple. */
+@keyframes name-wave {
+  0%, 14%, 100% { transform: translateY(0) scale(1); }
+  4%            { transform: translateY(-5px) scale(1.07); }
+  9%            { transform: translateY(1px) scale(.99); }
+}
+
+.me__name:hover span { animation: name-wave-hover 900ms var(--ease-out) var(--dh, 0ms) both; }
+
+@keyframes name-wave-hover {
+  0%, 100% { transform: translateY(0) scale(1); }
+  35%      { transform: translateY(-7px) scale(1.09); }
+  70%      { transform: translateY(2px) scale(.985); }
+}
+
+.me__tagline {
+  margin: .3rem 0 0;
+  color: var(--text-dim);
+  font-size: .8rem;
+}
+
+.me__links {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: .3rem 1.15rem;
+  margin-top: .95rem;
+}
+
+.me__link {
+  position: relative;
+  padding: .2rem 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: .82rem;
+  color: var(--text-dim);
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 220ms var(--ease);
+}
+
+.me__link::after {
   content: '';
   position: absolute;
-  inset: -60% -60% -25% -60%;
-  z-index: 0;
-  border-radius: 50%;
-  background:
-    radial-gradient(38% 34% at 30% 68%, color-mix(in srgb, var(--mist-glow) 34%, transparent), transparent 70%),
-    radial-gradient(30% 40% at 72% 34%, color-mix(in srgb, var(--mist-mid) 52%, transparent), transparent 72%);
-  filter: blur(11px);
-  opacity: .7;
-  animation: badge-curl 13s ease-in-out infinite alternate;
+  left: 0; right: 0; bottom: 0;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 300ms var(--ease-out);
+}
+
+.me__link:hover { color: var(--mist-glow); }
+.me__link:hover::after { transform: scaleX(1); }
+
+/* Copy confirmation -------------------------------------------------------- */
+
+.me__copy-done {
+  position: absolute;
+  left: 50%;
+  bottom: 100%;
+  translate: -50% 0;
+  padding: .12rem .45rem;
+  border-radius: 999px;
+  font-size: .68rem;
+  white-space: nowrap;
+  color: var(--text);
+  background: color-mix(in srgb, var(--mist-core) 70%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--mist-glow) 50%, transparent);
+  opacity: 0;
   pointer-events: none;
 }
+
+.me__copy.is-copied .me__copy-done { animation: copied-pop 1500ms var(--ease-out); }
+
+/* Clipboard unavailable: the bubble carries the address itself, so it has to
+   sit still and stay long enough to read and select rather than popping. */
+.me__copy.is-plain.is-copied .me__copy-done {
+  animation: copied-hold 6000ms var(--ease-out);
+  user-select: all;
+  pointer-events: auto;
+}
+
+@keyframes copied-hold {
+  0%        { opacity: 0; transform: translateY(4px) scale(.94); }
+  6%, 92%   { opacity: 1; transform: translateY(-7px) scale(1);  }
+  100%      { opacity: 0; transform: translateY(-7px) scale(1);  }
+}
+
+@keyframes copied-pop {
+  0%   { opacity: 0; transform: translateY(6px)  scale(.85); }
+  18%  { opacity: 1; transform: translateY(-9px) scale(1.1); }
+  32%  { opacity: 1; transform: translateY(-6px) scale(1);   }
+  76%  { opacity: 1; transform: translateY(-6px) scale(1);   }
+  100% { opacity: 0; transform: translateY(-13px) scale(.97); }
+}
+
+.me__status {
+  margin: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+/* While the panel is open the page behind it recedes, so the spring lands
+   against something quiet. */
+.me-open .roster,
+.me-open .marquee {
+  filter: blur(5px);
+  opacity: .3;
+  transition: opacity 320ms var(--ease), filter 320ms var(--ease);
+}
+
+.roster, .marquee { transition: opacity 320ms var(--ease), filter 320ms var(--ease); }
 
 @keyframes badge-pulse {
   0%, 100% { opacity: .58; transform: scale(1);    }
   50%      { opacity: .92; transform: scale(1.09); }
 }
-
-@keyframes badge-curl {
-  from { transform: rotate(0deg)  translate3d(0, 0, 0)    scale(1);    }
-  to   { transform: rotate(14deg) translate3d(2%, -3%, 0) scale(1.06); }
-}
-
-.badge__text { margin: 0; }
-.badge__name { display: block; font-weight: 600; color: var(--text); }
-.badge__note { display: block; font-size: .72rem; }
 
 .contact {
   display: flex;
@@ -1485,7 +1699,6 @@ img { max-width: 100%; display: block; }
   .card         { width: min(520px, 88vw); }
   .card--storm  { margin-top: 0; }
   .card__index  { top: -2.75rem; }
-  .site-foot    { flex-direction: column; align-items: flex-start; }
   .case-head__index { font-size: clamp(4rem, 18vw, 7rem); opacity: .22; }
 }
 
@@ -1498,7 +1711,6 @@ img { max-width: 100%; display: block; }
 @media (max-width: 420px) {
   .card        { width: 100%; }
   .card__index { font-size: 3.25rem; top: -2rem; }
-  .badge__shot { width: 54px; height: 54px; }
 }
 
 /* Short viewports: the homepage is a composition, not a scroll. Two tiers —
@@ -1548,8 +1760,16 @@ img { max-width: 100%; display: block; }
 
   .home::before,
   .notfound::before,
-  .badge__shot::before,
-  .badge__shot::after { animation: none; }
+  /* The panel still opens and every photo still lands in its final place —
+     it simply arrives rather than springing. */
+  .me__halo        { animation: none; }
+  .me__name span   { animation: none; }
+  .me__panel,
+  .me__portrait,
+  .me__bubble      { animation: none; }
+  .me__bubble      { opacity: 1; }
+  .me-open .roster,
+  .me-open .marquee { filter: none; opacity: .45; }
 
   /* Reduced motion means no MOTION, not no ATMOSPHERE. The fog stays fully
      painted and simply stops moving — a still, lit, foggy page rather than a
