@@ -63,6 +63,13 @@
       card.addEventListener('pointermove', function (e) {
         if (card.classList.contains('is-chosen')) return;
         var r  = card.getBoundingClientRect();
+
+        /* Deck latch release. Rides the tilt's rect read rather than taking its
+           own, and tests the art box's RESTING footprint — see overArt() below
+           for why the rendered rect cannot be trusted here. */
+        if (deck && deck.classList.contains('is-lifted') &&
+            !overArt(e.clientX, e.clientY, r)) release();
+
         var px = (e.clientX - r.left) / r.width;
         var py = (e.clientY - r.top)  / r.height;
         next = {
@@ -136,29 +143,62 @@
       /* The deck. Geometric latch rather than a timed one: it lifts the moment
          the pointer touches a phone and holds until the pointer leaves the art
          box, so crossing between phones — or a phone stepping out from under a
-         stationary pointer — cannot drop it. .card__art clips, and the phones
-         only bleed past its lower edge, so leaving that box means the pointer
-         is genuinely off every visible pixel of the deck. No timer, so there is
-         no window in which the state is ambiguous.
+         stationary pointer — cannot drop it.
+
+         The boundary it latches against must be a box that DOES NOT MOVE, and
+         `.card__art`'s own rect is not one: the card's pop drags it up to 16px,
+         so along the bottom of the art the box lifts off a pointer that has not
+         moved, fires pointerleave, and releases the latch that exists to
+         survive exactly that. The release boundary was being animated by the
+         thing it was insulating against — the first fix had the same shape of
+         bug it was fixing, one level up.
+
+         `.card` is the stable frame. Every transform on this component lives on
+         `.card__float`/`__tilt`/`__inner`, so `.card`'s own rect never moves,
+         and the art's position inside it is layout — which transforms do not
+         touch. One rectangle governs both entry and exit, so a phone that the
+         bounce lifts above the art's resting top cannot latch and immediately
+         un-latch either.
 
          Entry is still "on an actual phone", which is the whole reason the CSS
          uses :has(.deck__shot:hover) and not .deck:hover. */
       var art  = card.querySelector('.card__art');
       var deck = card.querySelector('.deck');
+      var box  = null;   /* art's resting offset inside .card, in layout px */
+
+      function overArt(cx, cy, r) {
+        if (!box) {
+          var x = 0, y = 0, n;
+          for (n = art;  n; n = n.offsetParent) { x += n.offsetLeft; y += n.offsetTop; }
+          for (n = card; n; n = n.offsetParent) { x -= n.offsetLeft; y -= n.offsetTop; }
+          box = { x: x, y: y, w: art.offsetWidth, h: art.offsetHeight };
+        }
+        var px = cx - r.left - box.x, py = cy - r.top - box.y;
+        return px >= 0 && py >= 0 && px <= box.w && py <= box.h;
+      }
+
+      function release() {
+        deck.classList.remove('is-lifted');
+        deck.classList.remove('is-popping');
+      }
 
       if (art && deck) {
+        window.addEventListener('resize', function () { box = null; });
+
         art.addEventListener('pointerover', function (e) {
           var el = e.target;
           if (!el || !el.closest || !el.closest('.deck__shot')) return;
           if (deck.classList.contains('is-lifted')) return;
+          if (!overArt(e.clientX, e.clientY, card.getBoundingClientRect())) return;
           deck.classList.add('is-lifted');
           fire(deck, 'is-popping');
         });
 
-        art.addEventListener('pointerleave', function () {
-          deck.classList.remove('is-lifted');
-          deck.classList.remove('is-popping');
-        });
+        /* Release is checked against the resting rect on the move itself — see
+           the pointermove handler above, which already holds the card's rect —
+           plus this backstop for leaving the card without a final move inside
+           it. */
+        card.addEventListener('pointerleave', release);
       }
 
       /* animationend bubbles, and the deck's ambient shine and orbit bubble
