@@ -809,12 +809,12 @@ img { max-width: 100%; display: block; }
   /* The unfilled glass the liquid sits in. Kept dark so the fill line reads. */
   background:
     radial-gradient(120% 120% at 50% 0%,
-      color-mix(in srgb, var(--mist-deep) 55%, transparent) 0%,
+      color-mix(in srgb, var(--me-sink) 62%, transparent) 0%,
       color-mix(in srgb, var(--surface-lo) 92%, transparent) 70%);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, .22),
-    inset 0 0 0 1px color-mix(in srgb, var(--mist-glow) 30%, transparent),
-    0 0 22px 2px color-mix(in srgb, var(--mist-core) 55%, transparent);
+    inset 0 0 0 1px color-mix(in srgb, var(--me-hot) 30%, transparent),
+    0 0 22px 2px color-mix(in srgb, var(--me-hot) 46%, transparent);
   border-radius: 52% 48% 45% 55% / 50% 45% 55% 50%;
   animation:
     liquid-morph 11s ease-in-out infinite,
@@ -864,21 +864,37 @@ img { max-width: 100%; display: block; }
 
 /* Radii below 50% are what make the edge move: a 42%-rounded square reaches
    ~4.6px further along its diagonal than along its side, so spinning it drags
-   that difference across the opening as a swell. 38% swells harder still. */
+   that difference across the opening as a swell. 38% swells harder still.
+
+   The two waves now carry opposite ends of the palette — this one pink, the
+   other blue — and they run at 5s and 9s in opposite directions, so the pair
+   never repeats the same crossing twice and the ball's colour keeps shifting
+   without anything fading.
+
+   The purple has to live INSIDE each gradient rather than being produced by
+   blending the two, and that is forced by the goo filter, not a preference.
+   `#me-goo` thresholds alpha at `0 0 0 16 -7`: anything below a≈0.44 is erased
+   outright and anything above is driven back to fully opaque. So a
+   part-transparent wave laid over its neighbour would either disappear or come
+   back solid — there is no partial coverage to mix through. Both waves stay
+   opaque, and each ramps toward the middle of the palette so the meeting edge
+   still reads as a transition rather than a hard seam. */
 .me__goo::before {
   top: 100px;
   border-radius: 42%;
   background: linear-gradient(160deg,
-    color-mix(in srgb, var(--mist-glow) 70%, #fff) 0%,
-    var(--mist-core) 55%,
-    color-mix(in srgb, var(--mist-deep) 45%, var(--mist-core)) 100%);
+    color-mix(in srgb, var(--me-hot) 68%, #fff) 0%,
+    var(--me-hot) 52%,
+    var(--me-mid) 100%);
   animation: liquid-wave 5s linear infinite;
 }
 
 .me__goo::after {
   top: 106px;
   border-radius: 38%;
-  background: color-mix(in srgb, var(--mist-core) 70%, var(--mist-deep));
+  background: linear-gradient(160deg,
+    var(--me-mid) 0%,
+    color-mix(in srgb, var(--me-cold) 74%, var(--me-mid)) 100%);
   animation: liquid-wave 9s linear infinite reverse;
 }
 
@@ -900,7 +916,7 @@ img { max-width: 100%; display: block; }
   height: 21px;
   margin-left: -10.5px;
   border-radius: 50%;
-  background: color-mix(in srgb, var(--mist-glow) 62%, #fff);
+  background: color-mix(in srgb, var(--me-hot) 62%, #fff);
   transform: translate(0, 0) scale(0);
 }
 
@@ -959,8 +975,8 @@ img { max-width: 100%; display: block; }
   animation-name: liquid-morph;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, .3),
-    inset 0 0 0 1px color-mix(in srgb, var(--mist-glow) 45%, transparent),
-    0 0 34px 4px color-mix(in srgb, var(--mist-core) 72%, transparent);
+    inset 0 0 0 1px color-mix(in srgb, var(--me-hot) 45%, transparent),
+    0 0 34px 4px color-mix(in srgb, var(--me-hot) 62%, transparent);
 }
 
 /* The level rises to just past the brim, so the button reads as filling. */
@@ -1061,7 +1077,7 @@ img { max-width: 100%; display: block; }
   border-radius: 50%;
   pointer-events: none;
   background: radial-gradient(closest-side,
-              color-mix(in srgb, var(--mist-core) 55%, transparent), transparent 72%);
+              color-mix(in srgb, var(--me-hot) 50%, transparent), transparent 72%);
   filter: blur(7px);
   animation: badge-pulse 5.2s ease-in-out infinite;
 }
@@ -1103,7 +1119,31 @@ img { max-width: 100%; display: block; }
    the panel's height depends on its content and on the breakpoint. The values
    here are the fallback for when the script never runs.
    -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+   The profile component's own palette. Scoped to `.me` on purpose: the site's
+   violet (`--mist-*`) still owns the fog, the page transition, focus rings and
+   text selection, and none of that changes. Only the ball and the panel it
+   grows into speak this language.
+
+   Mapped by ROLE, not swapped one-for-one. Pink carries light — rim highlights,
+   the surface of the liquid, anything that would have been `--mist-glow`. Blue
+   carries depth, where `--mist-deep` sat. The purple is the bridge, and it is
+   deliberately the smallest share of the three.
+   -------------------------------------------------------------------------- */
 .me {
+  --me-hot:  #ff0080;
+  --me-mid:  #a349a4;
+  --me-cold: #0000ff;
+  /* Pure blue is nowhere near dark enough to act as shadow next to #0A0A0A —
+     it is roughly nine times the luminance of the violet it replaces. The
+     depth end is therefore the blue sunk toward black, and `--me-cold` itself
+     is kept for places that want the colour to actually read as blue. */
+  --me-sink: color-mix(in srgb, var(--me-cold) 30%, #05040e);
+  /* Blue pulled a little toward the bridge, so it reads as blue rather than as
+     a hole. Named because it is needed as a base for further alpha mixing, and
+     nesting color-mix inside color-mix at the use site is unreadable. */
+  --me-blue: color-mix(in srgb, var(--me-cold) 62%, var(--me-mid));
+
   --me-sx: .159;
   --me-sy: .166;
   --me-dy: 74px;
@@ -1123,14 +1163,14 @@ img { max-width: 100%; display: block; }
      50% circle. */
   border-radius: 19% 22% 18% 21% / 20% 17% 22% 19%;
   /* "Glowing purple border around" everything, per the brief. */
-  border: 1px solid color-mix(in srgb, var(--mist-glow) 46%, transparent);
+  border: 1px solid color-mix(in srgb, var(--me-hot) 38%, transparent);
   background:
     linear-gradient(180deg,
-      color-mix(in srgb, var(--mist-core) 13%, var(--surface)) 0%,
+      color-mix(in srgb, var(--me-mid) 13%, var(--surface)) 0%,
       var(--surface-lo) 74%);
   box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--mist-glow) 12%, transparent),
-    0 0 34px -4px color-mix(in srgb, var(--mist-core) 62%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--me-hot) 12%, transparent),
+    0 0 34px -4px color-mix(in srgb, var(--me-mid) 62%, transparent),
     0 26px 60px -18px rgba(0, 0, 0, .8);
   transform-origin: 50% 100%;
   animation: skin-drift 17s ease-in-out infinite;
@@ -1156,10 +1196,10 @@ img { max-width: 100%; display: block; }
   position: absolute;
   inset: 0;
   background: linear-gradient(to top,
-    color-mix(in srgb, var(--mist-glow) 62%, #fff) 0%,
-    var(--mist-core) 30%,
-    color-mix(in srgb, var(--mist-deep) 45%, var(--mist-core)) 52%,
-    color-mix(in srgb, var(--surface-lo) 88%, var(--mist-deep)) 62%,
+    color-mix(in srgb, var(--me-hot) 62%, #fff) 0%,
+    var(--me-hot) 30%,
+    color-mix(in srgb, var(--me-mid) 58%, var(--me-cold)) 52%,
+    color-mix(in srgb, var(--surface-lo) 84%, var(--me-sink)) 62%,
     color-mix(in srgb, var(--surface-lo) 94%, transparent) 100%);
 }
 
@@ -1305,9 +1345,9 @@ img { max-width: 100%; display: block; }
   opacity: .78;
   background:
     radial-gradient(46% 34% at 32% 78%,
-      color-mix(in srgb, var(--mist-glow) 74%, transparent), transparent 72%),
+      color-mix(in srgb, var(--me-hot) 70%, transparent), transparent 72%),
     radial-gradient(42% 30% at 72% 88%,
-      color-mix(in srgb, var(--mist-core) 78%, transparent), transparent 74%);
+      color-mix(in srgb, var(--me-blue) 74%, transparent), transparent 74%);
   animation: aura-lick 22s ease-in-out infinite;
 }
 
@@ -1317,7 +1357,7 @@ img { max-width: 100%; display: block; }
   inset: 0;
   background:
     radial-gradient(34% 26% at 55% 64%,
-      color-mix(in srgb, var(--mist-glow) 58%, transparent), transparent 76%);
+      color-mix(in srgb, var(--me-mid) 62%, transparent), transparent 76%);
   animation: aura-lick 17s ease-in-out infinite reverse;
 }
 
@@ -1336,8 +1376,8 @@ img { max-width: 100%; display: block; }
   pointer-events: none;
   border-radius: 50%;
   background: radial-gradient(closest-side,
-    color-mix(in srgb, var(--mist-core) 48%, transparent) 0%,
-    color-mix(in srgb, var(--mist-glow) 22%, transparent) 52%,
+    color-mix(in srgb, var(--me-hot) 42%, transparent) 0%,
+    color-mix(in srgb, var(--me-mid) 24%, transparent) 52%,
     transparent 78%);
   animation: bloom-breathe 7.5s ease-in-out infinite;
 }
@@ -1407,8 +1447,11 @@ img { max-width: 100%; display: block; }
 }
 
 .me__portrait img {
-  border: 3px solid color-mix(in srgb, var(--mist-glow) 62%, transparent);
-  box-shadow: 0 0 22px -2px color-mix(in srgb, var(--mist-core) 75%, transparent);
+  /* 2px, not the 3px these carried under the old lavender. At full saturation
+     the same width reads considerably heavier, so the ring is thinned to hold
+     the weight it had before the palette changed. */
+  border: 2px solid color-mix(in srgb, var(--me-hot) 58%, transparent);
+  box-shadow: 0 0 22px -2px color-mix(in srgb, var(--me-mid) 75%, transparent);
 }
 
 @keyframes portrait-in {
@@ -1435,8 +1478,8 @@ img { max-width: 100%; display: block; }
 }
 
 .me__bubble img {
-  border: 3px solid color-mix(in srgb, var(--mist-glow) 55%, transparent);
-  box-shadow: 0 0 16px -3px color-mix(in srgb, var(--mist-core) 70%, transparent);
+  border: 2px solid color-mix(in srgb, var(--me-hot) 52%, transparent);
+  box-shadow: 0 0 16px -3px color-mix(in srgb, var(--me-mid) 70%, transparent);
 }
 
 /* ±84 leaves ~9px of the ear tucked behind the portrait — enough to read as
@@ -1585,7 +1628,7 @@ img { max-width: 100%; display: block; }
   transition: transform 300ms var(--ease-out);
 }
 
-.me__link:hover { color: var(--mist-glow); }
+.me__link:hover { color: var(--me-hot); }
 .me__link:hover::after { transform: scaleX(1); }
 
 /* Copy confirmation -------------------------------------------------------- */
@@ -1600,8 +1643,8 @@ img { max-width: 100%; display: block; }
   font-size: .68rem;
   white-space: nowrap;
   color: var(--text);
-  background: color-mix(in srgb, var(--mist-core) 70%, var(--surface));
-  border: 1px solid color-mix(in srgb, var(--mist-glow) 50%, transparent);
+  background: color-mix(in srgb, var(--me-mid) 70%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--me-hot) 50%, transparent);
   opacity: 0;
   pointer-events: none;
 }
