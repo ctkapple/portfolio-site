@@ -70,7 +70,6 @@
   <main class="roster">
 
     <a class="card card--bev" href="work/bevfantasy/" data-mist data-label="bevfantasy">
-      <span class="card__index" aria-hidden="true">01</span>
       <div class="card__float">
         <div class="card__tilt">
           <div class="card__inner">
@@ -108,7 +107,6 @@
     </a>
 
     <a class="card card--storm" href="work/into-the-storm/" data-mist data-label="Into the Storm">
-      <span class="card__index" aria-hidden="true">02</span>
       <div class="card__float">
         <div class="card__tilt">
           <div class="card__inner">
@@ -142,6 +140,10 @@
       <div class="me__veil" aria-hidden="true"></div>
 
       <button class="me__dot" type="button" aria-expanded="false" aria-controls="me-panel">
+        <!-- The liquid fill. Clips to the button's (morphing) shape and holds
+             two counter-rotating blobs whose upper edges read as a wobbling
+             surface. Hover raises the level. -->
+        <span class="me__liquid" aria-hidden="true"></span>
         <span class="me__dot-label">me</span>
         <span class="vh">— about William Dooling</span>
         <span class="me__halo" aria-hidden="true"></span>
@@ -176,8 +178,8 @@
              so it reads as hugging the circle rather than sitting in a box
              beneath it. role/aria-label carry the text, since a <textPath> is
              not reliably announced. -->
-        <svg class="me__motto" viewBox="0 0 320 58" aria-hidden="true" focusable="false">
-          <path id="me-motto-arc" d="M 22 14 Q 160 56 298 14" fill="none"/>
+        <svg class="me__motto" viewBox="0 0 320 50" aria-hidden="true" focusable="false">
+          <path id="me-motto-arc" d="M 22 6 Q 160 48 298 6" fill="none"/>
           <text>
             <textPath href="#me-motto-arc" startOffset="50%" text-anchor="middle">
               Risk PM by day, game dev by night.
