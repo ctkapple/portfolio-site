@@ -1,0 +1,458 @@
+/* ==========================================================================
+   William Dooling — Portfolio
+   Tokens and motion follow _internal/portfolio-design-guide.md §4
+   ========================================================================== */
+
+:root {
+  /* Color */
+  --bg:          #0A0A0A;
+  --text:        #F5F5F0;
+  --text-dim:    #8A8A85;
+  --bev:         #F2711C;
+  --storm:       #7FDBB6;
+  --storm-gold:  #E8C368;
+
+  /* Type */
+  --display: 'Bebas Neue', Impact, sans-serif;
+  --body:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+
+  /* Motion */
+  --float-range: 14px;
+  --ease:        cubic-bezier(.4, 0, .2, 1);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  animation: page-in 480ms var(--ease) both;
+}
+
+@keyframes page-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+a { color: inherit; }
+
+img { max-width: 100%; display: block; }
+
+:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
+/* --------------------------------------------------------------------------
+   Homepage
+   -------------------------------------------------------------------------- */
+
+.home {
+  min-height: 100vh;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+
+.site-head {
+  position: relative;
+  z-index: 2;
+  padding: clamp(1.5rem, 4vw, 2.75rem);
+}
+
+.site-head__name {
+  margin: 0;
+  font-family: var(--display);
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  letter-spacing: .04em;
+  line-height: 1;
+}
+
+.site-head__tagline {
+  margin: .5rem 0 0;
+  color: var(--text-dim);
+  font-size: clamp(.8rem, 1.4vw, .9rem);
+  letter-spacing: .01em;
+}
+
+/* Cards ------------------------------------------------------------------- */
+
+.cards {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(1.5rem, 5vw, 4.5rem);
+  padding: clamp(1.5rem, 4vw, 3rem) clamp(1.5rem, 4vw, 3rem) clamp(4rem, 10vw, 7rem);
+  flex-wrap: wrap;
+}
+
+.card {
+  display: block;
+  text-decoration: none;
+  width: clamp(260px, 32vw, 400px);
+  flex: 0 1 auto;
+}
+
+/* Float lives on its own element so the hover transform never fights it. */
+.card__float {
+  animation: float 7s ease-in-out infinite;
+  will-change: transform;
+}
+
+.card:nth-of-type(2) .card__float {
+  animation-duration: 7.8s;
+  animation-delay: -2.6s; /* offset — the two cards must never drift in sync */
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(calc(var(--float-range) / -2)); }
+  50%      { transform: translateY(calc(var(--float-range) /  2)); }
+}
+
+.card__inner {
+  position: relative;
+  border-radius: 14px;
+  padding: clamp(1.25rem, 2.5vw, 1.75rem);
+  background: #101010;
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--accent) 8%, transparent),
+    0 18px 50px -12px color-mix(in srgb, var(--accent) 30%, transparent);
+  transition: transform 340ms var(--ease), box-shadow 340ms var(--ease);
+}
+
+/* Soft outer bloom, separate from the card so it can bloom independently. */
+.card__inner::before {
+  content: '';
+  position: absolute;
+  inset: -18%;
+  z-index: -1;
+  border-radius: 50%;
+  background: radial-gradient(closest-side,
+              color-mix(in srgb, var(--accent) 38%, transparent), transparent 78%);
+  filter: blur(34px);
+  opacity: .55;
+  transition: opacity 340ms var(--ease);
+  pointer-events: none;
+}
+
+.card:hover .card__float,
+.card:focus-visible .card__float { animation-play-state: paused; }
+
+.card:hover .card__inner,
+.card:focus-visible .card__inner {
+  transform: translateY(-6px) scale(1.02);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--accent) 20%, transparent),
+    0 26px 66px -10px color-mix(in srgb, var(--accent) 46%, transparent);
+}
+
+.card:hover .card__inner::before,
+.card:focus-visible .card__inner::before { opacity: .9; }
+
+.card--bev   { --accent: var(--bev); }
+.card--storm { --accent: var(--storm); }
+
+.card__art {
+  aspect-ratio: 4 / 3;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #0C0C0C;
+  margin-bottom: 1.15rem;
+}
+
+.card__art img { width: 100%; height: 100%; object-fit: cover; }
+
+.card__title {
+  margin: 0;
+  font-family: var(--display);
+  font-size: clamp(1.6rem, 3vw, 2.15rem);
+  letter-spacing: .03em;
+  line-height: 1;
+  color: var(--accent);
+}
+
+.card__meta {
+  margin: .45rem 0 0;
+  color: var(--text-dim);
+  font-size: .82rem;
+}
+
+/* Stylized bevfantasy mock — §6 keeps "real screenshot vs. mock" open, so this
+   is intentionally illustrative rather than a product capture. */
+.mock {
+  height: 100%;
+  padding: .9rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  font-size: .7rem;
+}
+
+.mock__head {
+  font-family: var(--display);
+  letter-spacing: .12em;
+  color: var(--accent);
+  font-size: .78rem;
+}
+
+.mock__row { display: flex; align-items: center; gap: .55rem; }
+
+.mock__rank {
+  width: 1.1rem;
+  text-align: right;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+  font-size: .68rem;
+}
+
+.mock__bar {
+  height: .5rem;
+  width: var(--w);
+  border-radius: 999px;
+  background: linear-gradient(90deg,
+              var(--accent), color-mix(in srgb, var(--accent) 25%, transparent));
+}
+
+/* Photo badge — §3 calls for this to be present, not tucked away. */
+.badge {
+  position: fixed;
+  right: clamp(1.25rem, 3vw, 2.25rem);
+  bottom: clamp(1.25rem, 3vw, 2.25rem);
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: .7rem;
+  color: var(--text-dim);
+  font-size: .76rem;
+}
+
+.badge img {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid rgba(245, 245, 240, .16);
+}
+
+/* Mist transition — §4, the signature moment ------------------------------ */
+
+.mist {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  visibility: hidden;
+  pointer-events: none;
+  background: radial-gradient(circle at var(--ox, 50%) var(--oy, 50%),
+              color-mix(in srgb, var(--tint, #FFF) 10%, rgba(10, 10, 10, .55)) 0%,
+              rgba(10, 10, 10, .97) 58%);
+  clip-path: circle(0% at var(--ox, 50%) var(--oy, 50%));
+}
+
+.mist.is-active {
+  visibility: visible;
+  pointer-events: auto;
+  animation: mist-in 900ms var(--ease) forwards;
+}
+
+@keyframes mist-in {
+  from { clip-path: circle(0%   at var(--ox) var(--oy)); backdrop-filter: blur(0px);  }
+  to   { clip-path: circle(150% at var(--ox) var(--oy)); backdrop-filter: blur(16px); }
+}
+
+.mist__label {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-family: var(--display);
+  font-size: clamp(1.5rem, 4vw, 2.4rem);
+  letter-spacing: .08em;
+  color: var(--tint, var(--text));
+  opacity: 0;
+}
+
+.mist.is-active .mist__label {
+  animation: label-in 460ms var(--ease) 340ms forwards;
+}
+
+@keyframes label-in {
+  from { opacity: 0; transform: translate(-50%, -46%); }
+  to   { opacity: 1; transform: translate(-50%, -50%); }
+}
+
+/* --------------------------------------------------------------------------
+   Case study pages
+   §5: quieter than the homepage. Readability over flair.
+   -------------------------------------------------------------------------- */
+
+.case { --accent: var(--text); }
+.case.theme-bev   { --accent: var(--bev); }
+.case.theme-storm { --accent: var(--storm); }
+
+.case-wrap {
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: clamp(1.5rem, 4vw, 2.5rem) clamp(1.25rem, 5vw, 2rem) 6rem;
+}
+
+.case-back {
+  display: inline-block;
+  margin-bottom: clamp(2.5rem, 7vw, 4.5rem);
+  color: var(--text-dim);
+  text-decoration: none;
+  font-size: .82rem;
+  transition: color 200ms var(--ease);
+}
+
+.case-back:hover { color: var(--text); }
+
+.case-eyebrow {
+  margin: 0 0 .6rem;
+  color: var(--accent);
+  font-size: .74rem;
+  font-weight: 600;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+.case-title {
+  margin: 0;
+  font-family: var(--display);
+  font-size: clamp(2.4rem, 7vw, 3.8rem);
+  letter-spacing: .02em;
+  line-height: 1;
+}
+
+.case-sub {
+  margin: 1rem 0 0;
+  color: var(--text-dim);
+  font-size: 1.02rem;
+  max-width: 34rem;
+}
+
+.case-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.75rem;
+  margin: 2.5rem 0 0;
+  padding: 1.25rem 0;
+  border-top: 1px solid rgba(245, 245, 240, .1);
+  border-bottom: 1px solid rgba(245, 245, 240, .1);
+}
+
+.case-fact dt {
+  margin: 0 0 .3rem;
+  color: var(--text-dim);
+  font-size: .7rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.case-fact dd { margin: 0; font-size: .92rem; }
+
+.case-body { margin-top: clamp(2.5rem, 6vw, 3.5rem); }
+
+.case-body h2 {
+  margin: 3.25rem 0 1rem;
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: -.01em;
+}
+
+.case-body h2:first-child { margin-top: 0; }
+
+.case-body h3 {
+  margin: 2.25rem 0 .75rem;
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.case-body p { margin: 0 0 1.15rem; }
+
+.case-body ul { margin: 0 0 1.15rem; padding-left: 1.15rem; }
+.case-body li { margin-bottom: .5rem; }
+
+.case-figure { margin: 2rem 0; }
+
+.case-figure img { border-radius: 8px; width: 100%; }
+
+.case-figure figcaption {
+  margin-top: .7rem;
+  color: var(--text-dim);
+  font-size: .8rem;
+}
+
+.case-note {
+  margin: 2.5rem 0 0;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(245, 245, 240, .1);
+  color: var(--text-dim);
+  font-size: .85rem;
+}
+
+/* Scaffolding marker — delete these along with the placeholder copy. */
+.todo {
+  border-left: 2px solid var(--accent);
+  padding: .1rem 0 .1rem 1rem;
+  margin: 0 0 1.15rem;
+  color: var(--text-dim);
+  font-size: .9rem;
+}
+
+/* --------------------------------------------------------------------------
+   404
+   -------------------------------------------------------------------------- */
+
+.notfound {
+  min-height: 100vh;
+  min-height: 100svh;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  padding: 2rem;
+}
+
+.notfound h1 {
+  font-family: var(--display);
+  font-size: clamp(3rem, 12vw, 6rem);
+  margin: 0;
+  letter-spacing: .04em;
+}
+
+.notfound p { color: var(--text-dim); }
+
+/* --------------------------------------------------------------------------
+   Responsive
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 820px) {
+  .cards { flex-direction: column; padding-bottom: 8rem; }
+  .card  { width: min(400px, 82vw); }
+  .badge { position: static; margin: 0 auto 2.5rem; justify-content: center; }
+}
+
+/* --------------------------------------------------------------------------
+   Reduced motion — §4 requires this in the final build.
+   -------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+  }
+  .card__float { animation: none; }
+  .card:hover .card__inner { transform: none; }
+}

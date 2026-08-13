@@ -6,9 +6,10 @@ _internal/
 Thumbs.db
 desktop.ini
 
-# Editors
+# Editors / local tooling
 .vscode/
 .idea/
+.claude/
 *.swp
 
 # In case build tooling gets added later
