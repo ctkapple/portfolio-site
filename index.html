@@ -149,12 +149,12 @@
              crop the blobs (they are 260% of it) before the clip does. -->
         <filter id="me-goo" x="-25%" y="-25%" width="150%" height="150%"
                 color-interpolation-filters="sRGB">
-          <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur"/>
+          <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="blur"/>
           <feColorMatrix in="blur" type="matrix"
             values="1 0 0 0 0
                     0 1 0 0 0
                     0 0 1 0 0
-                    0 0 0 22 -10"/>
+                    0 0 0 16 -7"/>
         </filter>
       </svg>
 
@@ -194,10 +194,6 @@
         <div class="me__bloom" aria-hidden="true"></div>
 
         <div class="me__content">
-
-        <button class="me__close" type="button" aria-label="Close">
-          <span aria-hidden="true">×</span>
-        </button>
 
         <div class="me__shots">
           <figure class="me__bubble me__shot me__bubble--sky" tabindex="0">

@@ -135,10 +135,27 @@
       return !panel.hasAttribute('hidden') && !me.classList.contains('is-closing');
     }
 
+    /* The panel grows out of the dot by being scaled down onto it, so the
+       morph needs the ratio between the two boxes. The panel's height depends
+       on its content and on the breakpoint, so this is measured rather than
+       assumed — the CSS carries a desktop fallback for when this never runs.
+
+       Read after the panel is shown and before aria-expanded flips, so the
+       measurement happens while both boxes are still at their resting size. */
+    function sizeMorph() {
+      var p = panel.getBoundingClientRect();
+      var d = dot.getBoundingClientRect();
+      if (!p.width || !p.height || !d.width) return;
+      me.style.setProperty('--me-sx', (d.width / p.width).toFixed(4));
+      me.style.setProperty('--me-sy', (d.height / p.height).toFixed(4));
+      me.style.setProperty('--me-dy', (d.bottom - p.bottom).toFixed(1) + 'px');
+    }
+
     function openMe() {
       window.clearTimeout(closeTimer);
       me.classList.remove('is-closing');
       panel.removeAttribute('hidden');
+      sizeMorph();
       dot.setAttribute('aria-expanded', 'true');
       document.body.classList.add('me-open');
 
@@ -172,17 +189,6 @@
       e.stopPropagation();
       if (isOpen()) closeMe(false); else openMe();
     });
-
-    /* The dot dissolves into the panel on open, so it is not available as a
-       close target while the panel is up. Esc and clicking away both work, but
-       neither is visible — hence a real control. */
-    var closeBtn = panel.querySelector('.me__close');
-    if (closeBtn) {
-      closeBtn.addEventListener('click', function (e) {
-        e.stopPropagation();
-        closeMe(true);
-      });
-    }
 
     /* Clicks inside the panel must not reach the document handler below. */
     panel.addEventListener('click', function (e) { e.stopPropagation(); });
