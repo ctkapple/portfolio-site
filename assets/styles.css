@@ -976,24 +976,50 @@ img { max-width: 100%; display: block; }
   text-shadow: 0 1px 8px rgba(0, 0, 0, .6);
 }
 
-/* Open: the ball does not sit there next to the panel — it BECOMES it. It cuts
-   out instantly and without moving, because on the very first frame the skin
-   is already a circle of the same size, in the same place, in the same colour.
-   Anything gradual here — a fade, a swell — puts two objects on screen at once
-   and the whole thing reads as a swap instead of a growth. */
+/* --------------------------------------------------------------------------
+   Open: the ball stays where it is, dimmed, and becomes the dismiss control.
+
+   It needs no fade-out to avoid the "two objects swapping" problem the morph
+   used to have, because the skin's first frame covers this rect exactly. The
+   ball is not re-introduced when the panel opens — it is *uncovered*, as the
+   growing skin lifts up and off it. So the only thing to animate here is the
+   drop in emphasis, and that is deliberately delayed until the skin has
+   cleared.
+   -------------------------------------------------------------------------- */
 .me__dot[aria-expanded="true"] {
-  opacity: 0;
-  pointer-events: none;
+  opacity: .34;
+  transform: scale(.82);
   animation-name: liquid-morph;
-  transition: none;
+  transition: opacity 380ms var(--ease) 140ms,
+              transform 380ms var(--ease-out) 140ms;
 }
 
-.me__dot[aria-expanded="true"] .me__goo::before { top: 72px; }
-.me__dot[aria-expanded="true"] .me__goo::after  { top: 78px; }
+/* Resting level, exactly as when closed. The dimming is what says "not the
+   subject right now"; the liquid itself has not changed state. */
+.me__dot[aria-expanded="true"] .me__goo::before { top: 100px; }
+.me__dot[aria-expanded="true"] .me__goo::after  { top: 106px; }
 
-.me__dot[aria-expanded="true"] .me__dot-label {
-  opacity: 0;
-  transition: none;
+/* Hovering the ball while the panel is open DRAINS it, where hovering it while
+   closed fills it to the brim. Same gesture, opposite direction — that
+   inversion is the affordance. It says this puts the liquid back, without
+   resorting to an × or a second control. */
+.me__dot[aria-expanded="true"]:hover,
+.me__dot[aria-expanded="true"]:focus-visible {
+  opacity: .94;
+  transform: scale(.9);
+}
+
+.me__dot[aria-expanded="true"]:hover .me__goo::before,
+.me__dot[aria-expanded="true"]:focus-visible .me__goo::before { top: 120px; }
+
+.me__dot[aria-expanded="true"]:hover .me__goo::after,
+.me__dot[aria-expanded="true"]:focus-visible .me__goo::after { top: 126px; }
+
+/* The label holds still while open. Growing it on hover is the "more of this"
+   cue from the closed state and would contradict the drain. */
+.me__dot[aria-expanded="true"]:hover .me__dot-label,
+.me__dot[aria-expanded="true"]:focus-visible .me__dot-label {
+  transform: scale(1);
 }
 
 /* Breathing halo, so the dot reads as alive and clickable without a label. */
