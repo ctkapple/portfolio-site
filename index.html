@@ -48,6 +48,15 @@
 </head>
 <body class="home">
 
+  <!-- Ambient fog. Always on, independent of the click transition — the page
+       should read as weather even when nothing is happening. Three parallax
+       sheets over a static vignette mask; see §3b of styles.css. -->
+  <div class="fog" aria-hidden="true">
+    <div class="fog__sheet fog__sheet--far"></div>
+    <div class="fog__sheet fog__sheet--mid"></div>
+    <div class="fog__sheet fog__sheet--near"></div>
+  </div>
+
   <header class="marquee">
     <div class="marquee__top">
       <p class="micro">Portfolio</p>

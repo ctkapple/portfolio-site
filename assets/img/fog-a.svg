@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="900" viewBox="0 0 900 900">
+  <!-- Near fog: finer, brighter wisps. Tinted to the mist-glow token, #9B84D9.
+       NB: no double hyphens anywhere in these comments. XML forbids them, and
+       the parse error is silent: the file still serves 200 as image/svg+xml,
+       it just never decodes, and the fog renders as nothing at all.
+
+       This is a TEXTURE, not a live filter. The turbulence is rasterized once
+       when the browser decodes this file; the stylesheet then animates only
+       transform on the element that paints it, so nothing re-rasterizes per
+       frame. That distinction is the whole reason the ambient layer is
+       affordable to run continuously. -->
+  <filter id="fog" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+    <feTurbulence type="fractalNoise" baseFrequency="0.0135" numOctaves="4"
+                  seed="11" stitchTiles="stitch"/>
+    <!-- Constant violet, alpha driven by the noise and pushed well below 1 so
+         the result reads as thin vapour rather than a solid cloud. -->
+    <feColorMatrix type="matrix"
+      values="0 0 0 0 0.608
+              0 0 0 0 0.518
+              0 0 0 0 0.851
+              0 0 0 -1.15 0.82"/>
+    <feGaussianBlur stdDeviation="7"/>
+  </filter>
+  <rect width="900" height="900" filter="url(#fog)"/>
+</svg>

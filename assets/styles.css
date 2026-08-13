@@ -197,6 +197,102 @@ img { max-width: 100%; display: block; }
   to   { transform: translate3d( 3%,  2%, 0) scale(1.08); }
 }
 
+/* --------------------------------------------------------------------------
+   3b. Ambient fog
+   The always-on half of the mist. The click transition (§7) is a moment; this
+   is the climate it happens inside.
+
+   Performance is the whole design here, because this runs forever:
+
+     - The turbulence is baked into assets/img/fog-{a,b}.svg and decoded once.
+       Never `filter: url()` on a moving element — that re-rasterizes per frame,
+       which is what made the first pass stutter.
+     - The vignette mask lives on .fog, which never moves. Masks on animated
+       elements defeat compositing; masks on their static parent do not.
+     - Only transform and opacity animate. Both stay on the compositor.
+     - Each sheet is oversized by 40% so drift and parallax never expose an edge.
+   -------------------------------------------------------------------------- */
+
+.fog {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  /* Thinner through the middle so the cards stay legible, banking up at the
+     edges. Static — see the note above. */
+  -webkit-mask-image: radial-gradient(ellipse 72% 62% at 50% 48%,
+                      rgba(0,0,0,.22) 0%, rgba(0,0,0,.72) 58%, #000 100%);
+  mask-image: radial-gradient(ellipse 72% 62% at 50% 48%,
+              rgba(0,0,0,.22) 0%, rgba(0,0,0,.72) 58%, #000 100%);
+}
+
+/* The sheet carries pointer parallax; its ::before carries the drift. Split in
+   two so the two transforms never fight over the same property. */
+.fog__sheet {
+  position: absolute;
+  inset: -40%;
+  /* --fog-x/y are unitless (-1..1), set by main.js; --depth is the length they
+     scale into. Number × length is valid calc; length × length is not. */
+  --depth: 0px;
+  transform: translate3d(calc(var(--fog-x, 0) * var(--depth)),
+                         calc(var(--fog-y, 0) * var(--depth)), 0);
+  transition: transform 900ms cubic-bezier(.22, .61, .36, 1);
+  will-change: transform;
+}
+
+.fog__sheet::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-repeat: no-repeat;
+  background-size: cover;
+  will-change: transform;
+}
+
+/* Opacities are measured, not guessed. Against the #0A0A0A ground these lift
+   mean luminance ~4 through the middle of the vignette and ~17 at the edges
+   (peaks ~44), which reads as banked fog while leaving the cards legible.
+   Roughly double these and the near-black ground turns to grey milk. */
+.fog__sheet--far  { --depth: 5px;  opacity: .26; }
+.fog__sheet--mid  { --depth: 11px; opacity: .20; }
+.fog__sheet--near { --depth: 20px; opacity: .15; }
+
+.fog__sheet--far::before {
+  background-image: url('img/fog-b.svg');
+  animation: fog-drift-a 118s ease-in-out infinite alternate;
+}
+
+.fog__sheet--mid::before {
+  background-image: url('img/fog-a.svg');
+  background-position: 40% 60%;
+  animation: fog-drift-b 86s ease-in-out infinite alternate;
+}
+
+.fog__sheet--near::before {
+  background-image: url('img/fog-a.svg');
+  background-position: 70% 20%;
+  transform: scaleX(-1);
+  animation: fog-drift-c 61s ease-in-out infinite alternate;
+}
+
+/* Long, offset, and never returning to the same pose — three banks of weather
+   crossing at different speeds rather than one texture sliding. */
+@keyframes fog-drift-a {
+  from { transform: translate3d(-4%, 2%, 0)  scale(1.05) rotate(-1.5deg); }
+  to   { transform: translate3d( 5%, -3%, 0) scale(1.18) rotate(2deg);    }
+}
+
+@keyframes fog-drift-b {
+  from { transform: translate3d( 6%, -2%, 0) scale(1.12) rotate(1deg);    }
+  to   { transform: translate3d(-5%, 4%, 0)  scale(1.02) rotate(-2.5deg); }
+}
+
+@keyframes fog-drift-c {
+  from { transform: scaleX(-1) translate3d(-3%, 4%, 0) scale(1.08); }
+  to   { transform: scaleX(-1) translate3d( 4%, -5%, 0) scale(1.22); }
+}
+
 /* Everything above the atmosphere. */
 .marquee, .roster, .site-foot { position: relative; z-index: 1; }
 
@@ -1354,6 +1450,23 @@ img { max-width: 100%; display: block; }
   .notfound::before,
   .badge__shot::before,
   .badge__shot::after { animation: none; }
+
+  /* Reduced motion means no MOTION, not no ATMOSPHERE. The fog stays fully
+     painted and simply stops moving — a still, lit, foggy page rather than a
+     bare one. Sheets are posed at their mid-drift positions (the keyframes
+     would otherwise snap them to `from`, which stacks all three in register and
+     reads as one flat wash) and lifted slightly in opacity, since a static
+     texture reads thinner than a moving one. */
+  .fog__sheet          { transition: none; transform: none; }
+  .fog__sheet::before  { animation: none !important; }
+
+  .fog__sheet--far  { opacity: .32; }
+  .fog__sheet--mid  { opacity: .25; }
+  .fog__sheet--near { opacity: .19; }
+
+  .fog__sheet--far::before  { transform: translate3d( 1%, -1%, 0) scale(1.12) rotate(.5deg);  }
+  .fog__sheet--mid::before  { transform: translate3d(-2%,  2%, 0) scale(1.07) rotate(-1deg);  }
+  .fog__sheet--near::before { transform: scaleX(-1) translate3d(1%, -1%, 0) scale(1.15);      }
 
   .card__float               { animation: none; }
   .card__tilt                { transform: none !important; }

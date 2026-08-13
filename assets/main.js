@@ -86,6 +86,35 @@
   }
 
   /* ---------------------------------------------------------------------
+     Ambient fog parallax. The pointer leans the fog banks against each other
+     by a few pixels — enough to feel like depth, not enough to notice as an
+     effect. Sheets carry their own depth multiplier in CSS; this only
+     publishes a normalised -1..1 pointer position.
+     --------------------------------------------------------------------- */
+
+  var fog = document.querySelector('.fog');
+
+  if (fog && fine && !reduced()) {
+    var fogFrame = 0;
+    var fogNext  = null;
+
+    function applyFog() {
+      fogFrame = 0;
+      if (!fogNext) return;
+      fog.style.setProperty('--fog-x', fogNext.x);
+      fog.style.setProperty('--fog-y', fogNext.y);
+    }
+
+    window.addEventListener('pointermove', function (e) {
+      fogNext = {
+        x: ((e.clientX / window.innerWidth)  * 2 - 1).toFixed(3),
+        y: ((e.clientY / window.innerHeight) * 2 - 1).toFixed(3)
+      };
+      if (!fogFrame) fogFrame = window.requestAnimationFrame(applyFog);
+    }, { passive: true });
+  }
+
+  /* ---------------------------------------------------------------------
      Prefetch on intent.
      --------------------------------------------------------------------- */
 
