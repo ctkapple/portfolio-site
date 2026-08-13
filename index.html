@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>William Dooling — Product Designer</title>
-<meta name="description" content="Product designer. Risk PM by day, game dev by night. A fantasy football stats platform and a roguelite deckbuilder.">
+<meta name="description" content="William Dooling — product designer. Risk PM by day, game dev by night.">
 <link rel="canonical" href="https://www.williamdooling.com/">
 <meta name="theme-color" content="#0A0A0A">
 
@@ -79,20 +79,31 @@
             <span class="card__sheen" aria-hidden="true"></span>
 
             <div class="card__art">
-              <!-- Placeholder for real product UI. §6 left screenshot-vs-mock open;
-                   Will has since chosen a real, tightly-cropped capture. This slot
-                   is sized 16:10 to receive it — drop an <img> in and delete .mock. -->
-              <div class="mock" aria-hidden="true">
-                <div class="mock__head">
-                  <span class="mock__title">AP Poll</span>
-                  <span class="mock__week">WK 12</span>
+              <!-- Real product UI, replacing the hand-built .mock this slot was
+                   built to receive. Three iPhone captures fanned around the AP
+                   Poll hero, bleeding past the frame's lower edge.
+
+                   aria-hidden and alt="" together: the card's own <h2> and
+                   .card__meta already name the project, and three screenshots
+                   of a stats UI cannot be described usefully in alt text at
+                   this size. They are decoration for a link that is already
+                   labelled. Nothing here is a separate click target — the whole
+                   card is one <a>, so the phones react to hover but never
+                   pretend to be buttons. -->
+              <div class="deck" aria-hidden="true">
+                <div class="deck__shot deck__shot--left">
+                  <img src="assets/img/bev-h2h.webp" alt=""
+                       width="420" height="819" loading="eager" decoding="async">
                 </div>
-                <div class="mock__rows">
-                  <div class="mock__row"><span class="mock__rank">1</span><span class="mock__track"><span class="mock__bar" style="--w:94%"></span></span><span class="mock__delta mock__delta--up">+2</span></div>
-                  <div class="mock__row"><span class="mock__rank">2</span><span class="mock__track"><span class="mock__bar" style="--w:81%"></span></span><span class="mock__delta">—</span></div>
-                  <div class="mock__row"><span class="mock__rank">3</span><span class="mock__track"><span class="mock__bar" style="--w:67%"></span></span><span class="mock__delta mock__delta--up">+4</span></div>
-                  <div class="mock__row"><span class="mock__rank">4</span><span class="mock__track"><span class="mock__bar" style="--w:58%"></span></span><span class="mock__delta">−1</span></div>
-                  <div class="mock__row"><span class="mock__rank">5</span><span class="mock__track"><span class="mock__bar" style="--w:44%"></span></span><span class="mock__delta">—</span></div>
+                <div class="deck__shot deck__shot--right">
+                  <img src="assets/img/bev-trade.webp" alt=""
+                       width="420" height="819" loading="eager" decoding="async">
+                </div>
+                <!-- Hero is last so it paints above its siblings even before
+                     z-index is considered. -->
+                <div class="deck__shot deck__shot--hero">
+                  <img src="assets/img/bev-ap-poll.webp" alt=""
+                       width="420" height="819" loading="eager" decoding="async">
                 </div>
               </div>
             </div>
@@ -118,6 +129,11 @@
             <div class="card__art">
               <img src="assets/img/into-the-storm-capsule.webp" alt=""
                    width="1000" height="625" loading="eager" decoding="async">
+              <!-- Edge treatment (A5). A real element rather than a pseudo
+                   because it needs three independently-phased layers — the
+                   drifting mist plus two sparkle sets — and .card__art's own
+                   ::after is already the bottom vignette. -->
+              <span class="haze" aria-hidden="true"></span>
             </div>
 
             <div class="card__foot">

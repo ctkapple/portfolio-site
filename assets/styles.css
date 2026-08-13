@@ -627,7 +627,10 @@ img { max-width: 100%; display: block; }
   border: 1px solid var(--line-soft);
 }
 
-.card__art img {
+/* Direct child only. The bev card fills its art slot with a fanned deck of
+   phone screenshots instead of a single image, and those must not inherit the
+   cover-fit-and-creep behaviour that belongs to a full-bleed capsule. */
+.card__art > img {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -635,18 +638,326 @@ img { max-width: 100%; display: block; }
   transition: transform 700ms var(--ease-out);
 }
 
-.card:hover .card__art img { transform: scale(1.06); }
+.card:hover .card__art > img { transform: scale(1.06); }
 
-/* Bottom vignette so the art never fights the title block. */
+/* Bottom vignette so the art never fights the title block.
+
+   z-index matters here. A pseudo-element with `z-index: auto` paints above its
+   siblings only while they are also auto; the deck's phones carry z-indices of
+   their own, so without this the vignette would sit *under* them and the bleed
+   off the bottom edge would end in a hard cut instead of a fade. Harmless for
+   the storm card, whose single <img> is auto either way. */
 .card__art::after {
   content: '';
   position: absolute;
   inset: auto 0 0 0;
+  z-index: 4;
   height: 42%;
   background: linear-gradient(to top, var(--surface-lo), transparent);
   opacity: .55;
   pointer-events: none;
 }
+
+/* Card art — bevfantasy's fanned phone deck ------------------------------- */
+
+.deck {
+  position: absolute;
+  inset: 0;
+}
+
+/* Every shot composes its transform from the same four custom properties in the
+   same order, so hover only has to restate the ones it changes. The order is
+   load-bearing: `transform` interpolates function-by-function, and two lists
+   that disagree on order fall back to a matrix decomposition that would swing
+   the phone through an arc instead of lifting it.
+
+   --rest-tilt is the fan angle and --tilt is the live one. They are separate so
+   the touch override further down can put a shot back on its resting angle
+   without knowing what that angle is. */
+.deck__shot {
+  --rest-tilt: 0deg;
+  --tilt: var(--rest-tilt);
+  --x: 0px;
+  --rise: 0px;
+  --pop: 1;
+
+  position: absolute;
+  overflow: hidden;
+  border-radius: 15px;
+  background: #0A0A0C;
+  /* The phones carry the card's accent, not the profile palette — §4's
+     split-palette rule. On this card that resolves to --bev orange, which is
+     also the accent inside the screenshots themselves, so the frame and its
+     contents agree. */
+  border: 2px solid color-mix(in srgb, var(--accent) 48%, transparent);
+  box-shadow:
+    0 18px 34px -10px rgba(0, 0, 0, .78),
+    0 0 0 1px rgba(0, 0, 0, .5),
+    0 0 22px -4px color-mix(in srgb, var(--accent) 26%, transparent);
+  transform:
+    translateX(var(--x))
+    translateY(var(--rise))
+    rotate(var(--tilt))
+    scale(var(--pop));
+  transition:
+    transform 420ms var(--ease-out),
+    border-color 420ms var(--ease),
+    box-shadow 420ms var(--ease);
+}
+
+.deck__shot img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Geometry. Widths are percentages of the art box, so the fan holds its
+   proportions at every breakpoint without a single media query.
+
+   The shots are 0.513 wide-to-tall. At 30.5% width a side phone stands 59.5% of
+   the art's *width* tall, which against a 16:10 box is 95% of its height — so a
+   top of 15% puts its foot well past the lower edge. That overhang is the
+   point; the vignette above fades it out. */
+.deck__shot--hero {
+  --x: -50%;
+  z-index: 2;
+  left: 50%;
+  top: 7%;
+  width: 38%;
+}
+
+.deck__shot--left {
+  --rest-tilt: -8deg;
+  z-index: 1;
+  left: 6%;
+  top: 15%;
+  width: 30.5%;
+}
+
+.deck__shot--right {
+  --rest-tilt: 8deg;
+  z-index: 1;
+  right: 6%;
+  top: 15%;
+  width: 30.5%;
+}
+
+/* Pick one up off the table: it rises, rights itself, and grows a little. Its
+   neighbours are deliberately left alone — the card underneath is already
+   running its own 1.05 pop, and dimming siblings on top of that made the whole
+   card flicker as the pointer crossed between phones. */
+.deck__shot:hover {
+  --tilt: 0deg;
+  --rise: -14px;
+  --pop: 1.08;
+  z-index: 3;
+  border-color: color-mix(in srgb, var(--accent) 88%, transparent);
+  box-shadow:
+    0 26px 46px -10px rgba(0, 0, 0, .85),
+    0 0 0 1px rgba(0, 0, 0, .5),
+    0 0 34px -2px color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+/* The shine. A narrow specular bar crosses each screen on a long loop, so the
+   deck reads as glass rather than as three flat rectangles.
+
+   It travels from -60% to 160% and then holds off-screen for the rest of the
+   cycle: 14% of 9s is 1.26s of movement against ~7.7s of quiet, which is what
+   makes it read as an occasional glint instead of a windscreen wiper. The
+   holding frames are also why the 100% keyframe is the resting state — under
+   reduced motion the duration collapses to ~0 and the animation parks on its
+   last frame, which must be "no shine" rather than "shine frozen mid-screen". */
+.deck__shot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(102deg,
+    transparent 38%,
+    color-mix(in srgb, var(--accent) 10%, transparent) 46%,
+    rgba(245, 245, 240, .22) 50%,
+    color-mix(in srgb, var(--accent) 10%, transparent) 54%,
+    transparent 62%);
+  animation: deck-shine 9s var(--ease) infinite;
+}
+
+.deck__shot--left::after  { animation-delay: 3s; }
+.deck__shot--right::after { animation-delay: 6s; }
+
+@keyframes deck-shine {
+  0%   { transform: translateX(-60%); opacity: 0; }
+  2%   { opacity: .9; }
+  12%  { opacity: .9; }
+  14%  { transform: translateX(160%); opacity: 0; }
+  100% { transform: translateX(160%); opacity: 0; }
+}
+
+/* Hover brightens the glint rather than speeding it up. Retiming a running
+   animation does not restart it — it reinterprets its current time against the
+   new duration, which can teleport the bar into the middle of the screen. The
+   shine is invisible for 86% of its cycle, so that jump would land in view
+   roughly one time in seven. Intensity has no such failure mode. */
+.card:hover .deck__shot::after { filter: brightness(1.45); }
+
+/* The hero also carries a light travelling its border — the ambient half of the
+   treatment, so the card is alive before the pointer arrives.
+
+   Standard two-layer mask trick: the element is painted with a conic gradient
+   and then masked by (its own box XOR its content box), leaving only the 2px
+   padding ring. `exclude` is the spec name and `xor` the -webkit- one; both are
+   listed because Safari shipped the prefixed form first.
+
+   What moves is the gradient's start angle, NOT the element. Rotating the
+   element was the obvious first reach and it is wrong: the ring is a rounded
+   rectangle, so spinning it swings the whole shape off the phone's border and
+   the "light" arrives as a tilted frame. Animating a registered <angle> keeps
+   the ring welded to the border and moves only the bright arc along it.
+
+   Without @property the custom property is unregistered, so the var() falls
+   back to 0deg and the animation cannot interpolate: the ring degrades to a
+   static glint at the top-right rather than disappearing. */
+@property --deck-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+.deck__shot--hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  padding: 2px;
+  border-radius: inherit;
+  pointer-events: none;
+  background: conic-gradient(from var(--deck-angle, 0deg),
+    transparent 0deg,
+    transparent 250deg,
+    color-mix(in srgb, var(--accent) 70%, transparent) 300deg,
+    rgba(245, 245, 240, .85) 330deg,
+    color-mix(in srgb, var(--accent) 70%, transparent) 355deg,
+    transparent 360deg);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+          mask-composite: exclude;
+  animation: deck-orbit 6.5s linear infinite;
+  opacity: .72;
+  transition: opacity 320ms var(--ease);
+}
+
+.card:hover .deck__shot--hero::before { opacity: 1; }
+
+@keyframes deck-orbit {
+  to { --deck-angle: 360deg; }
+}
+
+/* Card art — Into the Storm's misty edge (A5) ----------------------------- */
+
+/* The two cards deliberately do NOT share a treatment. bev gets hard, precise,
+   travelling light because it is a product; the storm gets soft weather and
+   sparks because it is a game. What they do share is an intensity budget —
+   comparable peak brightness and a comparable rate of change — so the page
+   still reads as one page. Both run on --accent, never on the profile palette.
+
+   Three layers, three phases: the element carries the mist, and its two
+   pseudo-elements carry a sparkle set each. A single element cannot animate its
+   background layers independently, so out-of-phase sparkles need separate
+   boxes — that is the whole reason .haze exists in the markup. */
+.haze {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border-radius: inherit;
+  pointer-events: none;
+  /* Two rings at different depths: a tight one that reads as a lit edge and a
+     broad one that reads as fog pressing against the glass. */
+  box-shadow:
+    inset 0 0 14px -2px color-mix(in srgb, var(--accent) 42%, transparent),
+    inset 0 0 44px -14px color-mix(in srgb, var(--accent) 55%, transparent);
+  opacity: .62;
+  animation: haze-breathe 11s var(--ease) infinite alternate;
+  transition: opacity 360ms var(--ease);
+}
+
+.card:hover .haze { opacity: .95; }
+
+/* A3 measured the floor at ~5px/s before a soft texture stops reading as
+   moving. This one is not travelling, it is breathing, so the equivalent floor
+   is amplitude: below about .2 of opacity swing the change is invisible on a
+   low-contrast tint. .62 -> .88 clears that without ever pulsing hard enough to
+   compete with the near fog sheet behind the card. */
+@keyframes haze-breathe {
+  to { opacity: .88; }
+}
+
+/* Sparkles. Fixed positions rather than anything random-looking: a handful of
+   points hugging the frame, sized between 1 and 1.6px so they read as specks of
+   light and not as dust on the screen.
+
+   Both sets are masked to a band around the edge — a sparkle in the middle of
+   the key art would look like a dead pixel. The mask is a rectangle inset from
+   all four sides, subtracted from the full box, which leaves only the border
+   region lit. */
+.haze::before,
+.haze::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+          mask-composite: exclude;
+  padding: 13px;
+}
+
+.haze::before {
+  background:
+    radial-gradient(circle at 11% 14%,  rgba(245,245,240,.95) 0 1.1px, transparent 2.4px),
+    radial-gradient(circle at 47% 4%,   color-mix(in srgb, var(--accent) 90%, #fff) 0 1.5px, transparent 3px),
+    radial-gradient(circle at 88% 27%,  rgba(245,245,240,.9)  0 1px,   transparent 2.2px),
+    radial-gradient(circle at 71% 96%,  color-mix(in srgb, var(--accent) 90%, #fff) 0 1.3px, transparent 2.8px);
+  animation: sparkle-a 5.5s var(--ease) infinite;
+}
+
+.haze::after {
+  background:
+    radial-gradient(circle at 4% 62%,   color-mix(in srgb, var(--storm-gold) 92%, #fff) 0 1.2px, transparent 2.6px),
+    radial-gradient(circle at 27% 97%,  rgba(245,245,240,.9)  0 1px,   transparent 2.2px),
+    radial-gradient(circle at 96% 71%,  color-mix(in srgb, var(--accent) 90%, #fff) 0 1.4px, transparent 2.9px),
+    radial-gradient(circle at 60% 3%,   rgba(245,245,240,.85) 0 1px,   transparent 2.2px);
+  animation: sparkle-b 7.3s var(--ease) infinite;
+  animation-delay: 2.4s;
+}
+
+/* Each set spends most of its cycle dark and ignites briefly, so the two
+   together read as occasional rather than as a string of fairy lights. The
+   100% frame is the dark one on purpose: under reduced motion the duration
+   collapses to ~0 and the animation parks on its last keyframe, which must
+   leave the sparkles off rather than frozen at full brightness. */
+@keyframes sparkle-a {
+  0%, 100% { opacity: 0; transform: scale(.88); }
+  14%      { opacity: .95; transform: scale(1); }
+  30%      { opacity: 0; transform: scale(.85); }
+}
+
+@keyframes sparkle-b {
+  0%, 100% { opacity: 0; transform: scale(.88); }
+  11%      { opacity: .8; transform: scale(1); }
+  26%      { opacity: 0; transform: scale(.85); }
+}
+
+.card:hover .haze::before,
+.card:hover .haze::after { filter: brightness(1.5); }
 
 .card__foot {
   display: flex;
@@ -686,87 +997,6 @@ img { max-width: 100%; display: block; }
   text-transform: uppercase;
   white-space: nowrap;
 }
-
-/* Stylized bevfantasy mock. §6 leaves "real screenshot vs. mock" open and Will
-   has agreed to swap in real product UI — this slot is sized to receive it.
-   Until then the mock is dressed to hold its own next to painted key art. */
-.mock {
-  position: absolute;
-  inset: 0;
-  padding: clamp(.85rem, 1.8vw, 1.15rem);
-  display: flex;
-  flex-direction: column;
-  background:
-    radial-gradient(120% 90% at 12% 0%, color-mix(in srgb, var(--accent) 13%, transparent), transparent 62%),
-    linear-gradient(168deg, #131113, #0A0A0C);
-}
-
-.mock__head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  padding-bottom: .5rem;
-  margin-bottom: .6rem;
-  border-bottom: 1px solid color-mix(in srgb, var(--accent) 26%, transparent);
-}
-
-.mock__title {
-  font-family: var(--display);
-  letter-spacing: .12em;
-  color: var(--accent);
-  font-size: clamp(.8rem, 1.5vw, .95rem);
-}
-
-.mock__week {
-  font-size: .58rem;
-  font-weight: 600;
-  letter-spacing: .16em;
-  color: var(--text-dim);
-  font-variant-numeric: tabular-nums;
-}
-
-.mock__rows { display: flex; flex-direction: column; gap: .42rem; flex: 1; justify-content: center; }
-
-.mock__row { display: flex; align-items: center; gap: .5rem; }
-
-.mock__rank {
-  width: 1.15rem;
-  flex: none;
-  text-align: right;
-  color: var(--text);
-  opacity: .5;
-  font-variant-numeric: tabular-nums;
-  font-size: .6rem;
-  font-weight: 600;
-}
-
-.mock__track {
-  flex: 1;
-  height: .46rem;
-  border-radius: 999px;
-  background: rgba(245, 245, 240, .05);
-  overflow: hidden;
-}
-
-.mock__bar {
-  display: block;
-  height: 100%;
-  width: var(--w);
-  border-radius: 999px;
-  background: linear-gradient(90deg,
-              var(--accent), color-mix(in srgb, var(--accent) 22%, transparent));
-}
-
-.mock__delta {
-  width: 1.5rem;
-  flex: none;
-  font-size: .55rem;
-  font-weight: 600;
-  color: var(--text-dim);
-  font-variant-numeric: tabular-nums;
-}
-
-.mock__delta--up   { color: color-mix(in srgb, var(--accent) 75%, var(--text)); }
 
 /* --------------------------------------------------------------------------
    6. Site footer — the profile dot and its panel
@@ -2383,8 +2613,11 @@ img { max-width: 100%; display: block; }
 @media (hover: none) {
   .card:hover .card__float      { animation-play-state: running; }
   .card:hover .card__inner      { transform: none; }
-  .card:hover .card__art img    { transform: scale(1.02); }
+  .card:hover .card__art > img  { transform: scale(1.02); }
   .card:hover .card__sheen      { opacity: 0; }
+  /* :hover sticks after a tap, so a tapped phone would stay lifted and
+     straightened with no way to put it back. The deck sits at rest instead. */
+  .deck__shot:hover             { --rise: 0px; --pop: 1; --tilt: var(--rest-tilt); }
   .card:active .card__inner     { transform: scale(.985); transition-duration: 120ms; }
   .card__tilt                   { transform: none !important; }
   .case-next:hover              { padding-inline: 0; }
@@ -2458,7 +2691,7 @@ img { max-width: 100%; display: block; }
      which are colour changes rather than motion. */
   .card:hover .card__inner,
   .card:focus-visible .card__inner { transform: none; animation: none; }
-  .card:hover .card__art img { transform: scale(1.02); }
+  .card:hover .card__art > img { transform: scale(1.02); }
   .card.is-chosen .card__inner { transform: none; }
 
   .is-leaving .marquee,
