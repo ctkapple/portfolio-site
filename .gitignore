@@ -1,0 +1,15 @@
+# Working docs — design guide, notes, drafts. Local only.
+_internal/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editors
+.vscode/
+.idea/
+*.swp
+
+# In case build tooling gets added later
+node_modules/
