@@ -1454,7 +1454,10 @@ img { max-width: 100%; display: block; }
   z-index: 60;
   width: min(340px, 88vw);
   margin-left: calc(min(340px, 88vw) / -2);
-  padding: 1.7rem 1.5rem 1.5rem;
+  /* Top padding is set by the tallest overhang, not by the text: the crown
+     bubble rides 38px above the photo box, and anything less than that would
+     push it out past the skin's upper edge with nothing behind it. */
+  padding: 2.4rem 1.5rem 1.5rem;
   text-align: center;
 }
 
@@ -1501,6 +1504,13 @@ img { max-width: 100%; display: block; }
      a hole. Named because it is needed as a base for further alpha mixing, and
      nesting color-mix inside color-mix at the use site is unreadable. */
   --me-blue: color-mix(in srgb, var(--me-cold) 62%, var(--me-mid));
+  /* The blue lifted to somewhere it can actually be READ. `--me-cold` is fine
+     as a base for fills and glows, where it sits under an alpha and behind
+     other paint, but as foreground it is hopeless: #0000ff on this panel is
+     about 1.5:1, well under the 4.5:1 floor, and the contact links were using
+     it raw. This is the same hue carried up to ~9:1. Used for the links and
+     for the one photo ring that is deliberately not pink. */
+  --me-lit:  #8fb8ff;
 
   --me-sx: .159;
   --me-sy: .166;
@@ -1845,15 +1855,52 @@ img { max-width: 100%; display: block; }
   box-shadow: 0 0 16px -3px color-mix(in srgb, var(--me-mid) 70%, transparent);
 }
 
-/* ±84 leaves ~9px of the ear tucked behind the portrait — enough to read as
-   one cluster, little enough that each photo is still legible on its own. */
-.me__bubble--sky { --tx: -84px; --ty: -56px; --rot: -13deg; animation-delay: 310ms; }
-.me__bubble--run { --tx:  84px; --ty: -56px; --rot:  13deg; animation-delay: 375ms; }
+/* Fanned to ±94 from the ±84 they sat at while there were only two of them.
+   The crown below is 80px wide and centred, so it occupies -40..40; at ±84 the
+   ears reached in to -40 and the three circles would have been touching. This
+   opens a 10px channel on each side and still leaves the ears overlapping the
+   portrait, which is what makes the cluster read as one object. */
+.me__bubble--sky { --tx: -94px; --ty: -56px; --rot: -13deg; animation-delay: 310ms; }
+.me__bubble--run { --tx:  94px; --ty: -56px; --rot:  13deg; animation-delay: 375ms; }
+
+/* The crown. Smaller than the ears and wedged into the gap between them,
+   riding high enough over the portrait's top edge that ~58px of it clears —
+   about the same visible share the ears get, despite being tucked deeper. */
+.me__bubble--us {
+  --tx: 0px;
+  --ty: -84px;
+  --rot: 0deg;
+  width: 80px;
+  height: 80px;
+  /* Its own entrance, not the ears' — see `us-in`. The shorthand is repeated
+     in full rather than overriding animation-name alone, because the base rule
+     also sets a duration and this one is deliberately slower. */
+  animation: us-in 720ms var(--ease-out) 560ms backwards;
+}
+
+/* Blue where everything else in the panel is pink, and the one bright blue in
+   the component (`--me-lit`) rather than `--me-cold`, which at 2px on a dark
+   ground would simply not be visible. */
+.me__bubble--us img {
+  border: 2px solid color-mix(in srgb, var(--me-lit) 62%, transparent);
+  box-shadow: 0 0 16px -3px color-mix(in srgb, var(--me-lit) 55%, transparent);
+}
 
 @keyframes bubble-in {
   0%   { transform: translate(0, 0) rotate(0deg) scale(.2); opacity: 0; }
   62%  { transform: translate(var(--tx), var(--ty)) rotate(var(--rot)) scale(1.16); opacity: 1; }
   100% { transform: translate(var(--tx), var(--ty)) rotate(var(--rot)) scale(1);    opacity: 1; }
+}
+
+/* A rise and a fade, deliberately not the ears' pop. They spring out from
+   behind the portrait with an overshoot; this one is already in place and
+   simply surfaces — later, slower, and without the bounce, so it lands as its
+   own beat rather than as a third copy of the same gesture. Starting from the
+   settled --tx/--ty plus an offset (rather than from 0,0) is what keeps it
+   travelling straight up instead of arcing out of the centre. */
+@keyframes us-in {
+  0%   { transform: translate(var(--tx), calc(var(--ty) + 26px)) rotate(var(--rot)) scale(.94); opacity: 0; }
+  100% { transform: translate(var(--tx), var(--ty)) rotate(var(--rot)) scale(1); opacity: 1; }
 }
 
 /* Examining a photo ---------------------------------------------------------
@@ -1934,17 +1981,17 @@ img { max-width: 100%; display: block; }
     0 0 34px rgba(255, 255, 255, .28);
 }
 
-/* Motto, set on an arc that mirrors the portrait's lower edge. Light 300
-   against the name's 400. Fades in only after both ear bubbles have finished
-   arriving (375ms delay + 620ms run = 995ms), so the panel resolves in order
-   rather than all at once. */
+/* Motto, set on an arc that mirrors the portrait's lower edge. Fades in only
+   after every photo has finished arriving — the crown bubble now lands last at
+   560ms delay + 720ms run = 1280ms — so the panel still resolves in order
+   rather than overlapping the last photo's rise with the text. */
 .me__motto {
   display: block;
   width: 100%;
   height: auto;
   margin: -14px auto .1rem;
   overflow: visible;
-  animation: motto-in 380ms var(--ease-out) 1000ms backwards;
+  animation: motto-in 380ms var(--ease-out) 1250ms backwards;
   /* The negative top margin pulls this band up under the portrait, so the SVG
      box overlaps it. Nothing here should be able to intercept a hover meant for
      the photo — only the glyphs below opt back in. */
@@ -1953,17 +2000,23 @@ img { max-width: 100%; display: block; }
 
 .me__motto text {
   font-family: var(--display);
-  font-weight: 300;
+  /* 500, up from 300. Quicksand is self-hosted as a 300–700 variable face, so
+     this is a real instance rather than a synthesised smear. It sits one step
+     above the name's 400 without competing with it — at 13px on a curve the
+     extra stem width reads as presence, not as bolding. */
+  font-weight: 500;
   font-size: 13px;
   letter-spacing: .045em;
-  /* The photo rings' pink, alpha and all — the same
-     `color-mix(--me-hot 58%, transparent)` the portrait's border carries.
+  /* Full-strength pink. The line used to sit at 80% to keep it under the name,
+     but weight and fill have to move together: thickening the stems while
+     leaving them washed out just makes the arc look grey-pink and muddier than
+     it did at 300. The recession is now carried by size and weight alone.
 
-     The reduction lives in the FILL, not in an element opacity, and that is
-     deliberate: `motto-in` above animates opacity and resolves to 1. An
-     `opacity` here would be owned by that animation for its first 620ms and
+     Any reduction here belongs in the FILL, not in an element opacity, and
+     that is deliberate: `motto-in` above animates opacity and resolves to 1. An
+     `opacity` here would be owned by that animation for its first 380ms and
      then snap to the reduced value the instant it handed the property back. */
-  fill: color-mix(in srgb, var(--me-hot) 80%, transparent);
+  fill: var(--me-hot);
   /* Glyph-only hit testing on a 13px 300-weight arc is a miserable target, so
      take the bounding box where it is supported. The first declaration is the
      fallback for engines that drop the second — without it they would inherit
@@ -1973,10 +2026,12 @@ img { max-width: 100%; display: block; }
   transition: fill 130ms var(--ease);
 }
 
-/* Hovering brings it up to full strength. Faster than the contact links' 220ms
-   at Will's call — the line sits at 80% already, so the hover is a short hop
-   and a slow ramp over it read as sluggish. */
-.me__motto text:hover { fill: var(--me-hot); }
+/* The base is already full-strength pink, so hover can no longer be "bring it
+   up to full" — that would now be a no-op. It brightens instead, lifting the
+   pink toward white. Still the same short hop, and still faster than the
+   contact links' 220ms at Will's call: a slow ramp over this little distance
+   read as sluggish. */
+.me__motto text:hover { fill: color-mix(in srgb, var(--me-hot) 62%, #fff); }
 
 @keyframes motto-in {
   from { opacity: 0; transform: translateY(7px); }
@@ -1998,7 +2053,10 @@ img { max-width: 100%; display: block; }
   background: none;
   font: inherit;
   font-size: .82rem;
-  color: #0000ff;
+  /* Was a raw #0000ff — the one hardcoded colour left in the component, and
+     unreadable against the panel. The token is the same blue lifted into
+     legible range; the underline below rides on currentColor, so it follows. */
+  color: var(--me-lit);
   text-decoration: none;
   cursor: pointer;
   transition: color 220ms var(--ease);
