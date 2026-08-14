@@ -429,19 +429,134 @@
   }
 
   /* ---------------------------------------------------------------------
-     Prefetch on intent.
+     Prefetch.
+
+     Two things have to be in cache before the click, not after it: the
+     destination DOCUMENT, and the images that document will paint.
+
+     The document alone was enough while the case studies were text — styles.css
+     and main.js are shared, so they are already warm — but an arriving page
+     paints its first frame under opaque fog and then has ~980ms of dissipation
+     to get through. Anything that has not landed inside that window surfaces in
+     the clear, which is precisely the seam the fog exists to hide. Both case
+     studies are carrying empty `.case-figure--empty` slots waiting on
+     screenshots; the moment those are filled, this is the difference between a
+     transition and a pop-in.
+
+     `prefetch` throughout, never `preload`. These belong to the NEXT navigation:
+     `preload` would fetch them at high priority, compete with the page the
+     visitor is actually looking at, and then log an unused-resource warning a
+     few seconds later for the privilege.
      --------------------------------------------------------------------- */
+
+  /* Safari has never shipped `rel=prefetch`. Feature-detect rather than assume,
+     and fall back to an off-DOM Image(), which fetches into the ordinary HTTP
+     cache everywhere. It costs normal image priority instead of idle priority —
+     acceptable, because everything here already runs after `load`. */
+  var canPrefetch = (function () {
+    try { return document.createElement('link').relList.supports('prefetch'); }
+    catch (e) { return false; }
+  })();
 
   var warmed = {};
 
-  function warm(href) {
-    if (!href || warmed[href]) return;
-    warmed[href] = true;
+  function hint(href, as) {
+    var url;
+    try { url = new URL(href, location.href).href; } catch (e) { return; }
+    if (warmed[url]) return;
+    warmed[url] = true;
+
+    if (!canPrefetch) {
+      /* Only images have a usable fallback. A document without prefetch support
+         is covered by discover()'s own fetch(), which lands it in the HTTP
+         cache as a side effect of reading it. */
+      if (as === 'image') new Image().src = url;
+      return;
+    }
+
     var link = document.createElement('link');
-    link.rel  = 'prefetch';
-    link.href = href;
+    link.rel = 'prefetch';
+    if (as) link.as = as;
+    link.href = url;
     document.head.appendChild(link);
   }
+
+  function warm(href) {
+    if (href) hint(href);
+  }
+
+  /* Which images a destination needs is read out of the destination itself
+     rather than restated in a list here. A hand-maintained manifest is one more
+     thing to remember when a screenshot finally goes into one of those figure
+     slots, and forgetting fails invisibly — the site still works, just worse,
+     in the one moment it is trying hardest to impress. This cannot drift.
+
+     `getAttribute('src')`, not `.src`. A DOMParser document has no base URL, so
+     `.src` resolves against the CURRENT page — which turns the case studies'
+     `../../assets/img/x.webp` into the wrong URL from everywhere except a
+     sibling. Resolve against the destination explicitly.
+
+     `srcset` is deliberately not followed: prefetching every density would
+     multiply the bytes for an image only one of which will ever be shown. If
+     responsive art arrives on these pages later, this needs revisiting. */
+  function discover(href) {
+    var dest;
+    try { dest = new URL(href, location.href).href; } catch (e) { return; }
+
+    /* Reading the document IS warming it — fetch() stores the response in the
+       ordinary HTTP cache, so the navigation that follows is served from there.
+       Claim the URL up front so the hover-time `warm()` does not ask for it a
+       second time: `rel=prefetch` fills a SEPARATE cache, and the browser will
+       cheerfully pull the same document twice to fill both. Claimed before the
+       response lands rather than after, because a hover can easily beat it. */
+    if (warmed[dest]) return;
+    warmed[dest] = true;
+
+    window.fetch(dest, { credentials: 'same-origin' })
+      .then(function (r) { return r.ok ? r.text() : null; })
+      .then(function (html) {
+        if (!html) return;
+        var doc = new DOMParser().parseFromString(html, 'text/html');
+        Array.prototype.forEach.call(doc.querySelectorAll('img[src]'), function (img) {
+          var raw = img.getAttribute('src');
+          if (!raw || raw.slice(0, 5) === 'data:') return;
+          try { hint(new URL(raw, dest).href, 'image'); } catch (e) {}
+        });
+      })
+      .catch(function () {});   /* offline, 404, file:// — nothing to do */
+  }
+
+  /* Hover covers a visitor who approaches a card deliberately. It does not cover
+     one who lands and clicks straight away, and on touch it covers nothing at
+     all — there the first pointer event IS the tap, and the prefetch and the
+     navigation race each other. So once this page has finished its own work,
+     pull the neighbours down.
+
+     Gated on `load` rather than fired immediately: this is a nicety and it must
+     not compete with the card art the visitor is looking at right now. Skipped
+     outright on Save-Data and 2g, where two speculative documents and their
+     images are not a trade worth making on someone else's behalf. */
+  function prewarm() {
+    var c = navigator.connection;
+    if (c && (c.saveData || /(^|-)2g$/.test(c.effectiveType || ''))) return;
+
+    Array.prototype.forEach.call(document.querySelectorAll('[data-mist]'), function (link) {
+      var href = link.getAttribute('href');
+      if (!href || href.charAt(0) === '#') return;
+      /* discover() warms the document itself as a side effect of reading it, so
+         only fall back to a bare prefetch where it cannot run. */
+      if (window.fetch && window.DOMParser) discover(href);
+      else warm(href);
+    });
+  }
+
+  function schedulePrewarm() {
+    if (window.requestIdleCallback) window.requestIdleCallback(prewarm, { timeout: 3000 });
+    else window.setTimeout(prewarm, 1200);
+  }
+
+  if (document.readyState === 'complete') schedulePrewarm();
+  else window.addEventListener('load', schedulePrewarm);
 
   /* ---------------------------------------------------------------------
      The transition.

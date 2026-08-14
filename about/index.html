@@ -19,10 +19,16 @@
 <link rel="icon" href="../assets/favicon.ico" sizes="32x32">
 <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
 <link rel="manifest" href="../site.webmanifest">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Quicksand:wght@300..700&display=swap">
-<link rel="stylesheet" href="../assets/styles.css?v=a9">
+<!-- Fonts are self-hosted; @font-face lives in styles.css. Preloaded because a
+     font declared inside a stylesheet is discovered a round trip late, and
+     `crossorigin` is mandatory even same-origin — fonts fetch in CORS mode.
+     See index.html for the full reasoning. -->
+<link rel="preload" as="font" type="font/woff2" crossorigin
+      href="../assets/fonts/quicksand-latin.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin
+      href="../assets/fonts/inter-latin.woff2">
+
+<link rel="stylesheet" href="../assets/styles.css?v=a11">
 
 <script>
 /* Paints the arrival fog before this document's first frame. See assets/main.js. */
@@ -134,6 +140,6 @@
   </defs>
 </svg>
 
-<script src="../assets/main.js?v=a9"></script>
+<script src="../assets/main.js?v=a11"></script>
 </body>
 </html>

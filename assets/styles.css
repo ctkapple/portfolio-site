@@ -65,7 +65,79 @@
   --ease-fog:    cubic-bezier(.4, .2, .9, .95);
 }
 
-/* Metric-matched fallbacks so the Google Fonts swap doesn't shift layout.
+/* ---------------------------------------------------------------------------
+   Web fonts, self-hosted.
+
+   These used to come from fonts.googleapis.com, which meant a render-blocking
+   round trip to one third party followed by the font itself from a second
+   (fonts.gstatic.com) — both sitting on the critical path of every first paint.
+   The first paint that matters here belongs to an ARRIVING page whose fog is
+   mid-transition from the page before it, so a slow third party did not just
+   delay text, it froze the transition. First-party now: no extra DNS, no extra
+   TLS, nothing outside this repo between a click and a painted frame.
+
+   Both faces are VARIABLE. Google's css2 endpoint declares Inter twice, at 400
+   and 600, but both declarations point at the same file — it carries a `wght`
+   axis and the browser instances it. So one @font-face per subset spans the
+   whole range rather than one per weight, and asking for 600 costs no second
+   download.
+
+   Only `latin` and `latin-ext` are shipped; cyrillic, greek and vietnamese were
+   dropped, as nothing on this site is written in them. `unicode-range` makes
+   latin-ext free until something actually needs it — the file sits in the repo
+   and is never fetched for English text, so it is insurance rather than weight.
+
+   Both are OFL-1.1 and may be self-hosted. See assets/fonts/README.md.
+   --------------------------------------------------------------------------- */
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url('fonts/inter-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+                 U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122,
+                 U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url('fonts/inter-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+                 U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF,
+                 U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: 'Quicksand';
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url('fonts/quicksand-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+                 U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122,
+                 U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Quicksand';
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url('fonts/quicksand-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+                 U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF,
+                 U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+/* Metric-matched fallbacks so the font swap doesn't shift layout. Still earning
+   their place with the fonts self-hosted: `font-display: swap` above means the
+   first frame is drawn in a fallback either way, and on an arriving page that
+   frame is the one carrying the fog.
    Quicksand is a rounded geometric sans with a large x-height; Trebuchet is
    the closest thing installed on both Windows and macOS. */
 @font-face {
@@ -2076,6 +2148,23 @@ img { max-width: 100%; display: block; }
 
 .contact a:hover { color: var(--mist-glow); }
 .contact a:hover::after { transform: scaleX(1); }
+
+/* Cross-document View Transitions — pure seam-hider layered over the
+   sessionStorage handoff below, not a replacement for it. Where supported,
+   the browser snapshots the outgoing frame and holds it on screen while the
+   new document loads, then cross-fades into its first paint; both frames are
+   opaque fog at the same origin point, so the cross-fade reads as nothing
+   happening. Firefox does not implement this at-rule at all yet (tracked:
+   bugzil.la/1860854) — the block is silently ignored there and the
+   reconstruction below runs unchanged, which is why it stays.
+   Gated on prefers-reduced-motion: the UA's default root transition is
+   itself a cross-fade, which is motion the rest of this component already
+   opts out of. */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition {
+    navigation: auto;
+  }
+}
 
 /* --------------------------------------------------------------------------
    7. The mist — §4's signature moment

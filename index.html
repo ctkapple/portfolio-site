@@ -22,10 +22,28 @@
 <link rel="icon" href="assets/favicon.ico" sizes="32x32">
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <link rel="manifest" href="site.webmanifest">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Quicksand:wght@300..700&display=swap">
-<link rel="stylesheet" href="assets/styles.css?v=a9">
+<!-- Fonts are self-hosted; the @font-face rules live in styles.css. There is no
+     longer anything to preconnect to — the whole third-party chain that used to
+     sit in front of the first paint (googleapis for the CSS, then gstatic for
+     the file itself) is gone, which matters most on an ARRIVING page, where a
+     stalled first frame means stalled fog.
+
+     Preloaded rather than left to the stylesheet, because an @font-face is only
+     discovered once the stylesheet that declares it has been fetched and parsed
+     — starting the font a full round trip late. `crossorigin` is mandatory even
+     though these are same-origin: fonts always fetch in CORS mode, and a
+     preload whose mode does not match the real request is discarded and the
+     file simply fetched again.
+
+     Only the `latin` subsets are preloaded. `latin-ext` is declared in
+     styles.css with a unicode-range that English text never touches, so
+     preloading it would be pure waste. -->
+<link rel="preload" as="font" type="font/woff2" crossorigin
+      href="assets/fonts/quicksand-latin.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin
+      href="assets/fonts/inter-latin.woff2">
+
+<link rel="stylesheet" href="assets/styles.css?v=a11">
 
 <script>
 /* Paints the arrival fog before the first frame of this document, so the two
@@ -290,6 +308,6 @@
     </defs>
   </svg>
 
-  <script src="assets/main.js?v=a9"></script>
+  <script src="assets/main.js?v=a11"></script>
 </body>
 </html>
