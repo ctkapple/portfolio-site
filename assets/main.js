@@ -694,4 +694,59 @@
 
   /* Guard against a navigation that never completes leaving the page fogged. */
   window.addEventListener('pagehide', function () { busy = false; });
+
+  /* ---------------------------------------------------------------------
+     Case study category tabs (Gameplay / Art Design / User Feedback).
+     Standard roving-tabindex ARIA tabs pattern — click or Left/Right/Home/End
+     to switch, only the active tab is in the tab order.
+     --------------------------------------------------------------------- */
+
+  var tablist = document.querySelector('.case-tabs');
+
+  if (tablist) {
+    var tabs = Array.prototype.slice.call(tablist.querySelectorAll('.case-tab'));
+
+    function selectTab(tab, focus) {
+      tabs.forEach(function (t) {
+        var on = t === tab;
+        t.setAttribute('aria-selected', on ? 'true' : 'false');
+        t.tabIndex = on ? 0 : -1;
+        var panel = document.getElementById(t.getAttribute('aria-controls'));
+        if (panel) panel.hidden = !on;
+      });
+      if (focus) tab.focus();
+    }
+
+    tabs.forEach(function (tab, i) {
+      tab.addEventListener('click', function () { selectTab(tab, false); });
+
+      tab.addEventListener('keydown', function (e) {
+        var dir = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+        if (dir) {
+          e.preventDefault();
+          selectTab(tabs[(i + dir + tabs.length) % tabs.length], true);
+        } else if (e.key === 'Home') {
+          e.preventDefault();
+          selectTab(tabs[0], true);
+        } else if (e.key === 'End') {
+          e.preventDefault();
+          selectTab(tabs[tabs.length - 1], true);
+        }
+      });
+    });
+  }
+
+  /* ---------------------------------------------------------------------
+     Before/after art slider. A single source of truth (--pos, a percentage)
+     drives both the clip and the handle position — the range input is the
+     only thing JS has to touch.
+     --------------------------------------------------------------------- */
+
+  Array.prototype.forEach.call(document.querySelectorAll('.art-slider'), function (slider) {
+    var range = slider.querySelector('.art-slider__range');
+    if (!range) return;
+    range.addEventListener('input', function () {
+      slider.style.setProperty('--pos', range.value + '%');
+    });
+  });
 })();

@@ -2721,6 +2721,228 @@ img { max-width: 100%; display: block; }
 .case-foot .contact { margin-top: clamp(1.75rem, 4vw, 2.5rem); }
 
 /* --------------------------------------------------------------------------
+   8b. Case study — category tabs (Gameplay / Art Design / User Feedback)
+
+   These replace Problem/Process/Outcome as the page-level shape (open
+   question #3 in the Art Design handover) — each panel gets its own
+   free-form content instead of a shared linear arc. `display: contents` on
+   the panel lets its children participate directly in .case-body's grid, so
+   the existing `.case-body h2/p/ul` and `.case-figure` rules above keep
+   working unchanged for content one level deeper than before.
+   -------------------------------------------------------------------------- */
+
+.case-tabs {
+  grid-column: full;
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(1.5rem, 4vw, 2.75rem);
+  margin: 0 0 clamp(2rem, 5vw, 3rem);
+  padding-bottom: .1rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.case-tab {
+  appearance: none;
+  background: none;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  padding: 0 0 .9rem;
+  color: var(--text-dim);
+  font-family: var(--display);
+  font-size: clamp(1rem, 2vw, 1.2rem);
+  letter-spacing: .03em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 220ms var(--ease), border-color 220ms var(--ease);
+}
+
+.case-tab:hover { color: var(--text); }
+.case-tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 6px; }
+
+.case-tab[aria-selected="true"] {
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+.case-panel { display: contents; }
+.case-panel[hidden] { display: none; }
+
+.art-attribution {
+  grid-column: text;
+  margin: 0 0 1.5rem;
+  color: var(--text-dim);
+  font-size: .85rem;
+  letter-spacing: .02em;
+}
+
+/* --------------------------------------------------------------------------
+   8c. Art Design tab — before/after slider
+
+   Two stacked images at a shared aspect ratio; the top one is clipped by
+   --pos, which a full-box range input drives. No transition on the clip —
+   mid-drag easing reads as lag, not polish.
+   -------------------------------------------------------------------------- */
+
+.art-slider-wrap { grid-column: full; margin: 2.5rem 0; }
+
+.art-slider {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  max-height: 520px;
+  margin: 0 auto;
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1px solid var(--line-soft);
+  touch-action: pan-y;
+  user-select: none;
+}
+
+.art-slider__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.art-slider__clip {
+  position: absolute;
+  inset: 0;
+  clip-path: inset(0 calc(100% - var(--pos)) 0 0);
+}
+
+.art-slider__handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--pos);
+  width: 2px;
+  background: var(--text);
+  opacity: .85;
+  transform: translateX(-1px);
+  pointer-events: none;
+}
+
+.art-slider__handle::before {
+  content: '\2194';                 /* left-right arrow — a drag affordance, not decoration */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 2.25rem;
+  height: 2.25rem;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--bg);
+  font-size: 1rem;
+  font-weight: 700;
+  transform: translate(-50%, -50%);
+}
+
+.art-slider__range {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  appearance: none;
+  cursor: ew-resize;
+}
+
+.art-slider__tag {
+  position: absolute;
+  top: .8rem;
+  padding: .3rem .65rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bg) 65%, transparent);
+  color: var(--text);
+  font-size: .68rem;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.art-slider__tag--before { left: .8rem; }
+.art-slider__tag--after  { right: .8rem; }
+
+.art-slider-caption {
+  grid-column: text;
+  margin: .8rem auto 0;
+  max-width: 64rem;
+  text-align: center;
+  color: var(--text-dim);
+  font-size: .8rem;
+}
+
+/* --------------------------------------------------------------------------
+   8d. Art Design tab — horizontal iteration timeline
+
+   CSS scroll-snap with a partially-visible next card, not JS scroll-jacking —
+   A8 already parked this site's mobile motion for being laggy, so the
+   timeline leans on native scrolling everywhere rather than adding a second
+   motion system to tune. Cards are a fixed box (object-fit: contain on a
+   matted background) rather than a fixed height, because the 6 source
+   images range from a tall A/B/C stack to a wide painted capsule and a
+   crop-to-fill would lose real content on at least one of them.
+   -------------------------------------------------------------------------- */
+
+.art-timeline { grid-column: full; margin: 2.5rem 0 0; }
+
+.art-timeline__track {
+  display: flex;
+  gap: 1rem;
+  margin: 0;
+  padding: .25rem clamp(.5rem, 4vw, 1rem) 1rem;
+  list-style: none;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-color: var(--accent) transparent;
+  scrollbar-width: thin;
+}
+
+.art-timeline__track::-webkit-scrollbar { height: 6px; }
+.art-timeline__track::-webkit-scrollbar-track { background: transparent; }
+.art-timeline__track::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--accent) 55%, transparent);
+  border-radius: 999px;
+}
+
+.art-timeline__beat {
+  flex: none;
+  scroll-snap-align: start;
+  width: clamp(220px, 78vw, 320px);
+}
+
+.art-timeline__beat img {
+  display: block;
+  width: 100%;
+  height: 280px;
+  object-fit: contain;
+  border-radius: 10px;
+  border: 1px solid var(--line-soft);
+  background: var(--surface-lo);
+}
+
+.art-timeline__beat p {
+  margin: .7rem 0 0;
+  color: var(--text-dim);
+  font-size: .82rem;
+  line-height: 1.4;
+}
+
+.art-timeline__num {
+  margin-right: .4em;
+  color: var(--accent);
+  font-family: var(--display);
+  letter-spacing: .04em;
+}
+
+/* --------------------------------------------------------------------------
    9. 404
    -------------------------------------------------------------------------- */
 
