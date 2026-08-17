@@ -27,6 +27,7 @@
   --bev:         #F2711C;
   --storm:       #7FDBB6;
   --storm-gold:  #E8C368;
+  --ygr:         #7AC138; /* sampled from Ygradisil's own node-highlight green */
 
   /* Atmosphere — site chrome only, never a project accent */
   --mist-deep:   #140B24;
@@ -523,9 +524,10 @@ img { max-width: 100%; display: block; }
 .roster {
   flex: 1;
   display: flex;
+  flex-wrap: wrap; /* three cards no longer guarantee one row; wrap rather than squish */
   align-items: center;
   justify-content: center;
-  gap: clamp(1.75rem, 6vw, 5.5rem);
+  gap: clamp(1.75rem, 5vw, 4rem);
   padding: clamp(1.5rem, 3.5vw, 2.75rem) var(--gutter) clamp(1.5rem, 3vw, 2.5rem);
   perspective: 1400px;
 }
@@ -534,16 +536,18 @@ img { max-width: 100%; display: block; }
   display: block;
   position: relative;
   text-decoration: none;
-  /* Widened now that the header no longer competes for the page: the cards are
-     meant to be the whole homepage, not an element within it. */
-  width: clamp(300px, 40vw, 540px);
+  /* Sized for three cards abreast rather than two — narrower ceiling and a
+     smaller vw share than the old two-card formula so a normal desktop width
+     can fit all three before .roster's wrap kicks in. */
+  width: clamp(280px, 28vw, 440px);
   flex: 0 1 auto;
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Stagger — asymmetry by position, not by size, so neither project reads as
-   ranked above the other. */
+/* Stagger — asymmetry by position, not by size, so no project reads as ranked
+   above the others. */
 .card--storm { margin-top: clamp(1.5rem, 4vw, 3.5rem); }
+.card--ygr   { margin-top: clamp(.5rem, 1.5vw, 1.5rem); }
 
 /* The ghost roster numerals ("01"/"02" outlined behind each card) were cut —
    with the page down to two cards, numbering them added ranking that isn't
@@ -558,7 +562,12 @@ img { max-width: 100%; display: block; }
 
 .card--storm .card__float {
   animation-duration: 7.8s;
-  animation-delay: -2.6s; /* offset — the two cards must never drift in sync */
+  animation-delay: -2.6s; /* offset — the cards must never drift in sync */
+}
+
+.card--ygr .card__float {
+  animation-duration: 8.4s;
+  animation-delay: -4.9s;
 }
 
 @keyframes float {
@@ -708,6 +717,7 @@ img { max-width: 100%; display: block; }
 
 .card--bev   { --accent: var(--bev); }
 .card--storm { --accent: var(--storm); }
+.card--ygr   { --accent: var(--ygr); }
 
 /* Card art ---------------------------------------------------------------- */
 
@@ -2473,6 +2483,7 @@ img { max-width: 100%; display: block; }
 .case { --accent: var(--mist-glow); }
 .case.theme-bev   { --accent: var(--bev); }
 .case.theme-storm { --accent: var(--storm); }
+.case.theme-ygr   { --accent: var(--ygr); }
 
 .case-wrap {
   max-width: 64rem;
@@ -2993,11 +3004,12 @@ img { max-width: 100%; display: block; }
 /* Cards get cramped well before they stack — pull the stagger back first. */
 @media (max-width: 1180px) {
   .card--storm { margin-top: clamp(1.5rem, 4vw, 3rem); }
+  .card--ygr   { margin-top: clamp(.25rem, 1vw, 1rem); }
 }
 
 @media (max-width: 1000px) {
   .roster { gap: clamp(1.25rem, 3.5vw, 2.5rem); }
-  .card   { width: clamp(280px, 44vw, 430px); }
+  .card   { width: clamp(240px, 34vw, 380px); }
 }
 
 @media (max-width: 820px) {
@@ -3009,6 +3021,7 @@ img { max-width: 100%; display: block; }
   }
   .card         { width: min(520px, 88vw); }
   .card--storm  { margin-top: 0; }
+  .card--ygr    { margin-top: 0; }
   .case-head__index { font-size: clamp(4rem, 18vw, 7rem); opacity: .22; }
 }
 
@@ -3028,8 +3041,9 @@ img { max-width: 100%; display: block; }
 @media (max-height: 900px) and (min-width: 821px) {
   .marquee        { padding-top: clamp(1rem, 2vw, 1.5rem); }
   .roster         { padding-block: clamp(1rem, 2vw, 1.5rem) clamp(1rem, 2vw, 1.25rem); }
-  .card           { width: clamp(260px, 33vw, 440px); }
+  .card           { width: clamp(230px, 24vw, 360px); }
   .card--storm    { margin-top: clamp(1rem, 2.5vw, 2rem); }
+  .card--ygr      { margin-top: clamp(.25rem, 1vw, .75rem); }
   .site-foot      { padding-bottom: clamp(1rem, 2vw, 1.5rem); }
 }
 
