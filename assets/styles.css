@@ -512,10 +512,19 @@ img { max-width: 100%; display: block; }
   padding: clamp(1.25rem, 3vw, 2rem) var(--gutter) 0;
 }
 
+/* Sentence-case now rather than the tracked micro-label look: the copy is a
+   full sentence with an italic emphasis, which reads badly all-caps. */
 .marquee__label {
   margin: 0;
   color: var(--text-dim);
+  font-family: var(--body);
+  font-size: clamp(.9rem, 1.6vw, 1.05rem);
+  font-weight: 400;
+  letter-spacing: normal;
+  text-transform: none;
 }
+
+.marquee__label em { font-style: italic; color: var(--text); }
 
 /* --------------------------------------------------------------------------
    5. Roster (the two project cards)
