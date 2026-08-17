@@ -749,4 +749,67 @@
       slider.style.setProperty('--pos', range.value + '%');
     });
   });
+
+  /* ---------------------------------------------------------------------
+     Timeline lightbox. Content is read from the DOM (each trigger's image,
+     plus its beat's caption) rather than duplicated into a JS array here —
+     the timeline stays the single source of truth and this cannot drift
+     from it.
+     --------------------------------------------------------------------- */
+
+  var lightbox = document.querySelector('.lightbox');
+  var triggers = Array.prototype.slice.call(document.querySelectorAll('.art-timeline__trigger'));
+
+  if (lightbox && triggers.length) {
+    var lbImg     = lightbox.querySelector('.lightbox__img');
+    var lbCaption = lightbox.querySelector('.lightbox__caption');
+    var lbClose   = lightbox.querySelector('.lightbox__close');
+    var current   = 0;
+    var opener    = null;
+
+    function show(i) {
+      current = (i + triggers.length) % triggers.length;
+      var img = triggers[current].querySelector('img');
+      lbImg.src = img.currentSrc || img.src;
+      lbImg.alt = img.alt;
+      var caption = triggers[current].closest('.art-timeline__beat').querySelector('p');
+      lbCaption.innerHTML = caption ? caption.innerHTML : '';
+    }
+
+    function onKey(e) {
+      if (e.key === 'Escape') close();
+      else if (e.key === 'ArrowRight') show(current + 1);
+      else if (e.key === 'ArrowLeft') show(current - 1);
+    }
+
+    function open(i, from) {
+      opener = from;
+      show(i);
+      lightbox.classList.add('is-open');
+      lightbox.removeAttribute('aria-hidden');
+      document.body.classList.add('lightbox-open');
+      lbClose.focus();
+      document.addEventListener('keydown', onKey);
+    }
+
+    function close() {
+      lightbox.classList.remove('is-open');
+      lightbox.setAttribute('aria-hidden', 'true');
+      document.body.classList.remove('lightbox-open');
+      document.removeEventListener('keydown', onKey);
+      if (opener) opener.focus();
+      opener = null;
+    }
+
+    triggers.forEach(function (trigger, i) {
+      trigger.addEventListener('click', function () { open(i, trigger); });
+    });
+
+    lightbox.querySelector('.lightbox__nav--prev').addEventListener('click', function () { show(current - 1); });
+    lightbox.querySelector('.lightbox__nav--next').addEventListener('click', function () { show(current + 1); });
+
+    Array.prototype.forEach.call(lightbox.querySelectorAll('[data-lightbox-close]'), function (el) {
+      el.addEventListener('click', close);
+    });
+  }
 })();

@@ -28,7 +28,7 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin
       href="../../assets/fonts/inter-latin.woff2">
 
-<link rel="stylesheet" href="../../assets/styles.css?v=a13">
+<link rel="stylesheet" href="../../assets/styles.css?v=a14">
 
 <script>
 /* Paints the arrival fog before this document's first frame. See assets/main.js. */
@@ -134,35 +134,51 @@
       <div class="art-timeline">
         <ul class="art-timeline__track">
           <li class="art-timeline__beat">
-            <img src="../../assets/img/its-art-brief.webp" alt="Mood-board references from the artist brief">
+            <button type="button" class="art-timeline__trigger" aria-label="View full size">
+              <img src="../../assets/img/its-art-brief.webp" alt="Mood-board references from the artist brief">
+            </button>
             <p><span class="art-timeline__num">01</span>Artist brief — mood-board references for tone and genre</p>
           </li>
           <li class="art-timeline__beat">
-            <img src="../../assets/img/its-art-sketch.webp" alt="Will's own pencil sketch, sent alongside the brief">
+            <button type="button" class="art-timeline__trigger" aria-label="View full size">
+              <img src="../../assets/img/its-art-sketch.webp" alt="Will's own pencil sketch, sent alongside the brief">
+            </button>
             <p><span class="art-timeline__num">02</span>My own pencil sketch, sent alongside the brief</p>
           </li>
           <li class="art-timeline__beat">
-            <img src="../../assets/img/its-art-mockups.webp" alt="Three initial composition options, A, B, and C">
+            <button type="button" class="art-timeline__trigger" aria-label="View full size">
+              <img src="../../assets/img/its-art-mockups.webp" alt="Three initial composition options, A, B, and C">
+            </button>
             <p><span class="art-timeline__num">03</span>Three composition options from Alejandro</p>
           </li>
           <li class="art-timeline__beat">
-            <img src="../../assets/img/its-art-proposed.webp" alt="Black-and-white 'Proposed Direction' sketch">
+            <button type="button" class="art-timeline__trigger" aria-label="View full size">
+              <img src="../../assets/img/its-art-proposed.webp" alt="Black-and-white 'Proposed Direction' sketch">
+            </button>
             <p><span class="art-timeline__num">04</span>Proposed Direction — combine composition C with B's characters</p>
           </li>
           <li class="art-timeline__beat">
-            <img src="../../assets/img/its-art-chosen.webp" alt="The chosen composition, expanded to the full party">
+            <button type="button" class="art-timeline__trigger" aria-label="View full size">
+              <img src="../../assets/img/its-art-chosen.webp" alt="The chosen composition, expanded to the full party">
+            </button>
             <p><span class="art-timeline__num">05</span>Chosen direction, expanded to the full party</p>
           </li>
           <li class="art-timeline__beat">
-            <img src="../../assets/img/its-art-color.webp" alt="First full-color painted pass, before the final logo">
+            <button type="button" class="art-timeline__trigger" aria-label="View full size">
+              <img src="../../assets/img/its-art-color.webp" alt="First full-color painted pass, before the final logo">
+            </button>
             <p><span class="art-timeline__num">06</span>First color pass</p>
           </li>
           <li class="art-timeline__beat">
-            <img src="../../assets/img/its-art-logo-options.webp" alt="Three numbered logo lockup options">
+            <button type="button" class="art-timeline__trigger" aria-label="View full size">
+              <img src="../../assets/img/its-art-logo-options.webp" alt="Three numbered logo lockup options">
+            </button>
             <p><span class="art-timeline__num">07</span>Three logo lockup options</p>
           </li>
           <li class="art-timeline__beat">
-            <img src="../../assets/img/its-art-logo-feedback.webp" alt="Logo reference slide with Will's own rough swoosh-line sketch">
+            <button type="button" class="art-timeline__trigger" aria-label="View full size">
+              <img src="../../assets/img/its-art-logo-feedback.webp" alt="Logo reference slide with Will's own rough swoosh-line sketch">
+            </button>
             <p><span class="art-timeline__num">08</span>Logo references &amp; my own rough sketch for the linework</p>
           </li>
         </ul>
@@ -223,6 +239,23 @@
   </nav>
 </footer>
 
+<div class="lightbox" aria-hidden="true">
+  <div class="lightbox__backdrop" data-lightbox-close></div>
+  <div class="lightbox__panel" role="dialog" aria-modal="true" aria-label="Timeline image, full size">
+    <button type="button" class="lightbox__close" data-lightbox-close aria-label="Close">
+      <span aria-hidden="true">&times;</span>
+    </button>
+    <button type="button" class="lightbox__nav lightbox__nav--prev" aria-label="Previous">
+      <span aria-hidden="true">&#8249;</span>
+    </button>
+    <img class="lightbox__img" src="" alt="">
+    <p class="lightbox__caption"></p>
+    <button type="button" class="lightbox__nav lightbox__nav--next" aria-label="Next">
+      <span aria-hidden="true">&#8250;</span>
+    </button>
+  </div>
+</div>
+
 <div class="mist" aria-hidden="true">
   <div class="mist__blur"></div>
   <div class="mist__veil"></div>
@@ -245,6 +278,6 @@
   </defs>
 </svg>
 
-<script src="../../assets/main.js?v=a13"></script>
+<script src="../../assets/main.js?v=a14"></script>
 </body>
 </html>

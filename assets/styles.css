@@ -2962,6 +2962,139 @@ img { max-width: 100%; display: block; }
   letter-spacing: .04em;
 }
 
+.art-timeline__trigger {
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  display: block;
+  width: 100%;
+  cursor: zoom-in;
+}
+
+.art-timeline__trigger:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 10px; }
+
+.art-timeline__trigger img { transition: filter 200ms var(--ease); }
+.art-timeline__trigger:hover img,
+.art-timeline__trigger:focus-visible img { filter: brightness(1.12); }
+
+/* --------------------------------------------------------------------------
+   8e. Art Design tab — timeline lightbox
+
+   Click a beat, see it large with its caption reset in bigger type. The
+   panel gets a FIXED width (not sized to whatever image happens to be
+   showing) specifically so prev/next/close can sit at consistent absolute
+   positions inside it — position: fixed would be simpler, but the panel's
+   own open/close scale transform creates a containing block that breaks
+   fixed positioning for anything inside it.
+   -------------------------------------------------------------------------- */
+
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  padding: clamp(1rem, 5vw, 3rem);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 240ms var(--ease), visibility 0s linear 240ms;
+}
+
+.lightbox.is-open {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 240ms var(--ease);
+}
+
+.lightbox__backdrop {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(6px);
+}
+
+.lightbox__panel {
+  position: relative;
+  z-index: 1;
+  width: min(92vw, 1100px);
+  max-height: 90vh;
+  padding: 0 clamp(2.5rem, 6vw, 3.5rem);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  transform: scale(.96);
+  transition: transform 240ms var(--ease-out);
+}
+
+.lightbox.is-open .lightbox__panel { transform: scale(1); }
+
+.lightbox__img {
+  max-width: 100%;
+  max-height: 68vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 12px;
+  border: 1px solid var(--line-soft);
+  background: var(--surface-lo);
+}
+
+.lightbox__caption {
+  margin: 0;
+  max-width: 46rem;
+  text-align: center;
+  color: var(--text);
+  font-size: clamp(1.05rem, 2.2vw, 1.35rem);
+  line-height: 1.5;
+}
+
+.lightbox__close,
+.lightbox__nav {
+  appearance: none;
+  border: 1px solid var(--line-soft);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--bg) 70%, transparent);
+  color: var(--text);
+  width: 2.75rem;
+  height: 2.75rem;
+  display: grid;
+  place-items: center;
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 200ms var(--ease), border-color 200ms var(--ease), color 200ms var(--ease);
+}
+
+.lightbox__close:hover,
+.lightbox__nav:hover,
+.lightbox__close:focus-visible,
+.lightbox__nav:focus-visible {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.lightbox__close:focus-visible,
+.lightbox__nav:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.lightbox__close {
+  position: absolute;
+  top: 0;
+  right: clamp(.5rem, 2vw, 1rem);
+}
+
+.lightbox__nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.lightbox__nav--prev { left: 0; }
+.lightbox__nav--next { right: 0; }
+
+body.lightbox-open { overflow: hidden; }
+
 /* --------------------------------------------------------------------------
    9. 404
    -------------------------------------------------------------------------- */
