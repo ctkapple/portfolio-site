@@ -62,27 +62,38 @@
     <p class="micro">01 / 03</p>
   </nav>
 
+  <!-- The mark takes the slot the ghost numeral holds on the other two case
+       pages. It identifies the project better than an index does, and two
+       oversized graphics in the same corner would fight. -->
   <header class="case-head">
-    <span class="case-head__index" aria-hidden="true">01</span>
     <img class="bev-mark" src="../../assets/img/bev-logo.webp" width="900" height="864"
          alt="" aria-hidden="true">
-    <p class="case-eyebrow">Case Study</p>
-    <h1 class="case-title">bevfantasy</h1>
-    <p class="case-sub">
-      A record book and engagement engine for three fantasy football leagues run
-      by the same group of friends. It holds every season since 2021 and gives
-      fourteen people now spread across eight states a reason to keep showing up
-      for each other in July. It is live, and the people using it tell me
-      directly when something is wrong.
-    </p>
 
-    <hr class="rule case-rule">
+    <div class="case-head__copy">
+      <p class="case-eyebrow">Case Study</p>
+      <h1 class="case-title">Bev&nbsp;Fantasy</h1>
+      <p class="case-sub">
+        A record book and engagement engine for three fantasy football leagues
+        run by the same group of friends. It holds every season since 2021 and
+        gives fourteen people now spread across eight states a reason to keep
+        showing up for each other in July. It is live, and the people using it
+        tell me directly when something is wrong.
+      </p>
 
-    <dl class="case-facts">
-      <div class="case-fact"><dt>Role</dt><dd>Design, product, build</dd></div>
-      <div class="case-fact"><dt>Status</dt><dd>Live <span class="case-fact__live">(bevfantasy.com)</span></dd></div>
-      <div class="case-fact"><dt>Timeline</dt><dd>3 years, on and off</dd></div>
-    </dl>
+      <hr class="rule case-rule">
+
+      <dl class="case-facts">
+        <div class="case-fact"><dt>Role</dt><dd>Design, product, build</dd></div>
+        <div class="case-fact">
+          <dt>Status</dt>
+          <dd>Live
+            <a class="case-fact__live" href="https://bevfantasy.com"
+               target="_blank" rel="noopener">bevfantasy.com</a>
+          </dd>
+        </div>
+        <div class="case-fact"><dt>Timeline</dt><dd>3 years, on and off</dd></div>
+      </dl>
+    </div>
   </header>
 
   <main class="case-body">
@@ -150,7 +161,7 @@
       <div class="bev-stat"><dt>3</dt><dd>leagues on one codebase</dd></div>
       <div class="bev-stat"><dt>5</dt><dd>seasons of history, back to 2021</dd></div>
       <div class="bev-stat"><dt>14</dt><dd>managers, across 8 states</dd></div>
-      <div class="bev-stat"><dt>90</dt><dd>trades, filterable</dd></div>
+      <div class="bev-stat"><dt>100+</dt><dd>trades, filterable</dd></div>
     </dl>
 
     <!-- ================= Act I ================= -->
@@ -182,10 +193,10 @@
         <h2>Money, in the language they already speak</h2>
         <p>
           Most of this league works in finance. So instead of another standings
-          table, everyone got a ticker. I am $WILL, Kevin Flaherty is $FLTZ, and
-          the page is an exchange: a scrolling tape of lifetime winnings across
-          the top, a cumulative equity curve underneath, and a holdings table
-          below that breaking every dollar down by year and by league.
+          table, everyone got a ticker. Mine is $WILL. The page is an exchange:
+          a scrolling tape of lifetime winnings along the top, a cumulative
+          equity curve underneath, and a holdings table breaking every dollar
+          down by year and by league.
         </p>
         <p>
           The tape is what made it land. A total is a fact and a number that
@@ -193,10 +204,9 @@
           it, green if the year cleared your buy-in and red if it did not.
         </p>
         <p class="bev-scene__proof">
-          The screenshot beside this is the group chat shortly after the page
-          went up. <b>"Sell $WILL immediately, bad fundamentals, high P/E ratio,
-          due to crash."</b> Somebody followed it with a market-crash GIF. That
-          reaction is the whole specification.
+          The ledger runs back to 2021 and nets <b>every buy-in ever paid</b>,
+          which is the number most of them would rather not look at. Nobody has
+          asked for a standings table since.
         </p>
       </div>
     </section>
@@ -205,9 +215,9 @@
     <section class="bev-scene bev-scene--flip">
       <div class="bev-scene__media bev-pair" data-reveal>
         <button type="button" class="bev-shot bev-shot--trigger" aria-label="View full size"
-                data-lightbox-caption="The trade log filtered to one pair of managers: seven trades out of ninety, in reverse chronological order.">
+                data-lightbox-caption="The trade log filtered to one pair of managers, in reverse chronological order.">
           <img src="../../assets/img/bev-trades.webp" width="2000" height="1125"
-               alt="A trade log filtered by a two-manager chip reading Will Dooling and Matt Pitman, showing seven of ninety trades grouped by season">
+               alt="A trade log filtered by a two-manager chip reading Will Dooling and Matt Pitman, showing the surviving trades grouped by season">
         </button>
         <div class="bev-pair__phone">
           <button type="button" class="bev-shot bev-shot--trigger" aria-label="View full size"
@@ -218,14 +228,14 @@
         </div>
       </div>
       <div class="bev-scene__copy" data-reveal>
-        <h2 class="bar-white">Ninety trades and no way to find one</h2>
+        <h2 class="bar-white">A hundred trades and no way to find one</h2>
         <p>
           Trades are the best content a league produces and the hardest thing to
           retrieve. Every trade argument in our group chat starts the same way,
           with somebody reconstructing a deal from memory and getting it wrong.
         </p>
         <p>
-          A reverse chronological list of ninety trades is an archive, not a
+          A reverse chronological list of a hundred trades is an archive, not a
           tool, so the whole design problem was the filter bar. It stacks free
           text search over the four dimensions people actually think in: season,
           position, who was involved, and what changed hands.
@@ -240,9 +250,9 @@
           question from a player's name, and it is the one that starts fights.
         </p>
         <p class="bev-scene__proof">
-          The result count updates live above the list. <b>Showing 7 of 90</b>
-          sounds trivial and is the thing that makes the bar feel like browsing
-          rather than querying.
+          The count of what survives the filters <b>updates live above the
+          list</b>. It sounds trivial and it is the thing that makes the bar
+          feel like browsing rather than querying.
         </p>
       </div>
     </section>
@@ -302,7 +312,7 @@
 
     <!-- AP Poll -->
     <section class="bev-scene bev-scene--flip">
-      <div class="bev-scene__media bev-pair bev-pair--chat" data-reveal>
+      <div class="bev-scene__media bev-pair" data-reveal>
         <button type="button" class="bev-shot bev-shot--trigger" aria-label="View full size"
                 data-lightbox-caption="The ballot. Drag to rank all fourteen teams, with the roster of whichever team you are weighing open beside it.">
           <img src="../../assets/img/bev-ballot.webp" width="2000" height="1125"
@@ -310,9 +320,9 @@
         </button>
         <div class="bev-pair__phone">
           <button type="button" class="bev-shot bev-shot--trigger" aria-label="View full size"
-                  data-lightbox-caption="Andy reviewing the first build of the poll. Both of these landed.">
-            <img src="../../assets/img/bev-chat-poll.webp" width="840" height="1336"
-                 alt="A chat thread reviewing the poll: a league member says there is a lot going on in the screenshot and suggests showing only the top seven, the way college football does">
+                  data-lightbox-caption="The ballot on a phone, with the projected roster pulled up as a sheet over it. This is where almost every ballot actually gets filled out.">
+            <img src="../../assets/img/bev-m-ballot.webp" width="840" height="1552"
+                 alt="The ranking ballot on a phone with a Team Snapshot sheet slid up over it, listing the selected team's top projected players">
           </button>
         </div>
       </div>
@@ -340,14 +350,26 @@
           ballots are in.
         </p>
         <p>
-          The first build went to Andy before it went to anyone else, and he
-          sent back the screenshot beside this. Too much on screen at once, and
-          why not publish a top seven the way college football does. He also
-          caught that the ballot counter read 1 of 14 when the league has
-          fourteen teams but sixteen people, because two of the franchises are
-          co-owned. Both went in. The published poll is a top seven now, sitting
-          under the full chart rather than replacing it, and the counter reads
-          out of sixteen.
+          None of that was right first time. Before the poll went to the league
+          I put the build in front of a handful of the die-hards, the people who
+          would use it every week, and let them pull it apart.
+        </p>
+
+        <figure class="bev-note-shot">
+          <button type="button" class="bev-shot bev-shot--trigger" aria-label="View full size"
+                  data-lightbox-caption="Early feedback on the first build. Both points went in.">
+            <img src="../../assets/img/bev-chat-poll.webp" width="820" height="723"
+                 alt="A chat thread reviewing the poll: too much going on in the screenshot, and a suggestion to publish only a top seven the way college football does">
+          </button>
+        </figure>
+
+        <p>
+          Too much on screen at once, came back one reply, and why not publish a
+          top seven the way college football does. Someone else caught that the
+          ballot counter read 1 of 14 when the league has fourteen teams but
+          sixteen people, because two franchises are co-owned. Both went in. The
+          published poll is a top seven now, sitting under the full chart rather
+          than replacing it, and the counter reads out of sixteen.
         </p>
 
         <p class="bev-scene__proof">
@@ -435,25 +457,32 @@
     <p>
       The BEV lightning mark was designed by
       <a class="bev-link" href="https://pcoluntino.com/portfolio/" target="_blank" rel="noopener">Peter Coluntino</a>,
-      who is a graphic designer and also plays in the league. He sent the first
-      version over with "this is my initial thought and it needs some work." My
-      only real contribution was sending him the ESPN wordmark and asking
-      whether the E could lean that way. It could.
+      who is a graphic designer and also plays in the league. The brief I gave
+      him was a mockup I had thrown together myself, which is the first
+      screenshot below: our old high school panther, the word FANTASY in a
+      typeface I would rather not defend, and an offer to ignore all of it.
+    </p>
+
+    <p>
+      He ignored all of it, but first he asked whether it needed to be a banner
+      across the top or a mark small enough to survive being shrunk, and whether
+      it was for mobile or desktop. Both, in both cases, and I had not thought
+      to say so. What came back is the mark at the top of this page.
     </p>
 
     <ul class="bev-duo" data-reveal>
       <li>
         <button type="button" class="bev-shot bev-shot--trigger" aria-label="View full size"
-                data-lightbox-caption="Peter's first pass at the mark.">
-          <img src="../../assets/img/bev-logo-first.webp" width="760" height="1209"
-               alt="A chat thread showing a photo of a screen with the first BEV Fantasy logo concept in Adobe Illustrator">
+                data-lightbox-caption="The brief: a mockup made out of the high school logo, and the two questions that came back.">
+          <img src="../../assets/img/bev-logo-brief.webp" width="760" height="1257"
+               alt="A chat thread containing a rough logo mockup built from a high school panther crest, and questions about whether the mark should be a banner and whether it is for mobile or desktop">
         </button>
       </li>
       <li>
         <button type="button" class="bev-shot bev-shot--trigger" aria-label="View full size"
-                data-lightbox-caption="The ESPN wordmark, sent as a reference for the E. Peter's computer then crashed and took the light effect with it.">
-          <img src="../../assets/img/bev-logo-espn.webp" width="760" height="1209"
-               alt="A chat thread in which the ESPN wordmark is sent as a typographic reference for how the E in BEV could lean">
+                data-lightbox-caption="What came back a day later, sent over with a note that it still needed work.">
+          <img src="../../assets/img/bev-logo-first.webp" width="760" height="1209"
+               alt="A chat thread showing a photo of a screen with the first BEV Fantasy lightning logo concept open in Adobe Illustrator">
         </button>
       </li>
     </ul>

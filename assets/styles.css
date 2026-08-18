@@ -3725,20 +3725,55 @@ button.ygr-shot { cursor: zoom-in; }
    pages feel related without sharing a layout that only fits one of them.
    ========================================================================== */
 
-/* ---- Logo mark in the header ---------------------------------------------- */
+/* ---- Header ---------------------------------------------------------------- */
 
-/* The only case study whose subject has a mark of its own. It sits above the
-   eyebrow rather than beside the title, so it reads as part of the page's
-   furniture instead of a client logo dropped on top. */
+/* The only case study whose subject has a mark of its own, so it takes the
+   top-right slot the other two give to a ghost index numeral — a real logo
+   identifies the project better than a number, and both in one corner would
+   fight. Explicit row and column placement rather than source order, so the
+   single-column stack below puts the mark on top instead of orphaning it under
+   the facts list. */
+.case.theme-bev .case-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 17rem);
+  column-gap: clamp(1.5rem, 5vw, 3.5rem);
+  align-items: center;
+}
+
+.case.theme-bev .case-head__copy { grid-column: 1; grid-row: 1; }
+.case.theme-bev .case-head__index { display: none; }
+
 .bev-mark {
-  grid-column: text;
-  width: clamp(3.25rem, 7vw, 4.5rem);
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: end;
+  width: 100%;
   height: auto;
-  margin: 0 0 clamp(.75rem, 2vw, 1.1rem);
+  margin: 0;
   /* The source art is flat orange on transparent; the drop shadow gives it
      the same self-lit edge the screenshots have. */
-  filter: drop-shadow(0 0 22px color-mix(in srgb, var(--accent) 45%, transparent));
+  filter: drop-shadow(0 0 34px color-mix(in srgb, var(--accent) 42%, transparent));
 }
+
+/* The eyebrow and the title swap their usual roles here: the accent belongs on
+   the project's own name, which is the thing being introduced, not on the word
+   "case study", which is the same on all three pages. */
+.case.theme-bev .case-eyebrow { color: var(--text); }
+.case.theme-bev .case-title   { color: var(--accent); }
+
+.case-fact__live[href] {
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--ygr) 45%, transparent);
+  text-underline-offset: .18em;
+  transition: color 220ms var(--ease), text-decoration-color 220ms var(--ease);
+}
+
+.case.theme-bev .case-fact__live[href] {
+  color: var(--accent);
+  text-decoration-color: color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
+.case-fact__live[href]:hover { text-decoration-color: currentColor; }
 
 /* ---- Intro spread --------------------------------------------------------- */
 
@@ -3782,6 +3817,16 @@ button.ygr-shot { cursor: zoom-in; }
 .case.theme-bev .bev-act__title::before { content: none; }
 
 @media (max-width: 60rem) {
+  .case.theme-bev .case-head { grid-template-columns: minmax(0, 1fr); }
+  .case.theme-bev .case-head__copy { grid-row: 2; }
+  .bev-mark {
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: start;
+    width: clamp(7rem, 34vw, 11rem);
+    margin: 0 0 clamp(1rem, 3vw, 1.5rem);
+  }
+
   .bev-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
   .bev-intro {
@@ -4056,6 +4101,18 @@ button.bev-shot { cursor: zoom-in; }
 }
 
 .bev-link:hover { color: var(--accent); text-decoration-color: var(--accent); }
+
+/* ---- Inline note figure --------------------------------------------------- */
+
+/* A screenshot dropped into a scene's prose column rather than its media
+   column, for evidence that belongs to one paragraph rather than to the whole
+   beat. Sized by the column, so it stays legible without competing with the
+   product shot beside it. */
+.bev-note-shot {
+  margin: 0 0 1.1rem;
+}
+
+.bev-note-shot .bev-shot { border-radius: 10px; }
 
 /* ---- Credits -------------------------------------------------------------- */
 
