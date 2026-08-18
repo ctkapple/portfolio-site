@@ -758,7 +758,8 @@
      --------------------------------------------------------------------- */
 
   var lightbox = document.querySelector('.lightbox');
-  var triggers = Array.prototype.slice.call(document.querySelectorAll('.art-timeline__trigger'));
+  var triggers = Array.prototype.slice.call(
+    document.querySelectorAll('.art-timeline__trigger, .ygr-shot--trigger'));
 
   if (lightbox && triggers.length) {
     var lbImg     = lightbox.querySelector('.lightbox__img');
@@ -772,7 +773,11 @@
       var img = triggers[current].querySelector('img');
       lbImg.src = img.currentSrc || img.src;
       lbImg.alt = img.alt;
-      var caption = triggers[current].closest('.art-timeline__beat').querySelector('p');
+      /* The caption lives next to the trigger, but 'next to' differs by page:
+         a <p> in the storm timeline, a <figcaption> in Yggdrasil's gallery.
+         Either way the markup stays the single source of truth. */
+      var beat = triggers[current].closest('.art-timeline__beat, figure');
+      var caption = beat && beat.querySelector('figcaption, p');
       lbCaption.innerHTML = caption ? caption.innerHTML : '';
     }
 
@@ -811,5 +816,33 @@
     Array.prototype.forEach.call(lightbox.querySelectorAll('[data-lightbox-close]'), function (el) {
       el.addEventListener('click', close);
     });
+  }
+
+  /* ---------------------------------------------------------------------
+     Reveal on scroll. Elements start hidden in CSS and are unhidden once
+     they cross into view; the observer drops each element after it fires,
+     so nothing re-animates on scroll back up.
+
+     Under reduced motion everything is marked in immediately, and if
+     IntersectionObserver is missing the same fallback applies — the page
+     must never be left with invisible content.
+     --------------------------------------------------------------------- */
+
+  var revealables = Array.prototype.slice.call(document.querySelectorAll('[data-reveal]'));
+
+  if (revealables.length) {
+    if (reduced() || !('IntersectionObserver' in window)) {
+      revealables.forEach(function (el) { el.classList.add('is-in'); });
+    } else {
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (!entry.isIntersecting) return;
+          entry.target.classList.add('is-in');
+          io.unobserve(entry.target);
+        });
+      }, { rootMargin: '0px 0px -12% 0px', threshold: 0.08 });
+
+      revealables.forEach(function (el) { io.observe(el); });
+    }
   }
 })();

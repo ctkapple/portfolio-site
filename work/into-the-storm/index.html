@@ -28,11 +28,15 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin
       href="../../assets/fonts/inter-latin.woff2">
 
-<link rel="stylesheet" href="../../assets/styles.css?v=a14">
+<link rel="stylesheet" href="../../assets/styles.css?v=a18">
 
 <script>
 /* Paints the arrival fog before this document's first frame. See assets/main.js. */
 (function () {
+  /* Marks JS as alive before first paint. Scroll-reveal CSS hides its elements
+     only under this class, so a page whose scripts never load still shows all
+     of its content. */
+  document.documentElement.classList.add('js');
   try {
     var raw = sessionStorage.getItem('wd:mist');
     if (!raw) return;
@@ -223,11 +227,11 @@
 </div>
 
 <footer class="case-foot">
-  <a class="case-next" href="../ygradisil/" data-mist data-label="Ygradisil"
+  <a class="case-next" href="../yggdrasil/" data-mist data-label="Yggdrasil"
      style="--next-accent: var(--ygr);">
     <div>
       <p class="micro case-next__label">Next project</p>
-      <p class="case-next__name">Ygradisil</p>
+      <p class="case-next__name">Yggdrasil</p>
     </div>
     <span class="case-next__arrow" aria-hidden="true">→</span>
   </a>
@@ -278,6 +282,6 @@
   </defs>
 </svg>
 
-<script src="../../assets/main.js?v=a14"></script>
+<script src="../../assets/main.js?v=a18"></script>
 </body>
 </html>

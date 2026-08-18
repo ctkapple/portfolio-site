@@ -27,7 +27,7 @@
   --bev:         #F2711C;
   --storm:       #7FDBB6;
   --storm-gold:  #E8C368;
-  --ygr:         #7AC138; /* sampled from Ygradisil's own node-highlight green */
+  --ygr:         #7AC138; /* sampled from Yggdrasil's own node-highlight green */
 
   /* Atmosphere — site chrome only, never a project accent */
   --mist-deep:   #140B24;
@@ -2788,6 +2788,16 @@ img { max-width: 100%; display: block; }
 .case-panel { display: contents; }
 .case-panel[hidden] { display: none; }
 
+/* Because the panel is display:contents, its children are the case-body grid's
+   items, and .case-body > * never matches them. Without this, ordinary prose
+   inside a panel auto-places into the trailing gutter column. */
+.case-panel > p,
+.case-panel > h2,
+.case-panel > h3,
+.case-panel > ul,
+.case-panel > ol,
+.case-panel > blockquote { grid-column: text; }
+
 .art-attribution {
   grid-column: text;
   margin: 0 0 1.5rem;
@@ -3322,4 +3332,268 @@ body.lightbox-open { overflow: hidden; }
   .is-arriving .notfound > * { animation: none; opacity: 1; filter: none; transform: none; }
 
   .mist__label span { opacity: 0 !important; animation: none !important; }
+}
+
+/* --------------------------------------------------------------------------
+   11. Yggdrasil case study — full-bleed alternating scenes.
+
+   The other two case pages are text-led: prose at --measure, the occasional
+   figure. This one is screenshot-led, because the product's whole argument is
+   visual and the screens are dense enough that shrinking them to 34rem throws
+   away the point. So the wrap widens, each beat becomes an image and a short
+   column of prose side by side, and the sides alternate down the page.
+   -------------------------------------------------------------------------- */
+
+.case-wrap--wide { max-width: 84rem; }
+
+/* The head still reads as prose, so it keeps the narrow measure even though
+   its container no longer enforces one. */
+.case-wrap--wide .case-sub { max-width: var(--measure); }
+
+/* Reveal on scroll. The class is added by an IntersectionObserver in main.js;
+   under reduced motion it is added immediately and these transitions never
+   get a chance to run. */
+/* Gated on .js, which the inline head script sets. If main.js never runs there
+   is no observer to un-hide anything, so the content must not start hidden. */
+.js [data-reveal] {
+  opacity: 0;
+  transform: translateY(20px);
+  filter: blur(6px);
+  transition:
+    opacity   700ms var(--ease-out),
+    transform 700ms var(--ease-out),
+    filter    700ms var(--ease-out);
+}
+
+.js [data-reveal].is-in {
+  opacity: 1;
+  transform: none;
+  filter: blur(0);
+}
+
+/* Staggers the copy in behind its image so the pair does not arrive as one
+   flat slab. */
+.ygr-scene__copy[data-reveal] { transition-delay: 110ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .js [data-reveal] { opacity: 1; transform: none; filter: none; transition: none; }
+}
+
+/* ---- Scene ---------------------------------------------------------------- */
+
+.ygr-scene {
+  grid-column: full;
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(0, 24rem);
+  gap: clamp(1.5rem, 4vw, 3.25rem);
+  align-items: center;
+  margin: clamp(3rem, 8vw, 6rem) 0;
+}
+
+/* Flipped beats put the image on the right. The column widths have to swap
+   with it, otherwise `order` just drops the image into the narrow column.
+   Source order stays image-then-copy on every scene, so the small-screen stack
+   and the reading order never depend on which side won. */
+.ygr-scene--flip {
+  grid-template-columns: minmax(0, 24rem) minmax(0, 1.45fr);
+}
+.ygr-scene--flip .ygr-scene__media { order: 2; }
+
+.ygr-scene__copy > :first-child { margin-top: 0; }
+.ygr-scene__copy > :last-child  { margin-bottom: 0; }
+
+.ygr-scene__copy h2 {
+  position: relative;
+  margin: 0 0 1rem;
+  font-family: var(--display);
+  font-size: clamp(1.5rem, 2.6vw, 1.95rem);
+  font-weight: 400;
+  letter-spacing: .06em;
+  line-height: 1.05;
+  text-transform: uppercase;
+}
+
+.ygr-scene__copy h2::before {
+  content: '';
+  position: absolute;
+  left: -1.1rem;
+  top: .1em;
+  bottom: .1em;
+  width: 3px;
+  background: var(--accent);
+  border-radius: 2px;
+}
+
+/* The product colour-codes teams, and the left rail's key is the first thing
+   anyone reads. These are those nine swatches, sampled straight out of the app
+   and kept in the rail's own order.
+
+   Each heading takes the next one, so reading down the page walks the legend
+   one team at a time. --bar falls back to the accent, which means a heading
+   added later without a .hue-* class still gets a mark rather than nothing.
+
+   Scoped to .theme-ygr: the other case studies keep their single accent. */
+.case.theme-ygr {
+  --hue-1: #68B81C;   /* All Realms          */
+  --hue-2: #58BFF3;   /* Bifröst Tollkeepers */
+  --hue-3: #F16692;   /* Brokkr's Forge      */
+  --hue-4: #F0BD52;   /* Heimdall's Watch    */
+  --hue-5: #E46E0E;   /* Gjallarbrú Passage  */
+  --hue-6: #B287F5;   /* The Thing Council   */
+  --hue-7: #F06363;   /* Huginn and Muninn   */
+  --hue-8: #3ECAB8;   /* Mímir's Well        */
+  --hue-9: #5DAD10;   /* The High Seat       */
+}
+
+.case.theme-ygr .hue-1 { --bar: var(--hue-1); }
+.case.theme-ygr .hue-2 { --bar: var(--hue-2); }
+.case.theme-ygr .hue-3 { --bar: var(--hue-3); }
+.case.theme-ygr .hue-4 { --bar: var(--hue-4); }
+.case.theme-ygr .hue-5 { --bar: var(--hue-5); }
+.case.theme-ygr .hue-6 { --bar: var(--hue-6); }
+.case.theme-ygr .hue-7 { --bar: var(--hue-7); }
+.case.theme-ygr .hue-8 { --bar: var(--hue-8); }
+.case.theme-ygr .hue-9 { --bar: var(--hue-9); }
+
+.case.theme-ygr .case-body h2::before,
+.case.theme-ygr .ygr-scene__copy h2::before {
+  width: 3px;
+  background: var(--bar, var(--accent));
+  box-shadow: 0 0 14px -3px var(--bar, var(--accent));
+}
+
+.ygr-scene__copy p { margin: 0 0 1.1rem; }
+
+/* ---- Shot ----------------------------------------------------------------- */
+
+/* A screenshot of a dark, self-lit interface sitting on a near-black page has
+   no edge of its own. The border and the accent-tinted bloom give it one
+   without putting a bright frame around it. */
+.ygr-shot {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface-lo);
+  overflow: hidden;
+  box-shadow:
+    0 18px 50px -22px rgba(0, 0, 0, .9),
+    0 0 0 1px var(--line-soft) inset;
+  transition:
+    transform  420ms var(--ease-out),
+    box-shadow 420ms var(--ease-out),
+    border-color 420ms var(--ease);
+}
+
+/* Only the Features gallery opens the lightbox. The Design scenes are read,
+   not browsed, so they lift on hover but do not invite a click. */
+button.ygr-shot { cursor: zoom-in; }
+
+.ygr-shot img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.ygr-shot:hover,
+.ygr-shot:focus-visible {
+  transform: translateY(-5px);
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+  box-shadow:
+    0 26px 64px -24px rgba(0, 0, 0, .95),
+    0 0 46px -12px color-mix(in srgb, var(--accent) 38%, transparent),
+    0 0 0 1px var(--line-soft) inset;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ygr-shot, .ygr-shot:hover, .ygr-shot:focus-visible { transform: none; transition: none; }
+}
+
+/* ---- Hero shot ------------------------------------------------------------ */
+
+.ygr-hero {
+  grid-column: full;
+  margin: 0 0 clamp(1rem, 2.5vw, 1.75rem);
+}
+
+.ygr-hero figcaption,
+.ygr-gallery figcaption {
+  margin: .8rem 0 0;
+  color: var(--text-dim);
+  font-size: .84rem;
+  line-height: 1.5;
+}
+
+.ygr-gallery figcaption b {
+  display: block;
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* ---- Feature gallery ------------------------------------------------------ */
+
+/* Selector carries the panel so it outranks .case-panel > ul, which would
+   otherwise pull the gallery back into the text column. */
+.case-panel > .ygr-gallery {
+  grid-column: full;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+  gap: clamp(1.5rem, 3.5vw, 2.5rem);
+  margin: clamp(1.5rem, 4vw, 2.5rem) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ygr-gallery figure { margin: 0; }
+
+/* ---- Pull-out stat row ---------------------------------------------------- */
+
+.ygr-stats {
+  grid-column: text;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: clamp(1rem, 3vw, 2rem);
+  margin: clamp(2rem, 5vw, 3rem) 0;
+  padding: clamp(1.1rem, 3vw, 1.6rem) 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.ygr-stat dt {
+  margin: 0 0 .3rem;
+  font-family: var(--display);
+  font-size: clamp(1.7rem, 4vw, 2.4rem);
+  line-height: 1;
+  color: var(--accent);
+}
+
+.ygr-stat dd {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: .82rem;
+  line-height: 1.45;
+}
+
+/* ---- Dataset disclosure --------------------------------------------------- */
+
+.ygr-disclosure {
+  grid-column: text;
+  margin: clamp(2rem, 5vw, 3rem) 0 0;
+  padding-left: 1rem;
+  border-left: 2px solid var(--line-tick);
+  color: var(--text-dim);
+  font-size: .86rem;
+  line-height: 1.6;
+}
+
+@media (max-width: 60rem) {
+  .ygr-scene {
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(1.1rem, 4vw, 1.75rem);
+  }
+  /* On one column the flip is meaningless and would only reorder the stack. */
+  .ygr-scene--flip { grid-template-columns: minmax(0, 1fr); }
+  .ygr-scene--flip .ygr-scene__media { order: 0; }
+  .ygr-scene__copy h2::before { left: -.75rem; }
 }

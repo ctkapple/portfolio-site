@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Yggdrasil — William Dooling</title>
+<meta name="description" content="Designing an org chart visualizer, live inside a real organization.">
+<link rel="canonical" href="https://www.williamdooling.com/work/yggdrasil/">
+<meta name="theme-color" content="#0A0A0A">
+
+<meta property="og:title" content="Yggdrasil — William Dooling">
+<meta property="og:description" content="Designing an org chart visualizer, live inside a real organization.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://www.williamdooling.com/work/yggdrasil/">
+<meta property="og:image" content="https://www.williamdooling.com/assets/img/og-card.jpg">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../../assets/favicon.ico" sizes="32x32">
+<link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png">
+<link rel="manifest" href="../../site.webmanifest">
+<!-- Fonts are self-hosted; @font-face lives in styles.css. Preloaded because a
+     font declared inside a stylesheet is discovered a round trip late, and
+     `crossorigin` is mandatory even same-origin — fonts fetch in CORS mode.
+     See index.html for the full reasoning. -->
+<link rel="preload" as="font" type="font/woff2" crossorigin
+      href="../../assets/fonts/quicksand-latin.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin
+      href="../../assets/fonts/inter-latin.woff2">
+
+<link rel="stylesheet" href="../../assets/styles.css?v=a18">
+
+<script>
+/* Paints the arrival fog before this document's first frame. See assets/main.js. */
+(function () {
+  /* Marks JS as alive before first paint. Scroll-reveal CSS hides its elements
+     only under this class, so a page whose scripts never load still shows all
+     of its content. */
+  document.documentElement.classList.add('js');
+  try {
+    var raw = sessionStorage.getItem('wd:mist');
+    if (!raw) return;
+    var m = JSON.parse(raw);
+    if (!m || Date.now() - m.t > 6000) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var s = document.documentElement.style;
+    s.setProperty('--ox', m.ox + 'px');
+    s.setProperty('--oy', m.oy + 'px');
+    s.setProperty('--mist-max', m.max + 'px');
+    s.setProperty('--tint', m.tint);
+    document.documentElement.classList.add('is-arriving');
+  } catch (e) {}
+})();
+</script>
+</head>
+<body class="case theme-ygr">
+
+<div class="case-wrap case-wrap--wide">
+
+  <nav class="case-nav" aria-label="Breadcrumb">
+    <a class="case-back" href="../../" data-mist><span aria-hidden="true">←</span> Back</a>
+    <p class="micro">03 / 03</p>
+  </nav>
+
+  <header class="case-head">
+    <span class="case-head__index" aria-hidden="true">03</span>
+    <p class="case-eyebrow">Case Study</p>
+    <h1 class="case-title">Yggdrasil</h1>
+    <p class="case-sub">
+      An org chart explorer, designed and built for internal use. It turned a
+      structure most people navigated by asking around into something they could
+      open and read. It is live inside the organization today, though not
+      publicly deployed.
+    </p>
+
+    <hr class="rule case-rule">
+
+    <dl class="case-facts">
+      <div class="case-fact"><dt>Role</dt><dd>Design, product, build</dd></div>
+      <div class="case-fact"><dt>Status</dt><dd>Live (internal)</dd></div>
+      <div class="case-fact"><dt>Timeline</dt><dd>2 weeks to rollout</dd></div>
+    </dl>
+  </header>
+
+  <main class="case-body">
+
+    <div class="case-tabs" role="tablist" aria-label="Case study categories">
+      <button type="button" class="case-tab" id="tab-design" role="tab"
+              aria-selected="true" aria-controls="panel-design" data-tab="design">Design</button>
+      <button type="button" class="case-tab" id="tab-features" role="tab"
+              aria-selected="false" aria-controls="panel-features" tabindex="-1" data-tab="features">Features</button>
+    </div>
+
+    <!-- ================= Design ================= -->
+    <div class="case-panel" id="panel-design" role="tabpanel" aria-labelledby="tab-design">
+
+      <figure class="ygr-hero" data-reveal>
+        <div class="ygr-shot">
+          <img src="../../assets/img/ygr-hero.webp" width="2000" height="1252"
+               alt="The tree view: an entire organization drawn as a radial tree of colour-coded team branches on a dark field, with a team list down the left">
+        </div>
+        <figcaption>Tree view. The whole organization on one screen, teams read as colour.</figcaption>
+      </figure>
+
+      <h2 class="hue-1">The chart existed. Nobody could use it.</h2>
+
+      <p>
+        Everything you needed to understand the org was already written down
+        somewhere. Reporting lines lived in one internal system, roles and
+        locations in a second, skills and subject matter expertise in a third.
+        The three never quite agreed, and none of them answered the question
+        people were actually asking, which was some version of "who owns this,
+        and who do I talk to about it."
+      </p>
+
+      <p>
+        So people asked a manager. The manager pointed them at someone else, and
+        that person pointed them somewhere else again. New hires got the worst
+        version of it, because they did not yet know enough to know who to ask.
+        Every partner team, every cross department project, every onboarding week
+        paid the same small tax.
+      </p>
+
+      <p>
+        Scale is what made it stick. The organization is one group inside a
+        company of more than five thousand people, so reporting lines rarely stay
+        tidy. They cross into neighbouring groups and back again, and the person
+        who actually owns a thing is often several steps from anyone you already
+        know. A chart that only covers your immediate surroundings does not help
+        with that, and a chart that covers everything is unreadable.
+      </p>
+
+      <h2 class="hue-2">Why a tree, and why this one</h2>
+
+      <p>
+        The name comes from the world tree at the center of Norse cosmology, the
+        thing every realm hangs off. An org chart is a tree too, so the reference
+        did real work rather than sitting on top as a skin. Drawn radially, the
+        whole organization fits in one frame. Distance from the center reads as
+        distance from leadership, colour reads as team, and the density of a
+        branch tells you how large a group is before you read a single name.
+      </p>
+
+      <p>
+        The look followed from the same idea. Dark field, luminous nodes, teams
+        named for realms. It is unapologetically beautiful, and that was a
+        product decision rather than a personal indulgence. A tool nobody wants
+        to open does not get opened, and this one had to survive being forwarded
+        to a stakeholder who had no particular reason to care.
+      </p>
+
+      <dl class="ygr-stats" data-reveal>
+        <div class="ygr-stat"><dt>250+</dt><dd>people in the live chart</dd></div>
+        <div class="ygr-stat"><dt>3 → 1</dt><dd>internal systems collapsed into one view</dd></div>
+        <div class="ygr-stat"><dt>2</dt><dd>weeks from start to rollout</dd></div>
+        <div class="ygr-stat"><dt>86%</dt><dd>respond to the quarterly refresh</dd></div>
+      </dl>
+
+      <!-- Scene 1 -->
+      <section class="ygr-scene">
+        <div class="ygr-scene__media" data-reveal>
+          <div class="ygr-shot">
+            <img src="../../assets/img/ygr-dir-full.webp" width="2000" height="1058"
+                 alt="Directory view: a dense table of people grouped by team, each row showing role, location, manager and report count">
+          </div>
+        </div>
+        <div class="ygr-scene__copy" data-reveal>
+          <h2 class="hue-3">Two views, two jobs</h2>
+          <p>
+            Tree is for orientation. It answers "where does this sit" and "how
+            big is that group really," and it is the view people screenshot and
+            paste into a channel.
+          </p>
+          <p>
+            Directory is for lookup. Same data, familiar table, grouped by team
+            with role, location, manager and report count on every row. It became
+            the most used view in the product, which is the sort of thing you
+            only find out after you ship both.
+          </p>
+          <p>
+            Neither one is a mode you get stuck in. Any person in the directory
+            can be sent to their place in the tree, and any node in the tree
+            carries the same facts the table row does.
+          </p>
+        </div>
+      </section>
+
+      <!-- Scene 2 -->
+      <section class="ygr-scene ygr-scene--flip">
+        <div class="ygr-scene__media" data-reveal>
+          <div class="ygr-shot">
+            <img src="../../assets/img/ygr-tree-team.webp" width="2000" height="1056"
+                 alt="One team isolated in the tree as a single glowing constellation, with a panel of that team's responsibilities beside it">
+          </div>
+        </div>
+        <div class="ygr-scene__copy" data-reveal>
+          <h2 class="hue-4">Depth on demand</h2>
+          <p>
+            Selecting a team does two things at once. The tree collapses to a
+            constellation of just that group, so a whole-organization picture becomes
+            a readable one, and a panel opens with what that team is actually
+            responsible for.
+          </p>
+          <p>
+            Those responsibilities were the part no system held before. They
+            lived in team leads' heads and in onboarding docs that went stale.
+          </p>
+        </div>
+      </section>
+
+      <!-- Scene 3 -->
+      <section class="ygr-scene">
+        <div class="ygr-scene__media" data-reveal>
+          <div class="ygr-shot">
+            <img src="../../assets/img/ygr-tree-person-reports.webp" width="2000" height="1052"
+                 alt="A manager's node opened in the tree, with their direct reports fanning out below as labelled leaves">
+          </div>
+        </div>
+        <div class="ygr-scene__copy" data-reveal>
+          <h2 class="hue-5">What goes on a person</h2>
+          <p>
+            The individual view was the piece that replaced the three tab habit,
+            so what went on it mattered more than how it looked. Rather than
+            argue it out, the field set went to a pilot group as an A/B test
+            before full rollout, and the winning arrangement is what shipped:
+            title, team, location, manager, direct reports, and one click copy
+            for name and email.
+          </p>
+          <p>
+            Direct reports earned their place. Fully expanded, a manager's node
+            fans out into every person under them, which turned out to be how
+            people read team size and load without opening anything else.
+          </p>
+        </div>
+      </section>
+
+      <h2 class="hue-6">Keeping it true</h2>
+
+      <p>
+        An org chart is only as good as its last update, so the tool asks. Once a
+        quarter it messages everyone in the organization messaging tool to confirm
+        their details and refresh their subject matter expertise tags. The data
+        stays current because maintaining it is a two minute reply rather than a
+        project.
+      </p>
+
+      <h2 class="hue-7">Where it landed</h2>
+
+      <p>
+        It shipped in about two weeks and then kept getting used, which is the
+        part that surprised me. Managers use it to plan, outside collaborators
+        use it to find an owner, and new hires open it in their first week
+        instead of asking three people in a row. The three system scavenger hunt
+        is gone.
+      </p>
+
+      <p class="ygr-disclosure">
+        Screens shown here run on a synthetic preview dataset, which is why the
+        teams are named for realms and the people for gods. The live instance
+        runs on real organization data and is not publicly deployed.
+      </p>
+
+    </div>
+
+    <!-- ================= Features ================= -->
+    <div class="case-panel" id="panel-features" role="tabpanel" aria-labelledby="tab-features" hidden>
+
+      <p>
+        Eight screens, in the order you would meet them. Select any one to open
+        it full size.
+      </p>
+
+      <ul class="ygr-gallery">
+        <li>
+          <figure data-reveal>
+            <button type="button" class="ygr-shot ygr-shot--trigger" aria-label="View full size">
+              <img src="../../assets/img/ygr-hero.webp" width="2000" height="1252"
+                   alt="The tree view showing every person in the organization at once">
+            </button>
+            <figcaption><b>Tree view, all realms</b>Every person in one frame. Teams carry colour through the whole product, so a branch you recognise here stays recognisable in the directory.</figcaption>
+          </figure>
+        </li>
+        <li>
+          <figure data-reveal>
+            <button type="button" class="ygr-shot ygr-shot--trigger" aria-label="View full size">
+              <img src="../../assets/img/ygr-tree-team.webp" width="2000" height="1056"
+                   alt="A single team isolated in the tree beside its responsibilities panel">
+            </button>
+            <figcaption><b>Team focus</b>Selecting a team collapses the tree to that group alone and opens its responsibilities beside it.</figcaption>
+          </figure>
+        </li>
+        <li>
+          <figure data-reveal>
+            <button type="button" class="ygr-shot ygr-shot--trigger" aria-label="View full size">
+              <img src="../../assets/img/ygr-tree-person.webp" width="2000" height="1054"
+                   alt="A person's node opened in the tree, showing role, team, location and copy actions">
+            </button>
+            <figcaption><b>A person, in context</b>The node opens in place rather than in a modal, so you keep the surrounding structure while you read. Copy name and copy email are there because pasting it somewhere is the next thing people do.</figcaption>
+          </figure>
+        </li>
+        <li>
+          <figure data-reveal>
+            <button type="button" class="ygr-shot ygr-shot--trigger" aria-label="View full size">
+              <img src="../../assets/img/ygr-tree-person-reports.webp" width="2000" height="1052"
+                   alt="A manager's node with every direct report fanned out beneath it">
+            </button>
+            <figcaption><b>A manager, expanded</b>Direct reports fan out from the node. Team size and reporting load become a shape you can read at a glance.</figcaption>
+          </figure>
+        </li>
+        <li>
+          <figure data-reveal>
+            <button type="button" class="ygr-shot ygr-shot--trigger" aria-label="View full size">
+              <img src="../../assets/img/ygr-tree-search.webp" width="2000" height="1060"
+                   alt="Typing a partial name into search, with a result showing role, team and manager">
+            </button>
+            <figcaption><b>Search</b>Type a partial name and the result tells you role, team and manager before you have committed to a click.</figcaption>
+          </figure>
+        </li>
+        <li>
+          <figure data-reveal>
+            <button type="button" class="ygr-shot ygr-shot--trigger" aria-label="View full size">
+              <img src="../../assets/img/ygr-dir-full.webp" width="2000" height="1058"
+                   alt="The full directory table, grouped by team with seniority counts in each group header">
+            </button>
+            <figcaption><b>Directory view</b>The most used screen. Grouped by team, seniority counts in every group header, the same colour language as the tree.</figcaption>
+          </figure>
+        </li>
+        <li>
+          <figure data-reveal>
+            <button type="button" class="ygr-shot ygr-shot--trigger" aria-label="View full size">
+              <img src="../../assets/img/ygr-dir-team.webp" width="2000" height="1246"
+                   alt="The directory filtered down to a single team of three people">
+            </button>
+            <figcaption><b>Directory, filtered</b>The left rail is a lens over both views at once, not a tree-only control.</figcaption>
+          </figure>
+        </li>
+        <li>
+          <figure data-reveal>
+            <button type="button" class="ygr-shot ygr-shot--trigger" aria-label="View full size">
+              <img src="../../assets/img/ygr-dir-person.webp" width="2000" height="728"
+                   alt="A person selected in the directory, with their direct reports listed in the left rail">
+            </button>
+            <figcaption><b>Direct reports, from the directory</b>Selecting a person pulls their reports into the rail, each one a jump straight back into the tree.</figcaption>
+          </figure>
+        </li>
+      </ul>
+
+      <p class="ygr-disclosure">
+        Screens shown here run on a synthetic preview dataset. The live instance
+        runs on real organization data and is not publicly deployed.
+      </p>
+
+    </div>
+
+    <p class="case-note">
+      Built with AI-assisted development. Live internally; not publicly deployed.
+    </p>
+
+  </main>
+</div>
+
+<div class="lightbox" aria-hidden="true">
+  <div class="lightbox__backdrop" data-lightbox-close></div>
+  <div class="lightbox__panel" role="dialog" aria-modal="true" aria-label="Screenshot, full size">
+    <button type="button" class="lightbox__close" data-lightbox-close aria-label="Close">
+      <svg viewBox="0 0 24 24" aria-hidden="true" width="20" height="20"><path d="M5 5l14 14M19 5L5 19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    </button>
+    <button type="button" class="lightbox__nav lightbox__nav--prev" aria-label="Previous">
+      <svg viewBox="0 0 24 24" aria-hidden="true" width="22" height="22"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <img class="lightbox__img" src="" alt="">
+    <p class="lightbox__caption"></p>
+    <button type="button" class="lightbox__nav lightbox__nav--next" aria-label="Next">
+      <svg viewBox="0 0 24 24" aria-hidden="true" width="22" height="22"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+  </div>
+</div>
+
+<footer class="case-foot">
+  <a class="case-next" href="../bevfantasy/" data-mist data-label="bevfantasy"
+     style="--next-accent: var(--bev);">
+    <div>
+      <p class="micro case-next__label">Next project</p>
+      <p class="case-next__name">bevfantasy</p>
+    </div>
+    <span class="case-next__arrow" aria-hidden="true">→</span>
+  </a>
+
+  <nav class="contact" aria-label="Contact">
+    <a href="#"><span class="todo-mark">[email]</span></a>
+    <a href="#"><span class="todo-mark">[LinkedIn]</span></a>
+    <a href="#"><span class="todo-mark">[résumé]</span></a>
+  </nav>
+</footer>
+
+<div class="mist" aria-hidden="true">
+  <div class="mist__blur"></div>
+  <div class="mist__veil"></div>
+  <div class="mist__wisp mist__wisp--c"></div>
+  <div class="mist__wisp mist__wisp--a"></div>
+  <div class="mist__wisp mist__wisp--b"></div>
+  <div class="mist__label"><span>Yggdrasil</span></div>
+</div>
+
+<svg class="mist-defs" aria-hidden="true" focusable="false" width="0" height="0">
+  <defs>
+    <filter id="mist-warp-a" x="-35%" y="-35%" width="170%" height="170%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.0055 0.011" numOctaves="4" seed="7" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="170" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <filter id="mist-warp-b" x="-35%" y="-35%" width="170%" height="170%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.009 0.006" numOctaves="3" seed="23" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="120" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </defs>
+</svg>
+
+<script src="../../assets/main.js?v=a18"></script>
+</body>
+</html>

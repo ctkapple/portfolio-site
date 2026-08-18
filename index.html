@@ -43,7 +43,7 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin
       href="assets/fonts/inter-latin.woff2">
 
-<link rel="stylesheet" href="assets/styles.css?v=a14">
+<link rel="stylesheet" href="assets/styles.css?v=a18">
 
 <script>
 /* Paints the arrival fog before the first frame of this document, so the two
@@ -51,6 +51,10 @@
    progressive enhancement: if this never runs, no class is set and the page
    renders normally. Dissipation is CSS-driven — see .is-arriving in styles.css. */
 (function () {
+  /* Marks JS as alive before first paint. Scroll-reveal CSS hides its elements
+     only under this class, so a page whose scripts never load still shows all
+     of its content. */
+  document.documentElement.classList.add('js');
   try {
     var raw = sessionStorage.getItem('wd:mist');
     if (!raw) return;
@@ -166,20 +170,20 @@
       </div>
     </a>
 
-    <a class="card card--ygr" href="work/ygradisil/" data-mist data-label="Ygradisil">
+    <a class="card card--ygr" href="work/yggdrasil/" data-mist data-label="Yggdrasil">
       <div class="card__float">
         <div class="card__tilt">
           <div class="card__inner">
             <span class="card__sheen" aria-hidden="true"></span>
 
             <div class="card__art">
-              <img src="assets/img/ygradisil-tree.webp" alt=""
-                   width="2260" height="1190" loading="eager" decoding="async">
+              <img src="assets/img/ygr-card.webp" alt=""
+                   width="1315" height="1053" loading="eager" decoding="async">
             </div>
 
             <div class="card__foot">
               <div>
-                <h2 class="card__title">Ygradisil</h2>
+                <h2 class="card__title">Yggdrasil</h2>
                 <p class="card__meta">Org chart visualizer</p>
               </div>
               <span class="card__status">Live</span>
@@ -338,6 +342,6 @@
     </defs>
   </svg>
 
-  <script src="assets/main.js?v=a14"></script>
+  <script src="assets/main.js?v=a18"></script>
 </body>
 </html>
