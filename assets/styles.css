@@ -2226,6 +2226,78 @@ img { max-width: 100%; display: block; }
 .contact a:hover { color: var(--mist-glow); }
 .contact a:hover::after { transform: scaleX(1); }
 
+/* The email copy button. Same behaviour as the home page's me panel — the
+   handler in main.js binds any [data-copy] — but the me panel's own styling
+   rides --me-* tokens that mean nothing out here, so the button borrows the
+   footer's link treatment instead and only the confirmation is its own. */
+.contact__copy {
+  position: relative;
+  padding: .15rem 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: .82rem;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: color 220ms var(--ease);
+}
+
+/* Matches .contact a's wipe-in underline. */
+.contact__copy::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 300ms var(--ease-out);
+}
+
+.contact__copy:hover { color: var(--mist-glow); }
+.contact__copy:hover::after { transform: scaleX(1); }
+.contact__copy:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+
+/* The confirmation covers the label rather than sitting beside it, so the row
+   never reflows mid-click and the neighbouring links stay put. */
+.contact__copy-done {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  color: var(--accent);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.contact__copy.is-copied .contact__copy-label { opacity: 0; }
+.contact__copy.is-copied .contact__copy-done  { opacity: 1; }
+
+/* When the clipboard write fails the done element holds the address itself,
+   which is far wider than the label it is covering. It leaves the overlay and
+   pushes the row instead — a reflow is the correct trade for text the visitor
+   now has to select by hand. */
+.contact__copy.is-plain .contact__copy-done {
+  position: static;
+  opacity: 1;
+  color: var(--text);
+  white-space: normal;
+}
+
+.contact__copy.is-plain .contact__copy-label { display: none; }
+
+/* Screen-reader announcement only; the visible confirmation is the button. */
+.contact__status {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 /* Cross-document View Transitions — pure seam-hider layered over the
    sessionStorage handoff below, not a replacement for it. Where supported,
    the browser snapshots the outgoing frame and holds it on screen while the
@@ -3668,6 +3740,58 @@ button.ygr-shot { cursor: zoom-in; }
   filter: drop-shadow(0 0 22px color-mix(in srgb, var(--accent) 45%, transparent));
 }
 
+/* ---- Intro spread --------------------------------------------------------- */
+
+/* The problem and the constraint are a question and its answer, so they read
+   better beside each other than stacked. Two columns of prose at the page's
+   own measure, which is why this spans `full` rather than widening `text`. */
+.bev-intro {
+  grid-column: full;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(2rem, 6vw, 5rem);
+  margin: clamp(2.5rem, 6vw, 4rem) 0 0;
+}
+
+.bev-intro__col { max-width: var(--measure); }
+
+/* `.case-body h2` is a descendant selector, so it reaches into these columns
+   and applies a `grid-column: text` that means nothing against .bev-intro's
+   tracks, plus a 3.5rem top margin that would misalign the two headings. */
+.bev-intro__col h2 {
+  grid-column: auto;
+  margin-top: 0;
+}
+
+.bev-intro__col > :last-child { margin-bottom: 0; }
+
+/* ---- Heading ticks -------------------------------------------------------- */
+
+/* The accent bar beside each heading alternates down the page. Same --bar
+   indirection Yggdrasil uses for its per-team hues: unset falls back to the
+   accent, so a heading added later still gets a mark rather than nothing. */
+.case.theme-bev .bar-white { --bar: var(--text); }
+
+.case.theme-bev .case-body h2::before,
+.case.theme-bev .bev-scene__copy h2::before {
+  background: var(--bar, var(--accent));
+  box-shadow: 0 0 14px -3px var(--bar, var(--accent));
+}
+
+/* The act titles carry an eyebrow instead of a bar. */
+.case.theme-bev .bev-act__title::before { content: none; }
+
+@media (max-width: 60rem) {
+  .bev-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+  .bev-intro {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+  /* Stacked, the second heading needs its own air back. */
+  .bev-intro__col + .bev-intro__col h2 { margin-top: 3rem; }
+}
+
 /* ---- Act divider ---------------------------------------------------------- */
 
 /* The page has two halves that make different arguments: what the site
@@ -3822,6 +3946,13 @@ button.bev-shot { cursor: zoom-in; }
 
 /* The phone gets a heavier radius and a visible bezel, because at 21% width a
    bare screenshot reads as a thin sliver rather than a device. */
+/* A chat screenshot is carrying TEXT, and at the 21% a product screenshot is
+   happy with, the messages are illegible until you open the lightbox. These
+   get a wider slot. It still is not comfortable reading — the copy beside them
+   quotes the line that matters, and the image is there as evidence that the
+   quote is real. */
+.bev-pair--chat { grid-template-columns: minmax(0, 1fr) 30%; }
+
 .bev-pair__phone .bev-shot {
   border-radius: clamp(10px, 1.6vw, 18px);
   border-width: 2px;
@@ -3866,10 +3997,13 @@ button.bev-shot { cursor: zoom-in; }
 
 /* ---- Stat row ------------------------------------------------------------- */
 
+/* Spans `full` to line up with the intro spread directly above it. In the
+   narrow text column the four figures wrapped 3 + 1, which read as a mistake
+   sitting under two clean columns. */
 .bev-stats {
-  grid-column: text;
+  grid-column: full;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: clamp(1rem, 3vw, 2rem);
   margin: clamp(2rem, 5vw, 3rem) 0;
   padding: clamp(1.1rem, 3vw, 1.6rem) 0;
@@ -3891,6 +4025,37 @@ button.bev-shot { cursor: zoom-in; }
   font-size: .82rem;
   line-height: 1.45;
 }
+
+/* ---- Paired figures in the text column ------------------------------------ */
+
+/* Two phone-shaped screenshots side by side, sized to the text column rather
+   than the full width — they are an aside to the prose, not a scene of their
+   own, and at scene width two portrait shots would tower over the section
+   that introduces them. */
+.case-body > .bev-duo {
+  grid-column: text;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(.75rem, 2vw, 1.1rem);
+  margin: clamp(1.25rem, 3vw, 1.75rem) 0 clamp(1.5rem, 4vw, 2rem);
+  padding: 0;
+  list-style: none;
+}
+
+.bev-duo li { margin: 0; }
+
+/* Inline link inside body prose. `.case-body a` has no treatment of its own,
+   so without this the one link in the running text is indistinguishable from
+   the text around it. */
+.bev-link {
+  color: var(--text);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  text-underline-offset: .18em;
+  transition: text-decoration-color 250ms var(--ease), color 250ms var(--ease);
+}
+
+.bev-link:hover { color: var(--accent); text-decoration-color: var(--accent); }
 
 /* ---- Credits -------------------------------------------------------------- */
 

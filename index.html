@@ -124,8 +124,8 @@
                 <!-- Hero is last so it paints above its siblings even before
                      z-index is considered. -->
                 <div class="deck__shot deck__shot--hero">
-                  <img src="assets/img/bev-ap-poll.webp" alt=""
-                       width="420" height="819" loading="eager" decoding="async">
+                  <img src="assets/img/bev-landing.webp" alt=""
+                       width="840" height="1638" loading="eager" decoding="async">
                 </div>
               </div>
             </div>
@@ -300,16 +300,16 @@
 
         <nav class="me__links" aria-label="Contact">
           <button class="me__link me__copy" type="button"
-                  data-copy="william.dooling@outlook.com">
+                  data-copy="william.dooling@outlook.com" data-copy-status="me-status">
             <span class="me__copy-label">Email</span>
-            <span class="me__copy-done" aria-hidden="true">Copied</span>
+            <span class="me__copy-done" data-copy-done aria-hidden="true">Copied</span>
           </button>
           <a class="me__link" href="https://www.linkedin.com/in/wgd/"
              target="_blank" rel="noopener noreferrer">LinkedIn</a>
           <a class="me__link" href="about/">About</a>
         </nav>
 
-        <p class="me__status" role="status" aria-live="polite"></p>
+        <p class="me__status" id="me-status" role="status" aria-live="polite"></p>
 
         </div><!-- /.me__content -->
       </div>

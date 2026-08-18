@@ -362,71 +362,84 @@
       if (e.key === 'Escape' && isOpen()) closeMe(true);
     });
 
-    /* -------------------------------------------------------------------
-       Copy the address rather than opening a mail client. Clipboard API
-       first; the textarea path covers insecure origins and older browsers,
-       where navigator.clipboard is simply undefined.
-       ------------------------------------------------------------------- */
+    /* The name used to be split into per-character spans for an idle wave.
+       Cut deliberately — it read as a glitch rather than as charm. The name is
+       now plain text with a CSS glow, so there is nothing to enhance here. */
+  }
 
-    var copyBtn = panel.querySelector('.me__copy');
-    var status  = panel.querySelector('.me__status');
-    var copyTimer = 0;
+  /* ---------------------------------------------------------------------
+     Copy-to-clipboard buttons.
 
-    function legacyCopy(text) {
-      var ta = document.createElement('textarea');
-      ta.value = text;
-      ta.setAttribute('readonly', '');
-      ta.style.position = 'fixed';
-      ta.style.top = '-1000px';
-      ta.style.opacity = '0';
-      document.body.appendChild(ta);
-      ta.select();
-      var ok = false;
-      try { ok = document.execCommand('copy'); } catch (err) { ok = false; }
-      document.body.removeChild(ta);
-      return ok;
-    }
+     Copy the address rather than opening a mail client. This used to live
+     inside the me panel and query it directly, which meant the behaviour could
+     not leave the home page — the case study footers had to fall back to a
+     plain mailto. It now binds every `[data-copy]` button in the document and
+     carries no knowledge of which component it is inside.
 
-    var copyDone = copyBtn && copyBtn.querySelector('.me__copy-done');
+     Each button declares its own feedback:
+       data-copy         the text to write
+       data-copy-status  id of a live region for screen readers (optional)
+       [data-copy-done]  a child element whose text becomes the confirmation
+
+     The is-copied / is-plain classes land on the button, so each component
+     styles its own confirmation.
+     --------------------------------------------------------------------- */
+
+  /* Clipboard API first; the textarea path covers insecure origins and older
+     browsers, where navigator.clipboard is simply undefined. */
+  function legacyCopy(text) {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed';
+    ta.style.top = '-1000px';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    var ok = false;
+    try { ok = document.execCommand('copy'); } catch (err) { ok = false; }
+    document.body.removeChild(ta);
+    return ok;
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll('[data-copy]'), function (btn) {
+    var doneEl   = btn.querySelector('[data-copy-done]');
+    var statusId = btn.getAttribute('data-copy-status');
+    var status   = statusId ? document.getElementById(statusId) : null;
+    var timer    = 0;
 
     /* Clipboard writes fail for reasons the visitor cannot act on — iOS Safari
        outside a gesture, hardened browsers, a backgrounded document. Failing
        silently would leave them clicking a button that does nothing, so the
        fallback shows the address itself and holds it there long enough to
        select by hand. */
-    function confirmCopy(ok, text) {
+    function confirm(ok, text) {
       if (status) status.textContent = ok ? 'Email address copied' : ('Copy this address: ' + text);
-      if (copyDone) copyDone.textContent = ok ? 'Copied' : text;
-      copyBtn.classList.toggle('is-plain', !ok);
+      if (doneEl) doneEl.textContent = ok ? 'Copied' : text;
+      btn.classList.toggle('is-plain', !ok);
 
-      copyBtn.classList.remove('is-copied');
-      void copyBtn.offsetWidth;              // restart the pop if clicked twice
-      copyBtn.classList.add('is-copied');
+      btn.classList.remove('is-copied');
+      void btn.offsetWidth;                  // restart the pop if clicked twice
+      btn.classList.add('is-copied');
 
-      window.clearTimeout(copyTimer);
-      copyTimer = window.setTimeout(function () {
-        copyBtn.classList.remove('is-copied');
+      window.clearTimeout(timer);
+      timer = window.setTimeout(function () {
+        btn.classList.remove('is-copied');
       }, ok ? 1500 : 6000);
     }
 
-    if (copyBtn) {
-      copyBtn.addEventListener('click', function () {
-        var text = copyBtn.getAttribute('data-copy') || '';
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(text).then(
-            function () { confirmCopy(true, text); },
-            function () { confirmCopy(legacyCopy(text), text); }
-          );
-        } else {
-          confirmCopy(legacyCopy(text), text);
-        }
-      });
-    }
-
-    /* The name used to be split into per-character spans for an idle wave.
-       Cut deliberately — it read as a glitch rather than as charm. The name is
-       now plain text with a CSS glow, so there is nothing to enhance here. */
-  }
+    btn.addEventListener('click', function () {
+      var text = btn.getAttribute('data-copy') || '';
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(
+          function () { confirm(true, text); },
+          function () { confirm(legacyCopy(text), text); }
+        );
+      } else {
+        confirm(legacyCopy(text), text);
+      }
+    });
+  });
 
   /* ---------------------------------------------------------------------
      Prefetch.

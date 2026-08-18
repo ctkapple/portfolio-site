@@ -392,9 +392,14 @@
   </a>
 
   <nav class="contact" aria-label="Contact">
-    <a href="mailto:william.dooling@outlook.com">Email</a>
+    <button class="contact__copy" type="button"
+            data-copy="william.dooling@outlook.com" data-copy-status="foot-status">
+      <span class="contact__copy-label">Email</span>
+      <span class="contact__copy-done" data-copy-done aria-hidden="true">Copied</span>
+    </button>
     <a href="https://www.linkedin.com/in/wgd/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
     <a href="../../about/" data-mist>About</a>
+    <p class="contact__status" id="foot-status" role="status" aria-live="polite"></p>
   </nav>
 </footer>
 

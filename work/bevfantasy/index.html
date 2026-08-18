@@ -89,52 +89,62 @@
 
     <figure class="bev-hero" data-reveal>
       <button type="button" class="bev-shot bev-shot--trigger" aria-label="View full size"
-              data-lightbox-caption="The league home screen. Championships raised, the all-time table underneath, and an open poll announcing itself across the top of every page.">
+              data-lightbox-caption="The league home screen. Five years of banners raised, career wins stacked underneath, and an open poll announcing itself across the top of every page.">
         <img src="../../assets/img/bev-banner.webp" width="2000" height="1125"
-             alt="The bevfantasy league page: a dark orange-accented site showing championship banners and an all-time standings table, with a live poll bar across the top">
+             alt="The bevfantasy league page: a dark orange-accented site showing five years of championship banners above a chart of every manager's career wins, with a live poll bar across the top">
       </button>
-      <figcaption>Every season this group has played, summed, with an open ballot pushing itself into view.</figcaption>
+      <figcaption>Five seasons of the keeper league, with an open ballot pushing itself into view.</figcaption>
     </figure>
 
-    <h2>A league is a group chat with a scoreboard attached</h2>
+    <!-- The problem and the constraint answer each other, so they run as a
+         spread rather than one after the other. -->
+    <div class="bev-intro" data-reveal>
+      <div class="bev-intro__col">
+        <h2>A league is a group chat with a scoreboard attached</h2>
 
-    <p>
-      Fantasy football was never really about fantasy football for us. It was
-      the thing that kept fourteen friends talking after everyone left the same
-      town, and it is now the only standing appointment a group spread across
-      eight states reliably keeps.
-    </p>
+        <p>
+          Fantasy football was never really about fantasy football for us. It
+          was the thing that kept fourteen friends talking after everyone left
+          the same town, and it is now the only standing appointment a group
+          spread across eight states reliably keeps.
+        </p>
 
-    <p>
-      The problem is that a fantasy platform is built around the season you are
-      currently in, and that is the right thing for it to be built around. It is
-      not built to be a filing cabinet. Once a year closes, the year effectively
-      disappears. Records, rivalries, the trade everybody still argues about,
-      all of it survives only in whoever remembers it loudest.
-    </p>
+        <p>
+          The problem is that a fantasy platform is built around the season you
+          are currently in, and that is the right thing for it to be built
+          around. It is not built to be a filing cabinet. Once a year closes,
+          the year effectively disappears. Records, rivalries, the trade
+          everybody still argues about, all of it survives only in whoever
+          remembers it loudest.
+        </p>
 
-    <p>
-      So the league had a memory problem and an engagement problem, and they
-      turned out to be one problem. When nobody can look anything up, nobody has
-      anything to say. Group chat traffic in July is the honest measure of
-      whether a league is healthy, and ours went quiet every February.
-    </p>
+        <p>
+          So the league had a memory problem and an engagement problem, and they
+          turned out to be one problem. When nobody can look anything up, nobody
+          has anything to say. Group chat traffic in July is the honest measure
+          of whether a league is healthy, and ours went quiet every February.
+        </p>
+      </div>
 
-    <h2>What I optimized for</h2>
+      <div class="bev-intro__col">
+        <h2 class="bar-white">What I optimized for</h2>
 
-    <p>
-      Not completeness. The API will hand you far more than anyone wants to
-      read, and the failure mode for a project like this is a wall of accurate
-      tables that technically answers every question and gets opened twice.
-    </p>
+        <p>
+          Not completeness. The API will hand you far more than anyone wants to
+          read, and the failure mode for a project like this is a wall of
+          accurate tables that technically answers every question and gets
+          opened twice.
+        </p>
 
-    <p>
-      I optimized for things worth screenshotting. Every feature had to survive
-      one test before I built it: would somebody paste this into the group chat
-      to make fun of a friend. That sounds unserious, and it was the most useful
-      constraint I had. It killed a lot of correct, boring ideas, and it is why
-      the things that shipped actually get used.
-    </p>
+        <p>
+          I optimized for things worth screenshotting. Every feature had to
+          survive one test before I built it: would somebody paste this into the
+          group chat to make fun of a friend. That sounds unserious, and it was
+          the most useful constraint I had. It killed a lot of correct, boring
+          ideas, and it is why the things that shipped actually get used.
+        </p>
+      </div>
+    </div>
 
     <dl class="bev-stats" data-reveal>
       <div class="bev-stat"><dt>3</dt><dd>leagues on one codebase</dd></div>
@@ -154,7 +164,7 @@
 
     <!-- Earnings -->
     <section class="bev-scene">
-      <div class="bev-scene__media bev-pair" data-reveal>
+      <div class="bev-scene__media bev-pair bev-pair--chat" data-reveal>
         <button type="button" class="bev-shot bev-shot--trigger" aria-label="View full size"
                 data-lightbox-caption="The earnings exchange. A lifetime equity curve across all three leagues, with a live ticker tape of every manager's winnings above it.">
           <img src="../../assets/img/bev-earnings.webp" width="2000" height="1125"
@@ -162,9 +172,9 @@
         </button>
         <div class="bev-pair__phone">
           <button type="button" class="bev-shot bev-shot--trigger" aria-label="View full size"
-                  data-lightbox-caption="The same exchange on a phone, where the ticker legend reflows into tappable chips.">
-            <img src="../../assets/img/bev-m-earnings.webp" width="840" height="1760"
-                 alt="The earnings page on a phone, showing the equity curve above a grid of ticker chips">
+                  data-lightbox-caption="What happened in the group chat within a minute of the earnings page going up.">
+            <img src="../../assets/img/bev-chat-earnings.webp" width="840" height="1315"
+                 alt="A group chat thread: the earnings page is shared, and a league member replies that $WILL should be sold immediately for bad fundamentals and a high P/E ratio">
           </button>
         </div>
       </div>
@@ -182,17 +192,11 @@
           moves is a story, so each symbol carries the season's change beside
           it, green if the year cleared your buy-in and red if it did not.
         </p>
-        <p>
-          These same people play in three different leagues, so the chart
-          toggles between one league and all of them. It animates instead of
-          reloading. Nothing is created or destroyed when you switch, rows just
-          move, which matters because the only thing anyone actually reads on
-          this chart is whether their line is above someone else's.
-        </p>
         <p class="bev-scene__proof">
-          Five seasons, three leagues, one ledger. Net and ROI are computed
-          against <b>every buy-in ever paid</b>, which is the number people
-          would rather not look at.
+          The screenshot beside this is the group chat shortly after the page
+          went up. <b>"Sell $WILL immediately, bad fundamentals, high P/E ratio,
+          due to crash."</b> Somebody followed it with a market-crash GIF. That
+          reaction is the whole specification.
         </p>
       </div>
     </section>
@@ -214,7 +218,7 @@
         </div>
       </div>
       <div class="bev-scene__copy" data-reveal>
-        <h2>Ninety trades and no way to find one</h2>
+        <h2 class="bar-white">Ninety trades and no way to find one</h2>
         <p>
           Trades are the best content a league produces and the hardest thing to
           retrieve. Every trade argument in our group chat starts the same way,
@@ -247,9 +251,9 @@
     <section class="bev-scene">
       <div class="bev-scene__media bev-pair" data-reveal>
         <button type="button" class="bev-shot bev-shot--trigger" aria-label="View full size"
-                data-lightbox-caption="Head to head. Two faces picked from a grid produce an all-time record, the closest game ever played, and the player who has done the most damage.">
+                data-lightbox-caption="Head to head. Two faces picked from a grid produce an all-time record, the closest game the two have played, and the player who has done the most damage.">
           <img src="../../assets/img/bev-h2h-wide.webp" width="2000" height="1125"
-               alt="A head-to-head comparison showing two managers' portraits either side of a 2-6 all-time record, with total points, biggest blowout and a Certified Hater stat beneath each">
+               alt="A head-to-head comparison showing two managers' portraits either side of a 4-2 all-time record, with total points, biggest blowout and a Certified Hater stat beneath each">
         </button>
         <div class="bev-pair__phone">
           <button type="button" class="bev-shot bev-shot--trigger" aria-label="View full size"
@@ -269,7 +273,7 @@
           You pick two faces from a grid. No dropdowns, no names to type. That
           choice does more work than it looks like it does: selecting someone by
           their face is fast enough that people browse, and browsing is how
-          anyone finds out that a rivalry they never thought about is 2-6.
+          anyone finds out that a rivalry they never thought about is 4-2.
         </p>
         <p>
           Under the all-time record, the stats are deliberately not the useful
@@ -298,7 +302,7 @@
 
     <!-- AP Poll -->
     <section class="bev-scene bev-scene--flip">
-      <div class="bev-scene__media bev-pair" data-reveal>
+      <div class="bev-scene__media bev-pair bev-pair--chat" data-reveal>
         <button type="button" class="bev-shot bev-shot--trigger" aria-label="View full size"
                 data-lightbox-caption="The ballot. Drag to rank all fourteen teams, with the roster of whichever team you are weighing open beside it.">
           <img src="../../assets/img/bev-ballot.webp" width="2000" height="1125"
@@ -306,14 +310,14 @@
         </button>
         <div class="bev-pair__phone">
           <button type="button" class="bev-shot bev-shot--trigger" aria-label="View full size"
-                  data-lightbox-caption="The ballot on a phone, which is where almost all of them are actually filled out.">
-            <img src="../../assets/img/bev-m-ballot.webp" width="840" height="1760"
-                 alt="The ranking ballot on a phone, with numbered team rows and move buttons">
+                  data-lightbox-caption="Andy reviewing the first build of the poll. Both of these landed.">
+            <img src="../../assets/img/bev-chat-poll.webp" width="840" height="1336"
+                 alt="A chat thread reviewing the poll: a league member says there is a lot going on in the screenshot and suggests showing only the top seven, the way college football does">
           </button>
         </div>
       </div>
       <div class="bev-scene__copy" data-reveal>
-        <h2>Manufacturing an event</h2>
+        <h2 class="bar-white">Manufacturing an event</h2>
         <p>
           College football has a ritual. The poll drops, and for an hour
           everyone argues about it. Fantasy has no equivalent. Nothing on the
@@ -335,6 +339,17 @@
           across every page of the site while voting is live, showing how many
           ballots are in.
         </p>
+        <p>
+          The first build went to Andy before it went to anyone else, and he
+          sent back the screenshot beside this. Too much on screen at once, and
+          why not publish a top seven the way college football does. He also
+          caught that the ballot counter read 1 of 14 when the league has
+          fourteen teams but sixteen people, because two of the franchises are
+          co-owned. Both went in. The published poll is a top seven now, sitting
+          under the full chart rather than replacing it, and the counter reads
+          out of sixteen.
+        </p>
+
         <p class="bev-scene__proof">
           The bar is dismissible and remembers that you dismissed it. Showing
           <b>the count rather than the deadline</b> is what moved the needle,
@@ -381,15 +396,6 @@
           would cost next year, how many consecutive years they have already
           been kept, and a plain yes or no.
         </p>
-        <p>
-          The part I am most pleased with is where it refuses to answer. Three
-          of the eight rules involve trading for picks, which depends on deals
-          that have not happened yet, so it does not model them and says so in
-          plain language under the table. It also flags when a computed cost
-          falls off the end of the draft, and when you do not currently hold the
-          pick a keeper would consume. In a league that argues about everything,
-          being confidently wrong once would have ended the tool.
-        </p>
         <p class="bev-scene__proof">
           Both managers set full keepers the first year it existed. It is the
           only feature I have shipped where I could name the two people it was
@@ -398,7 +404,7 @@
       </div>
     </section>
 
-    <h2>Where it landed</h2>
+    <h2 class="bar-white">Where it landed</h2>
 
     <p>
       The site is a static build that refreshes from the league platform's API
@@ -424,13 +430,40 @@
       it. Knowing the difference in advance is the part I am still bad at.
     </p>
 
+    <h2>The mark</h2>
+
+    <p>
+      The BEV lightning mark was designed by
+      <a class="bev-link" href="https://pcoluntino.com/portfolio/" target="_blank" rel="noopener">Peter Coluntino</a>,
+      who is a graphic designer and also plays in the league. He sent the first
+      version over with "this is my initial thought and it needs some work." My
+      only real contribution was sending him the ESPN wordmark and asking
+      whether the E could lean that way. It could.
+    </p>
+
+    <ul class="bev-duo" data-reveal>
+      <li>
+        <button type="button" class="bev-shot bev-shot--trigger" aria-label="View full size"
+                data-lightbox-caption="Peter's first pass at the mark.">
+          <img src="../../assets/img/bev-logo-first.webp" width="760" height="1209"
+               alt="A chat thread showing a photo of a screen with the first BEV Fantasy logo concept in Adobe Illustrator">
+        </button>
+      </li>
+      <li>
+        <button type="button" class="bev-shot bev-shot--trigger" aria-label="View full size"
+                data-lightbox-caption="The ESPN wordmark, sent as a reference for the E. Peter's computer then crashed and took the light effect with it.">
+          <img src="../../assets/img/bev-logo-espn.webp" width="760" height="1209"
+               alt="A chat thread in which the ESPN wordmark is sent as a typographic reference for how the E in BEV could lean">
+        </button>
+      </li>
+    </ul>
+
     <p class="bev-credit">
-      The BEV mark was designed by
-      <a href="https://pcoluntino.com/portfolio/" target="_blank" rel="noopener">Peter Coluntino</a>,
-      who is also in the league. Everything else is the orange and black of the
-      high school team most of us played on together, which won two state
-      championships and which none of us has stopped talking about since. The
-      screens here show real league data, published with the league's blessing.
+      Everything else is the orange and black of the high school team most of us
+      played on together, which won two state championships and which none of us
+      has stopped talking about since. The screens on this page show real league
+      data. The chat screenshots are cropped to the conversation and surnames
+      are blurred.
     </p>
 
     <p class="case-note">
@@ -470,9 +503,14 @@
   </a>
 
   <nav class="contact" aria-label="Contact">
-    <a href="mailto:william.dooling@outlook.com">Email</a>
+    <button class="contact__copy" type="button"
+            data-copy="william.dooling@outlook.com" data-copy-status="foot-status">
+      <span class="contact__copy-label">Email</span>
+      <span class="contact__copy-done" data-copy-done aria-hidden="true">Copied</span>
+    </button>
     <a href="https://www.linkedin.com/in/wgd/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
     <a href="../../about/" data-mist>About</a>
+    <p class="contact__status" id="foot-status" role="status" aria-live="polite"></p>
   </nav>
 </footer>
 
