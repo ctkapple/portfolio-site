@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>bevfantasy — William Dooling</title>
-<meta name="description" content="Designing a fantasy football record book and engagement engine for a real league of fourteen friends.">
+<meta name="description" content="Designing a fantasy football record book and engagement engine for a real league of sixteen friends.">
 <link rel="canonical" href="https://www.williamdooling.com/work/bevfantasy/">
 <meta name="theme-color" content="#0A0A0A">
 
 <meta property="og:title" content="bevfantasy — William Dooling">
-<meta property="og:description" content="Designing a fantasy football record book and engagement engine for a real league of fourteen friends.">
+<meta property="og:description" content="Designing a fantasy football record book and engagement engine for a real league of sixteen friends.">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://www.williamdooling.com/work/bevfantasy/">
 <meta property="og:image" content="https://www.williamdooling.com/assets/img/og-card.jpg">
@@ -62,22 +62,21 @@
     <p class="micro">01 / 03</p>
   </nav>
 
-  <!-- The mark takes the slot the ghost numeral holds on the other two case
-       pages. It identifies the project better than an index does, and two
-       oversized graphics in the same corner would fight. -->
+  <!-- The project name and mark form one lockup so they read as a single
+       identity instead of competing from opposite sides of the header. -->
   <header class="case-head">
-    <img class="bev-mark" src="../../assets/img/bev-logo.webp" width="900" height="864"
-         alt="" aria-hidden="true">
-
     <div class="case-head__copy">
       <p class="case-eyebrow">Case Study</p>
-      <h1 class="case-title">Bev&nbsp;Fantasy</h1>
+      <div class="bev-lockup">
+        <h1 class="case-title">Bev&nbsp;Fantasy</h1>
+        <img class="bev-mark" src="../../assets/img/bev-logo.webp" width="900" height="864"
+             alt="" aria-hidden="true">
+      </div>
       <p class="case-sub">
-        A record book and engagement engine for three fantasy football leagues
-        run by the same group of friends. It holds every season since 2021 and
-        gives fourteen people now spread across eight states a reason to keep
-        showing up for each other in July. It is live, and the people using it
-        tell me directly when something is wrong.
+        A historical record book and engagement engine for three fantasy
+        football leagues I run. It holds every season in league history and
+        gives sixteen old friends, former teammates, and rivals across eight
+        states a reason to keep the trash talk flowing all year.
       </p>
 
       <hr class="rule case-rule">
@@ -114,26 +113,25 @@
         <h2>A league is a group chat with a scoreboard attached</h2>
 
         <p>
-          Fantasy football was never really about fantasy football for us. It
-          was the thing that kept fourteen friends talking after everyone left
-          the same town, and it is now the only standing appointment a group
-          spread across eight states reliably keeps.
+          Fantasy football is the thing that kept sixteen friends talking after
+          everyone began to scatter across the country, and it is now, besides
+          weddings, the only reliable way to get everyone in the same room.
         </p>
 
         <p>
           The problem is that a fantasy platform is built around the season you
-          are currently in, and that is the right thing for it to be built
-          around. It is not built to be a filing cabinet. Once a year closes,
-          the year effectively disappears. Records, rivalries, the trade
-          everybody still argues about, all of it survives only in whoever
-          remembers it loudest.
+          are currently in. It is not built to be a filing cabinet or to keep a
+          group chat active year-round. Once a season ends, group chat activity
+          dies down as we return to the mundanity of adult life. Records,
+          rivalries, the trade everybody still argues about, all of it survives
+          in the memory of whoever tells the story loudest and least accurately.
         </p>
 
         <p>
           So the league had a memory problem and an engagement problem, and they
-          turned out to be one problem. When nobody can look anything up, nobody
-          has anything to say. Group chat traffic in July is the honest measure
-          of whether a league is healthy, and ours went quiet every February.
+          turned out to be one problem. Group chat traffic in July is the honest
+          measure of whether a league is healthy, and ours went quiet every
+          February.
         </p>
       </div>
 
@@ -141,26 +139,33 @@
         <h2 class="bar-white">What I optimized for</h2>
 
         <p>
-          Not completeness. The API will hand you far more than anyone wants to
-          read, and the failure mode for a project like this is a wall of
-          accurate tables that technically answers every question and gets
-          opened twice.
+          The API will hand you everything you could ever need and more. The
+          failure mode for a project like this is a wall of accurate tables that
+          technically answers every question and gets opened twice.
         </p>
 
         <p>
           I optimized for things worth screenshotting. Every feature had to
-          survive one test before I built it: would somebody paste this into the
-          group chat to make fun of a friend. That sounds unserious, and it was
+          survive one test before I built it: Would somebody paste this into the
+          group chat to make fun of a friend? That sounds unserious, and it was
           the most useful constraint I had. It killed a lot of correct, boring
           ideas, and it is why the things that shipped actually get used.
+        </p>
+
+        <p>
+          Feedback from the league shaped nearly every feature: what people
+          wanted to see, how they expected it to work, and what was not worth
+          keeping. That process turned the site into a frequently used league
+          repository, visited not only by league members but by their friends
+          and families.
         </p>
       </div>
     </div>
 
     <dl class="bev-stats" data-reveal>
       <div class="bev-stat"><dt>3</dt><dd>leagues on one codebase</dd></div>
-      <div class="bev-stat"><dt>5</dt><dd>seasons of history, back to 2021</dd></div>
-      <div class="bev-stat"><dt>14</dt><dd>managers, across 8 states</dd></div>
+      <div class="bev-stat"><dt>5</dt><dd>seasons of history</dd></div>
+      <div class="bev-stat"><dt>16</dt><dd>people, across 8 states</dd></div>
       <div class="bev-stat"><dt>100+</dt><dd>trades, filterable</dd></div>
     </dl>
 
@@ -183,9 +188,9 @@
         </button>
         <div class="bev-pair__phone">
           <button type="button" class="bev-shot bev-shot--trigger" aria-label="View full size"
-                  data-lightbox-caption="What happened in the group chat within a minute of the earnings page going up.">
-            <img src="../../assets/img/bev-chat-earnings.webp" width="840" height="1315"
-                 alt="A group chat thread: the earnings page is shared, and a league member replies that $WILL should be sold immediately for bad fundamentals and a high P/E ratio">
+                  data-lightbox-caption="What happened after I won the 2025 championship by 2 points.">
+            <img src="../../assets/img/bev-chat-earnings-crop.webp" width="1330" height="1182"
+                 alt="A cropped group chat exchange calling for $WILL to be sold immediately because of bad fundamentals and a high P/E ratio">
           </button>
         </div>
       </div>
@@ -193,11 +198,20 @@
         <h2>Money, in the language they already speak</h2>
         <p>
           Most of this league works in finance. So instead of another standings
-          table, everyone got a ticker. Mine is $WILL. The page is an exchange:
-          a scrolling tape of lifetime winnings along the top, a cumulative
-          equity curve underneath, and a holdings table breaking every dollar
-          down by year and by league.
+          table, everyone got a ticker. Mine is $WILL, and you'll notice it's at
+          the top. The page is an exchange: a scrolling tape of lifetime
+          winnings along the top, a cumulative equity curve underneath, and a
+          holdings table breaking every dollar down by year and by league.
         </p>
+
+        <figure class="bev-receipt">
+          <button type="button" class="bev-shot bev-shot--trigger" aria-label="View full size"
+                  data-lightbox-caption="The equity curve immediately becoming group chat ammunition.">
+            <img src="../../assets/img/bev-proof-earnings.webp" width="852" height="1846"
+                 alt="A privacy-edited group chat debating a preseason performance above a screenshot of the Lifetime Equity Curve">
+          </button>
+          <figcaption>The equity curve immediately became group chat ammunition.</figcaption>
+        </figure>
         <p>
           The tape is what made it land. A total is a fact and a number that
           moves is a story, so each symbol carries the season's change beside
@@ -205,8 +219,7 @@
         </p>
         <p class="bev-scene__proof">
           The ledger runs back to 2021 and nets <b>every buy-in ever paid</b>,
-          which is the number most of them would rather not look at. Nobody has
-          asked for a standings table since.
+          which is the number most of them would rather not look at.
         </p>
       </div>
     </section>
@@ -216,8 +229,8 @@
       <div class="bev-scene__media bev-pair" data-reveal>
         <button type="button" class="bev-shot bev-shot--trigger" aria-label="View full size"
                 data-lightbox-caption="The trade log filtered to one pair of managers, in reverse chronological order.">
-          <img src="../../assets/img/bev-trades.webp" width="2000" height="1125"
-               alt="A trade log filtered by a two-manager chip reading Will Dooling and Matt Pitman, showing the surviving trades grouped by season">
+          <img src="../../assets/img/bev-trades-private.webp" width="1672" height="941"
+               alt="A trade log filtered to Will and Matt, showing the surviving trades grouped by season">
         </button>
         <div class="bev-pair__phone">
           <button type="button" class="bev-shot bev-shot--trigger" aria-label="View full size"
@@ -229,31 +242,41 @@
       </div>
       <div class="bev-scene__copy" data-reveal>
         <h2 class="bar-white">A hundred trades and no way to find one</h2>
+        <p class="bev-scene__dek">
+          Every time a trade goes down, the whole league calls it a fleece,
+          regardless of what it contains. Down the road, I want to add a Fleece
+          Score so every trade carries a rating for just how lopsided it was.
+        </p>
         <p>
           Trades are the best content a league produces and the hardest thing to
-          retrieve. Every trade argument in our group chat starts the same way,
-          with somebody reconstructing a deal from memory and getting it wrong.
+          pull up in an instant. Every trade argument in our group chat starts
+          the same way, with somebody reconstructing a deal from memory and
+          getting the details horribly wrong.
         </p>
         <p>
           A reverse chronological list of a hundred trades is an archive, not a
-          tool, so the whole design problem was the filter bar. It stacks free
-          text search over the four dimensions people actually think in: season,
+          tool, so the whole design problem was the filter bar. It stacks
+          free-text search over the four dimensions people actually think in: season,
           position, who was involved, and what changed hands.
         </p>
         <p>
           The manager control took the most thought. The obvious version filters
-          to trades involving one person. The version people wanted takes an
-          optional second name, because the real question is never "show me my
-          trades," it is "how many times have these two traded and who came out
-          ahead." Draft picks and FAAB are their own filters rather than search
+          to trades involving one person. The version people immediately wanted
+          allows a second name, because the real question isn't "show me my
+          trades"; it's "how many times have I fleeced Adam?" Draft picks and
+          FAAB are their own filters rather than search
           terms, since "every trade where somebody moved a first" is a different
           question from a player's name, and it is the one that starts fights.
         </p>
-        <p class="bev-scene__proof">
-          The count of what survives the filters <b>updates live above the
-          list</b>. It sounds trivial and it is the thing that makes the bar
-          feel like browsing rather than querying.
-        </p>
+
+        <figure class="bev-receipt bev-receipt--left">
+          <button type="button" class="bev-shot bev-shot--trigger" aria-label="View full size"
+                  data-lightbox-caption="Four years later, the trade was still being called a fleece.">
+            <img src="../../assets/img/bev-proof-trades.webp" width="862" height="1825"
+                 alt="A privacy-edited group chat calling an old trade a fleece above a Bev Fantasy standings screenshot">
+          </button>
+          <figcaption>Four years later, the trade was still being called a fleece.</figcaption>
+        </figure>
       </div>
     </section>
 
@@ -276,8 +299,9 @@
       <div class="bev-scene__copy" data-reveal>
         <h2>Ammunition</h2>
         <p>
-          Head to head gets screenshotted more than anything else on the site,
-          and it is the least sophisticated thing I built.
+          Head to head gets screenshotted more than anything else on the site.
+          It was also the first and least sophisticated thing I built.
+          Unsurprisingly, I built it to settle an argument.
         </p>
         <p>
           You pick two faces from a grid. No dropdowns, no names to type. That
@@ -286,12 +310,11 @@
           anyone finds out that a rivalry they never thought about is 4-2.
         </p>
         <p>
-          Under the all-time record, the stats are deliberately not the useful
-          ones. Total and average points are there because they should be. What
-          people came for is the biggest blowout with its exact margin and week,
-          the closest game the two of them have ever played, and a line I called
-          Certified Hater: the player on the other roster who has personally
-          scored the most points against you.
+          What people came for is the biggest blowout with its margin and when
+          it happened, the closest game the two of them have ever played, and a
+          line I called Certified Hater: the player on the other roster who has
+          personally scored the most points against you. I wrote it purely to
+          prove that Ja'Marr Chase has a grudge against me personally.
         </p>
         <p class="bev-scene__proof">
           None of it helps anyone win a game. All of it gets pasted into the
@@ -329,28 +352,30 @@
       <div class="bev-scene__copy" data-reveal>
         <h2 class="bar-white">Manufacturing an event</h2>
         <p>
-          College football has a ritual. The poll drops, and for an hour
-          everyone argues about it. Fantasy has no equivalent. Nothing on the
-          calendar gathers the whole league at one moment for a reason other
-          than their own matchup.
+          College football has a ritual. The AP Poll drops, and for the next 24
+          hours everyone argues about it. Fantasy has no equivalent. That is
+          especially true in dynasty leagues, where roster construction can
+          make some managers' seasons feel decided before Week 1. We used to
+          rely on automated power rankings. They had their merits, but the real
+          breakthrough was letting the league vote.
         </p>
         <p>
           So I built one. Every manager ranks all fourteen teams, ballots close,
-          and the poll publishes with movement arrows against the last one.
-          Ranking fourteen teams is genuinely tedious though, and a ritual
+          and the poll publishes with movement arrows against the previous one.
+          Ranking fourteen teams is genuinely tedious, though, and a ritual
           nobody finishes is not a ritual. Three things fixed completion.
         </p>
+        <ul class="bev-feature-list">
+          <li>The ballot uses drag-to-rank and works smoothly with a thumb,
+              because it usually gets filled out on a couch or on the toilet.</li>
+          <li>Selecting a team opens its core players beside the ballot, so
+              ranking honestly does not mean leaving the site to check a roster
+              and losing your place.</li>
+          <li>An open poll announces itself across every page, showing how many
+              ballots are in and linking directly to the ballot.</li>
+        </ul>
         <p>
-          The ballot is drag to rank and works with a thumb, because it gets
-          filled out on a couch. Selecting a team opens that team's current
-          roster and projected core right beside the ballot, so ranking honestly
-          no longer means leaving the site to go check somebody's roster and
-          losing your place. And an open poll announces itself: a bar sits
-          across every page of the site while voting is live, showing how many
-          ballots are in.
-        </p>
-        <p>
-          None of that was right first time. Before the poll went to the league
+          None of that was right the first time. Before the poll went to the league
           I put the build in front of a handful of the die-hards, the people who
           would use it every week, and let them pull it apart.
         </p>
@@ -399,24 +424,24 @@
       <div class="bev-scene__copy" data-reveal>
         <h2>The two people who never played</h2>
         <p>
-          Every league has members who show up less. Ours had two who had gone
-          four straight years without submitting a full keeper selection before
-          the draft.
+          Every league has members who show up less. Our keeper league had two
+          who had gone four straight years without submitting their keepers
+          before the draft.
         </p>
         <p>
-          The easy read is that they did not care. The real reason was simpler
-          and more fixable. The keeper rules are eight accumulated bylaws
+          The easy read would be that they did not care, but the real reason was
+          simpler and more fixable. The keeper rules are eight accumulated bylaws
           covering cost basis, consecutive year limits, undrafted players priced
           off end-of-season ADP, and what happens when you do not hold the pick
           you need. Working out whether you were even allowed to keep someone
-          took twenty minutes and a decent chance of being wrong. So they did
-          not bother.
+          took twenty minutes, and there was still a decent chance of being
+          wrong.
         </p>
         <p>
-          The assistant reads a roster and answers the question. Pick your name
-          and you get every player you own with their cost basis, the round they
-          would cost next year, how many consecutive years they have already
-          been kept, and a plain yes or no.
+          The Keeper Assistant reads your roster and answers the question. Pick
+          your team and it shows every player you own with their cost basis, the
+          round they would cost next year, how many consecutive years they have
+          already been kept, and a plain yes or no for keeper eligibility.
         </p>
         <p class="bev-scene__proof">
           Both managers set full keepers the first year it existed. It is the
@@ -426,15 +451,35 @@
       </div>
     </section>
 
-    <h2 class="bar-white">Where it landed</h2>
+    <h2 class="bar-white">How it evolved</h2>
 
     <p>
-      The site is a static build that refreshes from the league platform's API
-      every night, so the history stays current without anyone maintaining it.
-      Three leagues share one codebase and adding a fourth is adding one config
-      file. Before this there was a free-tier website I made six years ago when
-      the league started, which was worse in every respect and which nobody,
-      including me, ever opened twice.
+      Before Bev Fantasy, we had other fantasy leagues but no dedicated site. I
+      started the keeper league in 2021 and built the admittedly terrible Wix
+      site that same year. In 2023, I built the first version of Bev Fantasy and
+      have been iterating on it ever since.
+    </p>
+
+    <figure class="bev-evolution" data-reveal>
+      <button type="button" class="bev-shot bev-shot--trigger" aria-label="View full size"
+              data-lightbox-caption="The 2021 Wix site. Mostly a blog, rarely visited, and very much the first version.">
+        <img src="../../assets/img/bev-old-site.webp" width="1593" height="1076"
+             alt="The original 2021 Bev Keeper fantasy football Wix site, showing a simple blog post layout">
+      </button>
+      <figcaption>The 2021 Wix site. Mostly a blog, rarely visited, and very much the first version.</figcaption>
+    </figure>
+
+    <p>
+      The site now refreshes from Sleeper's API every night, so its history and
+      transaction log stay current without anyone maintaining them. Three
+      leagues share one codebase, and adding a fourth takes one config file.
+    </p>
+
+    <p>
+      The blogs were fun to write, but the time and energy to write them
+      evaporated as I got older. Automated stat tracking, convenient tooling,
+      and visually interesting and useful graphs have done a much better job of
+      keeping engagement high without giving me arthritis.
     </p>
 
     <p>
@@ -455,19 +500,19 @@
     <h2>The mark</h2>
 
     <p>
-      The BEV lightning mark was designed by
+      The Bev Fantasy wordmark was designed by
       <a class="bev-link" href="https://pcoluntino.com/portfolio/" target="_blank" rel="noopener">Peter Coluntino</a>,
-      who is a graphic designer and also plays in the league. The brief I gave
-      him was a mockup I had thrown together myself, which is the first
-      screenshot below: our old high school panther, the word FANTASY in a
-      typeface I would rather not defend, and an offer to ignore all of it.
+      a graphic designer, friend, and league mate. The brief I gave him was a
+      mockup I had thrown together myself, which is the first screenshot below:
+      our old high school panther, the word FANTASY in a typeface I would rather
+      not defend, and an offer, or really a plea, to ignore all of it.
     </p>
 
     <p>
-      He ignored all of it, but first he asked whether it needed to be a banner
-      across the top or a mark small enough to survive being shrunk, and whether
-      it was for mobile or desktop. Both, in both cases, and I had not thought
-      to say so. What came back is the mark at the top of this page.
+      When I work with artists, I prefer to let them cook, then respond to the
+      work in front of me with clear, actionable feedback. I can be headstrong
+      about the original vision, but the best results usually come when I work
+      closely with people who know their craft better than I do.
     </p>
 
     <ul class="bev-duo" data-reveal>

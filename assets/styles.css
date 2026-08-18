@@ -3727,27 +3727,20 @@ button.ygr-shot { cursor: zoom-in; }
 
 /* ---- Header ---------------------------------------------------------------- */
 
-/* The only case study whose subject has a mark of its own, so it takes the
-   top-right slot the other two give to a ghost index numeral — a real logo
-   identifies the project better than a number, and both in one corner would
-   fight. Explicit row and column placement rather than source order, so the
-   single-column stack below puts the mark on top instead of orphaning it under
-   the facts list. */
-.case.theme-bev .case-head {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 17rem);
-  column-gap: clamp(1.5rem, 5vw, 3.5rem);
-  align-items: center;
-}
-
-.case.theme-bev .case-head__copy { grid-column: 1; grid-row: 1; }
+/* The title and mark are one project lockup. Keeping them in the same row
+   makes the mark read as identity instead of a detached corner ornament. */
+.case.theme-bev .case-head__copy { width: 100%; }
 .case.theme-bev .case-head__index { display: none; }
 
+.bev-lockup {
+  display: flex;
+  align-items: center;
+  gap: clamp(1.25rem, 3vw, 2.25rem);
+}
+
 .bev-mark {
-  grid-column: 2;
-  grid-row: 1;
-  justify-self: end;
-  width: 100%;
+  flex: 0 0 auto;
+  width: clamp(12rem, 24vw, 19rem);
   height: auto;
   margin: 0;
   /* The source art is flat orange on transparent; the drop shadow gives it
@@ -3817,16 +3810,6 @@ button.ygr-shot { cursor: zoom-in; }
 .case.theme-bev .bev-act__title::before { content: none; }
 
 @media (max-width: 60rem) {
-  .case.theme-bev .case-head { grid-template-columns: minmax(0, 1fr); }
-  .case.theme-bev .case-head__copy { grid-row: 2; }
-  .bev-mark {
-    grid-column: 1;
-    grid-row: 1;
-    justify-self: start;
-    width: clamp(7rem, 34vw, 11rem);
-    margin: 0 0 clamp(1rem, 3vw, 1.5rem);
-  }
-
   .bev-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
   .bev-intro {
@@ -3835,6 +3818,19 @@ button.ygr-shot { cursor: zoom-in; }
   }
   /* Stacked, the second heading needs its own air back. */
   .bev-intro__col + .bev-intro__col h2 { margin-top: 3rem; }
+}
+
+@media (max-width: 48rem) {
+  .case.theme-bev .case-eyebrow { text-align: center; }
+  .bev-lockup {
+    flex-direction: column;
+    gap: .65rem;
+  }
+  .bev-lockup .case-title { text-align: center; }
+  .bev-mark {
+    order: -1;
+    width: clamp(10rem, 48vw, 13rem);
+  }
 }
 
 /* ---- Act divider ---------------------------------------------------------- */
@@ -3941,6 +3937,23 @@ button.ygr-shot { cursor: zoom-in; }
 
 .bev-scene__proof b { color: var(--text); font-weight: 600; }
 
+.bev-scene__dek {
+  margin: -.15rem 0 1.25rem;
+  color: var(--text-dim);
+  font-size: .9rem;
+  line-height: 1.55;
+}
+
+.bev-feature-list {
+  display: grid;
+  gap: .75rem;
+  margin: 0 0 1.1rem;
+  padding-left: 1.15rem;
+  color: var(--text-dim);
+}
+
+.bev-feature-list li { padding-left: .2rem; }
+
 /* ---- Shot ----------------------------------------------------------------- */
 
 /* A screenshot of a dark, self-lit interface on a near-black page has no edge
@@ -3991,12 +4004,12 @@ button.bev-shot { cursor: zoom-in; }
 
 /* The phone gets a heavier radius and a visible bezel, because at 21% width a
    bare screenshot reads as a thin sliver rather than a device. */
-/* A chat screenshot is carrying TEXT, and at the 21% a product screenshot is
-   happy with, the messages are illegible until you open the lightbox. These
-   get a wider slot. It still is not comfortable reading — the copy beside them
+/* A chat screenshot is carrying TEXT, and at the narrow slot a product
+   screenshot is happy with, the messages are illegible until you open the
+   lightbox. These get a wider slot. The copy beside them
    quotes the line that matters, and the image is there as evidence that the
    quote is real. */
-.bev-pair--chat { grid-template-columns: minmax(0, 1fr) 30%; }
+.bev-pair--chat { grid-template-columns: minmax(0, 1fr) 38%; }
 
 .bev-pair__phone .bev-shot {
   border-radius: clamp(10px, 1.6vw, 18px);
@@ -4113,6 +4126,38 @@ button.bev-shot { cursor: zoom-in; }
 }
 
 .bev-note-shot .bev-shot { border-radius: 10px; }
+
+/* Small, zoomable social proof. The thumbnail stays compact while the
+   lightbox retains the complete privacy-edited portrait screenshot. */
+.bev-receipt {
+  width: min(78%, 17rem);
+  margin: 1.35rem 0 1.4rem auto;
+}
+
+.bev-receipt--left { margin-right: auto; margin-left: 0; }
+
+.bev-receipt .bev-shot { border-radius: 12px; }
+
+.bev-receipt img {
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  object-position: center 48%;
+}
+
+.bev-receipt figcaption,
+.bev-evolution figcaption {
+  margin: .65rem 0 0;
+  color: var(--text-dim);
+  font-size: .78rem;
+  line-height: 1.45;
+}
+
+.bev-evolution {
+  grid-column: full;
+  margin: clamp(1.5rem, 4vw, 2.5rem) 0 clamp(2rem, 5vw, 3rem);
+}
+
+.bev-evolution .bev-shot { border-radius: 12px; }
 
 /* ---- Credits -------------------------------------------------------------- */
 
