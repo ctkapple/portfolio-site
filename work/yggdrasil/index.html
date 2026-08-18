@@ -28,7 +28,7 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin
       href="../../assets/fonts/inter-latin.woff2">
 
-<link rel="stylesheet" href="../../assets/styles.css?v=a18">
+<link rel="stylesheet" href="../../assets/styles.css?v=a19">
 
 <script>
 /* Paints the arrival fog before this document's first frame. See assets/main.js. */
@@ -77,7 +77,7 @@
 
     <dl class="case-facts">
       <div class="case-fact"><dt>Role</dt><dd>Design, product, build</dd></div>
-      <div class="case-fact"><dt>Status</dt><dd>Live (internal)</dd></div>
+      <div class="case-fact"><dt>Status</dt><dd>Live <span class="case-fact__live">(internal)</span></dd></div>
       <div class="case-fact"><dt>Timeline</dt><dd>2 weeks to rollout</dd></div>
     </dl>
   </header>
@@ -95,10 +95,10 @@
     <div class="case-panel" id="panel-design" role="tabpanel" aria-labelledby="tab-design">
 
       <figure class="ygr-hero" data-reveal>
-        <div class="ygr-shot">
+        <button type="button" class="ygr-shot ygr-shot--trigger" aria-label="View full size">
           <img src="../../assets/img/ygr-hero.webp" width="2000" height="1252"
                alt="The tree view: an entire organization drawn as a radial tree of colour-coded team branches on a dark field, with a team list down the left">
-        </div>
+        </button>
         <figcaption>Tree view. The whole organization on one screen, teams read as colour.</figcaption>
       </figure>
 
@@ -159,10 +159,11 @@
       <!-- Scene 1 -->
       <section class="ygr-scene">
         <div class="ygr-scene__media" data-reveal>
-          <div class="ygr-shot">
+          <button type="button" class="ygr-shot ygr-shot--trigger" aria-label="View full size"
+                  data-lightbox-caption="Directory view. The same data as the tree, grouped by team, with role, location, manager and report count on every row.">
             <img src="../../assets/img/ygr-dir-full.webp" width="2000" height="1058"
                  alt="Directory view: a dense table of people grouped by team, each row showing role, location, manager and report count">
-          </div>
+          </button>
         </div>
         <div class="ygr-scene__copy" data-reveal>
           <h2 class="hue-3">Two views, two jobs</h2>
@@ -188,10 +189,11 @@
       <!-- Scene 2 -->
       <section class="ygr-scene ygr-scene--flip">
         <div class="ygr-scene__media" data-reveal>
-          <div class="ygr-shot">
+          <button type="button" class="ygr-shot ygr-shot--trigger" aria-label="View full size"
+                  data-lightbox-caption="Team focus. Selecting a team collapses the tree to that group alone and opens what it is responsible for beside it.">
             <img src="../../assets/img/ygr-tree-team.webp" width="2000" height="1056"
                  alt="One team isolated in the tree as a single glowing constellation, with a panel of that team's responsibilities beside it">
-          </div>
+          </button>
         </div>
         <div class="ygr-scene__copy" data-reveal>
           <h2 class="hue-4">Depth on demand</h2>
@@ -211,10 +213,11 @@
       <!-- Scene 3 -->
       <section class="ygr-scene">
         <div class="ygr-scene__media" data-reveal>
-          <div class="ygr-shot">
+          <button type="button" class="ygr-shot ygr-shot--trigger" aria-label="View full size"
+                  data-lightbox-caption="A manager, expanded. Direct reports fan out from the node, so team size and reporting load read as a shape.">
             <img src="../../assets/img/ygr-tree-person-reports.webp" width="2000" height="1052"
                  alt="A manager's node opened in the tree, with their direct reports fanning out below as labelled leaves">
-          </div>
+          </button>
         </div>
         <div class="ygr-scene__copy" data-reveal>
           <h2 class="hue-5">What goes on a person</h2>
@@ -368,7 +371,9 @@
     <button type="button" class="lightbox__nav lightbox__nav--prev" aria-label="Previous">
       <svg viewBox="0 0 24 24" aria-hidden="true" width="22" height="22"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </button>
-    <img class="lightbox__img" src="" alt="">
+    <div class="lightbox__stage">
+      <img class="lightbox__img" src="" alt="">
+    </div>
     <p class="lightbox__caption"></p>
     <button type="button" class="lightbox__nav lightbox__nav--next" aria-label="Next">
       <svg viewBox="0 0 24 24" aria-hidden="true" width="22" height="22"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -415,6 +420,6 @@
   </defs>
 </svg>
 
-<script src="../../assets/main.js?v=a18"></script>
+<script src="../../assets/main.js?v=a19"></script>
 </body>
 </html>

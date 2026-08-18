@@ -2588,6 +2588,10 @@ img { max-width: 100%; display: block; }
 
 .case-fact dd { margin: 0; font-size: .94rem; }
 
+/* Live-status qualifier. Green on its own so 'internal' reads as a state of
+   the thing rather than as part of its name. */
+.case-fact__live { color: var(--ygr); }
+
 /* Text stays at a readable measure; figures are allowed to break out wider. */
 .case-body {
   display: grid;
@@ -3040,15 +3044,49 @@ img { max-width: 100%; display: block; }
 
 .lightbox.is-open .lightbox__panel { transform: scale(1); }
 
+/* min-height:0 lets the stage shrink below its content inside the flex column
+   instead of pushing the caption off the bottom of the panel. */
+.lightbox__panel > .lightbox__stage { min-height: 0; }
+
+/* The stage is the window the image is zoomed and panned inside, so the frame
+   that used to sit on the image itself lives here — the image can now be
+   larger than what you see of it, and a border tracking its edge would leave
+   the viewport. touch-action is off because every gesture over the stage is
+   ours; the page behind is scroll-locked anyway. */
+.lightbox__stage {
+  position: relative;
+  max-width: 100%;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1px solid var(--line-soft);
+  background: var(--surface-lo);
+  cursor: zoom-in;
+  touch-action: none;
+}
+
+.lightbox__stage.is-zoomed   { cursor: grab; }
+.lightbox__stage.is-grabbing { cursor: grabbing; }
+
 .lightbox__img {
   max-width: 100%;
   max-height: 68vh;
   width: auto;
   height: auto;
   object-fit: contain;
-  border-radius: 12px;
-  border: 1px solid var(--line-soft);
-  background: var(--surface-lo);
+  transform-origin: 50% 50%;
+  transition: transform 180ms var(--ease-out);
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* While a finger or the mouse is down the transform must track the input
+   exactly; a transition here would make the image lag behind the hand. */
+.lightbox__stage.is-grabbing .lightbox__img { transition: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .lightbox__img { transition: none; }
 }
 
 .lightbox__caption {
@@ -3099,6 +3137,9 @@ img { max-width: 100%; display: block; }
   top: 50%;
   transform: translateY(-50%);
 }
+
+/* display:grid above would otherwise beat the UA rule for [hidden]. */
+.lightbox__nav[hidden] { display: none; }
 
 .lightbox__nav--prev { left: 0; }
 .lightbox__nav--next { right: 0; }
@@ -3486,8 +3527,8 @@ body.lightbox-open { overflow: hidden; }
     border-color 420ms var(--ease);
 }
 
-/* Only the Features gallery opens the lightbox. The Design scenes are read,
-   not browsed, so they lift on hover but do not invite a click. */
+/* Every shot on the page opens the lightbox, so every one of them is a
+   button and says so on hover. */
 button.ygr-shot { cursor: zoom-in; }
 
 .ygr-shot img {

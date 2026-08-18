@@ -751,10 +751,18 @@
   });
 
   /* ---------------------------------------------------------------------
-     Timeline lightbox. Content is read from the DOM (each trigger's image,
-     plus its beat's caption) rather than duplicated into a JS array here —
-     the timeline stays the single source of truth and this cannot drift
-     from it.
+     Image lightbox. Content is read from the DOM (each trigger's image, plus
+     its caption) rather than duplicated into a JS array here — the markup
+     stays the single source of truth and this cannot drift from it.
+
+     Prev/next walk only the group the opened image belongs to, a group being
+     its tab panel. Yggdrasil has two galleries in two panels, and stepping
+     out of the one you opened into a panel you cannot see is not navigation.
+
+     Inside the panel the image is a small photo viewer: click a point to zoom
+     in on it, drag to pan, click again to go back. Wheel and pinch scrub the
+     scale continuously. Everything is clamped so the image can never be
+     dragged off its own stage.
      --------------------------------------------------------------------- */
 
   var lightbox = document.querySelector('.lightbox');
@@ -762,23 +770,179 @@
     document.querySelectorAll('.art-timeline__trigger, .ygr-shot--trigger'));
 
   if (lightbox && triggers.length) {
+    var lbStage   = lightbox.querySelector('.lightbox__stage');
     var lbImg     = lightbox.querySelector('.lightbox__img');
     var lbCaption = lightbox.querySelector('.lightbox__caption');
     var lbClose   = lightbox.querySelector('.lightbox__close');
-    var current   = 0;
-    var opener    = null;
+    var lbPrev    = lightbox.querySelector('.lightbox__nav--prev');
+    var lbNext    = lightbox.querySelector('.lightbox__nav--next');
+
+    var group   = triggers;   /* the triggers prev/next currently walks */
+    var current = 0;
+    var opener  = null;
+
+    lbImg.draggable = false;
+
+    function groupOf(trigger) {
+      var panel = trigger.closest('.case-panel');
+      if (!panel) return triggers;
+      return triggers.filter(function (t) { return t.closest('.case-panel') === panel; });
+    }
+
+    /* ---- Zoom state ---------------------------------------------------
+       scale is a multiple of the fitted size; x and y move the image's own
+       centre away from the stage's, in stage pixels.
+       ------------------------------------------------------------------- */
+
+    var MAX_ZOOM   = 5;
+    var CLICK_ZOOM = 2.5;   /* what a single click on the image opens up to */
+
+    var zoom = { scale: 1, x: 0, y: 0 };
+
+    /* Panning is clamped to whatever slack the scaled image has over the
+       stage. At fit scale there is none, so it re-centres itself. */
+    function clampPan() {
+      var slackX = (lbImg.offsetWidth  * zoom.scale - lbStage.clientWidth)  / 2;
+      var slackY = (lbImg.offsetHeight * zoom.scale - lbStage.clientHeight) / 2;
+      zoom.x = slackX <= 0 ? 0 : Math.max(-slackX, Math.min(slackX, zoom.x));
+      zoom.y = slackY <= 0 ? 0 : Math.max(-slackY, Math.min(slackY, zoom.y));
+    }
+
+    function applyZoom() {
+      clampPan();
+      lbImg.style.transform =
+        'translate(' + zoom.x + 'px, ' + zoom.y + 'px) scale(' + zoom.scale + ')';
+      lbStage.classList.toggle('is-zoomed', zoom.scale > 1.01);
+    }
+
+    function resetZoom() {
+      zoom.scale = 1;
+      zoom.x = 0;
+      zoom.y = 0;
+      applyZoom();
+    }
+
+    /* Scales to `next` while holding the stage point (px, py) still — which is
+       what makes clicking a detail bring that detail to you, rather than the
+       middle of the picture. */
+    function zoomAt(next, px, py) {
+      next = Math.max(1, Math.min(MAX_ZOOM, next));
+      var ratio = next / zoom.scale;
+      var ox = px - lbStage.clientWidth  / 2;
+      var oy = py - lbStage.clientHeight / 2;
+      zoom.x = ox - (ox - zoom.x) * ratio;
+      zoom.y = oy - (oy - zoom.y) * ratio;
+      zoom.scale = next;
+      applyZoom();
+    }
+
+    /* Returned in the stage's own layout pixels, which is what clientWidth and
+       offsetWidth are measured in. The panel carries a scale transform while
+       it opens, so a raw client offset is a different unit mid-animation. */
+    function stagePoint(e) {
+      var r = lbStage.getBoundingClientRect();
+      var k = r.width ? lbStage.clientWidth / r.width : 1;
+      return { x: (e.clientX - r.left) * k, y: (e.clientY - r.top) * k };
+    }
+
+    /* ---- Pointers. One is a drag or a click, two are a pinch. --------- */
+
+    var pointers  = {};
+    var pinchDist = 0;
+    var panning   = false;
+    var moved     = 0;   /* drag distance so far, to tell a drag from a click */
+
+    function pointerList() {
+      return Object.keys(pointers).map(function (k) { return pointers[k]; });
+    }
+
+    lbStage.addEventListener('pointerdown', function (e) {
+      pointers[e.pointerId] = stagePoint(e);
+      lbStage.setPointerCapture(e.pointerId);
+      var pts = pointerList();
+      if (pts.length === 2) {
+        pinchDist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+        panning = false;
+      } else {
+        panning = true;
+        moved = 0;
+        lbStage.classList.add('is-grabbing');
+      }
+    });
+
+    lbStage.addEventListener('pointermove', function (e) {
+      if (!pointers[e.pointerId]) return;
+      var prev = pointers[e.pointerId];
+      var now  = stagePoint(e);
+      pointers[e.pointerId] = now;
+      var pts = pointerList();
+
+      if (pts.length === 2) {
+        var dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+        if (pinchDist > 0) {
+          zoomAt(zoom.scale * (dist / pinchDist),
+                 (pts[0].x + pts[1].x) / 2, (pts[0].y + pts[1].y) / 2);
+        }
+        pinchDist = dist;
+        return;
+      }
+
+      moved += Math.hypot(now.x - prev.x, now.y - prev.y);
+      if (panning && zoom.scale > 1.01) {
+        zoom.x += now.x - prev.x;
+        zoom.y += now.y - prev.y;
+        applyZoom();
+      }
+    });
+
+    function endPointer(e) {
+      if (!pointers[e.pointerId]) return;
+      var at = pointers[e.pointerId];
+      delete pointers[e.pointerId];
+      if (pointerList().length) return;
+
+      lbStage.classList.remove('is-grabbing');
+      pinchDist = 0;
+      /* A press that never really travelled is a click, so it toggles zoom. */
+      if (panning && moved < 5) {
+        if (zoom.scale > 1.01) resetZoom();
+        else zoomAt(CLICK_ZOOM, at.x, at.y);
+      }
+      panning = false;
+    }
+
+    lbStage.addEventListener('pointerup', endPointer);
+    lbStage.addEventListener('pointercancel', endPointer);
+
+    lbStage.addEventListener('wheel', function (e) {
+      e.preventDefault();
+      var p = stagePoint(e);
+      zoomAt(zoom.scale * Math.exp(-e.deltaY * 0.0015), p.x, p.y);
+    }, { passive: false });
+
+    /* ---- Open, close, step ------------------------------------------- */
 
     function show(i) {
-      current = (i + triggers.length) % triggers.length;
-      var img = triggers[current].querySelector('img');
+      current = (i + group.length) % group.length;
+      var trigger = group[current];
+      var img = trigger.querySelector('img');
+      resetZoom();
       lbImg.src = img.currentSrc || img.src;
       lbImg.alt = img.alt;
-      /* The caption lives next to the trigger, but 'next to' differs by page:
-         a <p> in the storm timeline, a <figcaption> in Yggdrasil's gallery.
-         Either way the markup stays the single source of truth. */
-      var beat = triggers[current].closest('.art-timeline__beat, figure');
-      var caption = beat && beat.querySelector('figcaption, p');
-      lbCaption.innerHTML = caption ? caption.innerHTML : '';
+      /* The subtitle is either declared on the trigger, or read from whatever
+         sits next to it — a <p> in the storm timeline, a <figcaption> in
+         Yggdrasil's gallery. The Design-tab scenes have no caption of their
+         own on the page, so they carry theirs on the trigger. */
+      var declared = trigger.getAttribute('data-lightbox-caption');
+      if (declared) lbCaption.textContent = declared;
+      else {
+        var beat = trigger.closest('.art-timeline__beat, figure');
+        var caption = beat && beat.querySelector('figcaption, p');
+        lbCaption.innerHTML = caption ? caption.innerHTML : '';
+      }
+      var many = group.length > 1;
+      lbPrev.hidden = !many;
+      lbNext.hidden = !many;
     }
 
     function onKey(e) {
@@ -787,9 +951,10 @@
       else if (e.key === 'ArrowLeft') show(current - 1);
     }
 
-    function open(i, from) {
-      opener = from;
-      show(i);
+    function open(trigger) {
+      opener = trigger;
+      group = groupOf(trigger);
+      show(group.indexOf(trigger));
       lightbox.classList.add('is-open');
       lightbox.removeAttribute('aria-hidden');
       document.body.classList.add('lightbox-open');
@@ -798,6 +963,7 @@
     }
 
     function close() {
+      resetZoom();
       lightbox.classList.remove('is-open');
       lightbox.setAttribute('aria-hidden', 'true');
       document.body.classList.remove('lightbox-open');
@@ -806,15 +972,20 @@
       opener = null;
     }
 
-    triggers.forEach(function (trigger, i) {
-      trigger.addEventListener('click', function () { open(i, trigger); });
+    triggers.forEach(function (trigger) {
+      trigger.addEventListener('click', function () { open(trigger); });
     });
 
-    lightbox.querySelector('.lightbox__nav--prev').addEventListener('click', function () { show(current - 1); });
-    lightbox.querySelector('.lightbox__nav--next').addEventListener('click', function () { show(current + 1); });
+    lbPrev.addEventListener('click', function () { show(current - 1); });
+    lbNext.addEventListener('click', function () { show(current + 1); });
 
     Array.prototype.forEach.call(lightbox.querySelectorAll('[data-lightbox-close]'), function (el) {
       el.addEventListener('click', close);
+    });
+
+    /* A resize can leave the image smaller than its current pan allows. */
+    window.addEventListener('resize', function () {
+      if (lightbox.classList.contains('is-open')) applyZoom();
     });
   }
 
