@@ -3638,3 +3638,298 @@ button.ygr-shot { cursor: zoom-in; }
   .ygr-scene--flip .ygr-scene__media { order: 0; }
   .ygr-scene__copy h2::before { left: -.75rem; }
 }
+
+/* ==========================================================================
+   9. bevfantasy case study
+   --------------------------------------------------------------------------
+   Yggdrasil is screenshot-led with one wide capture per beat. bevfantasy is
+   screenshot-led too, but the product is used on two surfaces that behave
+   differently: a desktop where the dense tables and the equity curve are
+   readable, and a phone on a couch, which is where a ballot actually gets
+   filled out. So the unit here is a pair, the wide shot with the phone
+   capture of the same screen overlapping its corner, rather than a single
+   image. Everything else (the alternating sides, the lightbox, the scroll
+   reveal) follows the same grammar as the Yggdrasil section, so the two case
+   pages feel related without sharing a layout that only fits one of them.
+   ========================================================================== */
+
+/* ---- Logo mark in the header ---------------------------------------------- */
+
+/* The only case study whose subject has a mark of its own. It sits above the
+   eyebrow rather than beside the title, so it reads as part of the page's
+   furniture instead of a client logo dropped on top. */
+.bev-mark {
+  grid-column: text;
+  width: clamp(3.25rem, 7vw, 4.5rem);
+  height: auto;
+  margin: 0 0 clamp(.75rem, 2vw, 1.1rem);
+  /* The source art is flat orange on transparent; the drop shadow gives it
+     the same self-lit edge the screenshots have. */
+  filter: drop-shadow(0 0 22px color-mix(in srgb, var(--accent) 45%, transparent));
+}
+
+/* ---- Act divider ---------------------------------------------------------- */
+
+/* The page has two halves that make different arguments: what the site
+   remembers, and what it was built to make people do. The divider says so out
+   loud, because the reader otherwise has no reason to expect the second half
+   to change register. */
+.bev-act {
+  grid-column: full;
+  margin: clamp(4rem, 10vw, 7rem) 0 clamp(1.5rem, 4vw, 2.5rem);
+  padding-top: clamp(1.25rem, 3vw, 2rem);
+  border-top: 1px solid var(--line);
+}
+
+.bev-act__eyebrow {
+  margin: 0 0 .5rem;
+  color: var(--accent);
+  font-size: .74rem;
+  font-weight: 600;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+}
+
+/* `.case-body h2` is a descendant selector, so it reaches in here and sets a
+   `grid-column: text` that means nothing outside .case-body's own grid, plus a
+   3.5rem top margin and an accent bar this heading does not want. All three are
+   unset rather than worked around. */
+.bev-act__title {
+  grid-column: auto;
+  margin: 0;
+  font-size: clamp(1.6rem, 4vw, 2.6rem);
+  letter-spacing: .08em;
+  line-height: 1.05;
+}
+
+.bev-act__title::before { content: none; }
+
+.bev-act__note {
+  max-width: var(--measure);
+  margin: .7rem 0 0;
+  color: var(--text-dim);
+  font-size: .92rem;
+  line-height: 1.6;
+}
+
+/* ---- Scene ---------------------------------------------------------------- */
+
+.bev-scene {
+  grid-column: full;
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 23rem);
+  gap: clamp(1.5rem, 4vw, 3.25rem);
+  align-items: center;
+  margin: clamp(3rem, 8vw, 5.5rem) 0;
+}
+
+/* Source order is always media then copy, so the one-column stack and the
+   reading order never depend on which side won. Swapping the track widths
+   along with the order is what stops `order` dropping the wide image into the
+   narrow column. */
+.bev-scene--flip {
+  grid-template-columns: minmax(0, 23rem) minmax(0, 1.5fr);
+}
+.bev-scene--flip .bev-scene__media { order: 2; }
+
+.bev-scene__copy[data-reveal] { transition-delay: 110ms; }
+.bev-scene__copy > :first-child { margin-top: 0; }
+.bev-scene__copy > :last-child  { margin-bottom: 0; }
+.bev-scene__copy p { margin: 0 0 1.1rem; }
+
+.bev-scene__copy h2 {
+  position: relative;
+  margin: 0 0 1rem;
+  font-family: var(--display);
+  font-size: clamp(1.5rem, 2.6vw, 1.95rem);
+  font-weight: 400;
+  letter-spacing: .06em;
+  line-height: 1.05;
+  text-transform: uppercase;
+}
+
+.bev-scene__copy h2::before {
+  content: '';
+  position: absolute;
+  left: -1.1rem;
+  top: .1em;
+  bottom: .1em;
+  width: 3px;
+  background: var(--accent);
+  border-radius: 2px;
+}
+
+/* The one line of hard evidence under a scene: a count, a record, a filter
+   result. Small, and deliberately not a pull quote. */
+.bev-scene__proof {
+  margin: 1.4rem 0 0;
+  padding-left: .9rem;
+  border-left: 2px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  color: var(--text-dim);
+  font-size: .84rem;
+  line-height: 1.55;
+}
+
+.bev-scene__proof b { color: var(--text); font-weight: 600; }
+
+/* ---- Shot ----------------------------------------------------------------- */
+
+/* A screenshot of a dark, self-lit interface on a near-black page has no edge
+   of its own; the border and accent bloom give it one without a bright frame. */
+.bev-shot {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface-lo);
+  overflow: hidden;
+  box-shadow:
+    0 18px 50px -22px rgba(0, 0, 0, .9),
+    0 0 0 1px var(--line-soft) inset;
+  transition:
+    transform  420ms var(--ease-out),
+    box-shadow 420ms var(--ease-out),
+    border-color 420ms var(--ease);
+}
+
+button.bev-shot { cursor: zoom-in; }
+
+.bev-shot img { display: block; width: 100%; height: auto; }
+
+.bev-shot:hover,
+.bev-shot:focus-visible {
+  transform: translateY(-5px);
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+  box-shadow:
+    0 26px 64px -24px rgba(0, 0, 0, .95),
+    0 0 46px -12px color-mix(in srgb, var(--accent) 38%, transparent),
+    0 0 0 1px var(--line-soft) inset;
+}
+
+/* ---- Device pair ---------------------------------------------------------- */
+
+/* First attempt overlapped the phone onto the wide shot's corner, which looked
+   better and read worse: the corner it covered held real content on half the
+   screenshots. The pair is a grid instead, so the phone never occludes anything
+   and the arrangement holds no matter what the two captures contain. */
+.bev-pair {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 21%;
+  align-items: end;
+  gap: clamp(.6rem, 1.5vw, 1.1rem);
+}
+
+/* The phone gets a heavier radius and a visible bezel, because at 21% width a
+   bare screenshot reads as a thin sliver rather than a device. */
+.bev-pair__phone .bev-shot {
+  border-radius: clamp(10px, 1.6vw, 18px);
+  border-width: 2px;
+  border-color: color-mix(in srgb, var(--text) 14%, transparent);
+  box-shadow:
+    0 22px 44px -14px rgba(0, 0, 0, .95),
+    0 0 0 1px rgba(0, 0, 0, .6);
+}
+
+/* ---- Hero ----------------------------------------------------------------- */
+
+.bev-hero {
+  grid-column: full;
+  margin: 0 0 clamp(1rem, 2.5vw, 1.75rem);
+}
+
+.bev-hero figcaption,
+.bev-gallery figcaption {
+  margin: .8rem 0 0;
+  color: var(--text-dim);
+  font-size: .84rem;
+  line-height: 1.5;
+}
+
+.bev-gallery figcaption b { display: block; color: var(--text); font-weight: 600; }
+
+/* ---- Closing gallery ------------------------------------------------------ */
+
+/* The selector carries .case-body so it outranks `.case-body > *`, which would
+   otherwise pull the list back into the text column. */
+.case-body > .bev-gallery {
+  grid-column: full;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+  gap: clamp(1.25rem, 3vw, 2rem);
+  margin: clamp(1.5rem, 4vw, 2.5rem) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bev-gallery figure { margin: 0; }
+
+/* ---- Stat row ------------------------------------------------------------- */
+
+.bev-stats {
+  grid-column: text;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  gap: clamp(1rem, 3vw, 2rem);
+  margin: clamp(2rem, 5vw, 3rem) 0;
+  padding: clamp(1.1rem, 3vw, 1.6rem) 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.bev-stat dt {
+  margin: 0 0 .3rem;
+  font-family: var(--display);
+  font-size: clamp(1.6rem, 3.6vw, 2.2rem);
+  line-height: 1;
+  color: var(--accent);
+}
+
+.bev-stat dd {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: .82rem;
+  line-height: 1.45;
+}
+
+/* ---- Credits -------------------------------------------------------------- */
+
+.bev-credit {
+  grid-column: text;
+  margin: clamp(2rem, 5vw, 3rem) 0 0;
+  padding-left: 1rem;
+  border-left: 2px solid var(--line-tick);
+  color: var(--text-dim);
+  font-size: .86rem;
+  line-height: 1.6;
+}
+
+.bev-credit a {
+  color: var(--text);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  text-underline-offset: .18em;
+  transition: text-decoration-color 250ms var(--ease), color 250ms var(--ease);
+}
+
+.bev-credit a:hover { color: var(--accent); text-decoration-color: var(--accent); }
+
+@media (prefers-reduced-motion: reduce) {
+  .bev-shot, .bev-shot:hover, .bev-shot:focus-visible { transform: none; transition: none; }
+}
+
+@media (max-width: 60rem) {
+  .bev-scene,
+  .bev-scene--flip { grid-template-columns: minmax(0, 1fr); }
+  .bev-scene {
+    gap: clamp(1.1rem, 4vw, 1.75rem);
+    margin: clamp(2.5rem, 8vw, 4rem) 0;
+  }
+  .bev-scene--flip .bev-scene__media { order: 0; }
+  .bev-scene__copy h2::before { left: -.75rem; }
+
+  /* On one column a 21% phone would be a few millimetres wide, so the pair
+     stacks and the phone takes a share you can actually read. */
+  .bev-pair { grid-template-columns: minmax(0, 1fr); }
+  .bev-pair__phone { width: 46%; justify-self: end; }
+}
