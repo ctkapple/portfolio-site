@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cinematic Split Preview — William Dooling</title>
+<meta name="description" content="Preview of a cinematic split layout for William Dooling's portfolio.">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#0A0A0A">
+
+<link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../../assets/favicon.ico" sizes="32x32">
+<link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png">
+<link rel="preload" as="font" type="font/woff2" crossorigin
+      href="../../assets/fonts/quicksand-latin.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin
+      href="../../assets/fonts/inter-latin.woff2">
+<link rel="stylesheet" href="../../assets/styles.css?v=a20">
+<link rel="stylesheet" href="../../assets/cinematic-split-preview.css?v=7">
+
+<script>
+(function () {
+  document.documentElement.classList.add('js');
+  try {
+    var raw = sessionStorage.getItem('wd:mist');
+    if (!raw) return;
+    var m = JSON.parse(raw);
+    if (!m || Date.now() - m.t > 6000) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var s = document.documentElement.style;
+    s.setProperty('--ox', m.ox + 'px');
+    s.setProperty('--oy', m.oy + 'px');
+    s.setProperty('--mist-max', m.max + 'px');
+    s.setProperty('--tint', m.tint);
+    document.documentElement.classList.add('is-arriving');
+  } catch (e) {}
+})();
+</script>
+</head>
+<body class="home cinematic-preview">
+
+  <div class="fog" aria-hidden="true">
+    <div class="fog__sheet fog__sheet--far"></div>
+    <div class="fog__sheet fog__sheet--mid"></div>
+    <div class="fog__sheet fog__sheet--near"></div>
+  </div>
+
+  <h1 class="vh">William Dooling — selected work</h1>
+
+  <main class="cinematic-preview__stage" aria-label="Selected work">
+    <a class="cinematic-project cinematic-project--bev"
+       href="../../work/bevfantasy/" data-mist data-label="bevfantasy"
+       aria-label="View the Bev Fantasy case study">
+      <span class="cinematic-project__art cinematic-project__art--bev" aria-hidden="true">
+        <span class="deck">
+          <span class="deck__shot deck__shot--left">
+            <img src="../../assets/img/bev-h2h.webp" alt=""
+                 width="420" height="819" loading="eager" decoding="async">
+          </span>
+          <span class="deck__shot deck__shot--right">
+            <img src="../../assets/img/bev-m-earnings.webp" alt=""
+                 width="840" height="1638" loading="eager" decoding="async">
+          </span>
+          <span class="deck__shot deck__shot--hero">
+            <img src="../../assets/img/bev-landing.webp" alt=""
+                 width="840" height="1638" loading="eager" decoding="async">
+          </span>
+        </span>
+      </span>
+      <span class="cinematic-project__shade" aria-hidden="true"></span>
+      <span class="cinematic-logo">
+        <img class="cinematic-logo__image cinematic-logo__image--bev"
+             src="../../assets/img/bev-fantasy-logo.webp" alt="Bev Fantasy"
+             width="360" height="345" loading="eager" decoding="async">
+        <span class="cinematic-logo__info">
+          <span>Fantasy league site</span>
+          <b>Live</b>
+        </span>
+      </span>
+    </a>
+
+    <a class="cinematic-project cinematic-project--storm"
+       href="../../work/into-the-storm/" data-mist data-label="Into the Storm"
+       aria-label="View the Into the Storm case study">
+      <span class="cinematic-project__art cinematic-project__art--storm" aria-hidden="true">
+        <img src="../../assets/img/into-the-storm-capsule.webp" alt=""
+             width="1200" height="659" loading="eager" decoding="async">
+        <span class="haze"></span>
+      </span>
+      <span class="cinematic-project__shade" aria-hidden="true"></span>
+      <span class="cinematic-logo">
+        <img class="cinematic-logo__image cinematic-logo__image--storm"
+             src="../../assets/img/into-the-storm-logo.webp" alt="Into the Storm"
+             width="900" height="491" loading="eager" decoding="async">
+        <span class="cinematic-logo__info">
+          <span>Upcoming Indie Game</span>
+          <b>In alpha</b>
+        </span>
+      </span>
+    </a>
+
+    <a class="cinematic-project cinematic-project--ygg"
+       href="../../work/yggdrasil/" data-mist data-label="Yggdrasil"
+       aria-label="View the Yggdrasil case study">
+      <img class="cinematic-project--ygg__logo"
+           src="../../assets/img/yggdrasil-logo.webp" alt="Yggdrasil"
+           width="520" height="520" loading="eager" decoding="async">
+      <span class="cinematic-logo__info cinematic-logo__info--ygg">
+        <span>Org Website</span>
+        <b>Live</b>
+      </span>
+    </a>
+  </main>
+
+  <footer class="site-foot cinematic-preview__foot">
+    <div class="me">
+      <div class="me__veil" aria-hidden="true"></div>
+
+      <svg class="me__goo-def" aria-hidden="true" focusable="false">
+        <filter id="me-goo" x="-25%" y="-25%" width="150%" height="150%"
+                color-interpolation-filters="sRGB">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="blur"/>
+          <feColorMatrix in="blur" type="matrix"
+            values="1 0 0 0 0
+                    0 1 0 0 0
+                    0 0 1 0 0
+                    0 0 0 16 -7"/>
+        </filter>
+      </svg>
+
+      <button class="me__dot" type="button" aria-expanded="false" aria-controls="me-panel">
+        <span class="me__liquid" aria-hidden="true">
+          <span class="me__goo">
+            <span class="me__mote me__mote--a"></span>
+            <span class="me__mote me__mote--b"></span>
+          </span>
+        </span>
+        <span class="me__dot-label">me</span>
+        <span class="vh">— about William Dooling</span>
+        <span class="me__halo" aria-hidden="true"></span>
+      </button>
+
+      <div class="me__panel" id="me-panel" role="dialog"
+           aria-label="About William Dooling" hidden>
+        <div class="me__skin" aria-hidden="true">
+          <div class="me__aura"></div>
+        </div>
+        <div class="me__bloom" aria-hidden="true"></div>
+
+        <div class="me__content">
+          <div class="me__shots">
+            <figure class="me__bubble me__shot me__bubble--sky" tabindex="0">
+              <img src="../../assets/img/skydive.webp" alt="William skydiving over a lake."
+                   width="320" height="320" loading="lazy" decoding="async">
+            </figure>
+            <figure class="me__bubble me__shot me__bubble--run" tabindex="0">
+              <img src="../../assets/img/marathon.webp" alt="William running a marathon."
+                   width="320" height="320" loading="lazy" decoding="async">
+            </figure>
+            <figure class="me__bubble me__shot me__bubble--us" tabindex="0">
+              <img src="../../assets/img/nicole.webp"
+                   alt="William and Nicole kissing in front of a Paris sunset."
+                   width="360" height="360" loading="lazy" decoding="async">
+            </figure>
+            <div class="me__portrait me__shot" tabindex="0">
+              <img src="../../assets/img/will-and-gibbles.webp"
+                   alt="William Dooling with his dog."
+                   width="360" height="360" loading="lazy" decoding="async">
+            </div>
+          </div>
+
+          <svg class="me__motto" viewBox="0 0 320 50" aria-hidden="true" focusable="false">
+            <path id="me-motto-arc" d="M 22 6 Q 160 48 298 6" fill="none"/>
+            <text>
+              <textPath href="#me-motto-arc" startOffset="50%" text-anchor="middle">
+                Risk PM by day, game dev by night.
+              </textPath>
+            </text>
+          </svg>
+          <p class="vh">Risk PM by day, game dev by night.</p>
+          <p class="me__name">William Dooling</p>
+
+          <nav class="me__links" aria-label="Contact">
+            <button class="me__link me__copy" type="button"
+                    data-copy="william.dooling@outlook.com" data-copy-status="me-status">
+              <span class="me__copy-label">Email</span>
+              <span class="me__copy-done" data-copy-done aria-hidden="true">Copied</span>
+            </button>
+            <a class="me__link" href="https://www.linkedin.com/in/wgd/"
+               target="_blank" rel="noopener noreferrer">LinkedIn</a>
+            <a class="me__link" href="../../about/">About</a>
+          </nav>
+
+          <p class="me__status" id="me-status" role="status" aria-live="polite"></p>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <div class="mist" aria-hidden="true">
+    <div class="mist__blur"></div>
+    <div class="mist__veil"></div>
+    <div class="mist__wisp mist__wisp--c"></div>
+    <div class="mist__wisp mist__wisp--a"></div>
+    <div class="mist__wisp mist__wisp--b"></div>
+    <div class="mist__label"><span></span></div>
+  </div>
+
+  <svg class="mist-defs" aria-hidden="true" focusable="false" width="0" height="0">
+    <defs>
+      <filter id="mist-warp-a" x="-35%" y="-35%" width="170%" height="170%" color-interpolation-filters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency="0.0055 0.011" numOctaves="4" seed="7" result="n"/>
+        <feDisplacementMap in="SourceGraphic" in2="n" scale="170" xChannelSelector="R" yChannelSelector="G"/>
+      </filter>
+      <filter id="mist-warp-b" x="-35%" y="-35%" width="170%" height="170%" color-interpolation-filters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency="0.009 0.006" numOctaves="3" seed="23" result="n"/>
+        <feDisplacementMap in="SourceGraphic" in2="n" scale="120" xChannelSelector="R" yChannelSelector="G"/>
+      </filter>
+    </defs>
+  </svg>
+
+  <script src="../../assets/main.js?v=a20"></script>
+</body>
+</html>
