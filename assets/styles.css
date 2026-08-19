@@ -2415,7 +2415,231 @@ img { max-width: 100%; display: block; }
 .art-timeline__trigger:focus-visible img { filter: brightness(1.12); }
 
 /* --------------------------------------------------------------------------
-   8e. Art Design tab — timeline lightbox
+   8e. User Feedback tab
+
+   The feedback story uses the same screenshot-led grammar as the other case
+   studies, but its evidence has three shapes: the player-facing form, a
+   report-to-change pair, and compact analytics captures. Keeping that visual
+   hierarchy in CSS prevents the supporting Discord images from overwhelming
+   the in-game result they helped produce.
+   -------------------------------------------------------------------------- */
+
+.its-feedback-hero {
+  grid-column: full;
+  margin: 0 0 clamp(1rem, 2.5vw, 1.75rem);
+}
+
+.its-feedback-hero figcaption,
+.its-feedback-clarity figcaption,
+.its-feedback-analytics figcaption {
+  margin: .8rem 0 0;
+  color: var(--text-dim);
+  font-size: .84rem;
+  line-height: 1.5;
+}
+
+.its-feedback-shot {
+  display: block;
+  width: 100%;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface-lo);
+  box-shadow:
+    0 18px 50px -22px rgba(0, 0, 0, .9),
+    0 0 0 1px var(--line-soft) inset;
+  transition:
+    transform 420ms var(--ease-out),
+    box-shadow 420ms var(--ease-out),
+    border-color 420ms var(--ease);
+}
+
+button.its-feedback-shot { cursor: zoom-in; }
+.its-feedback-shot img { display: block; width: 100%; height: auto; }
+
+.its-feedback-shot:hover,
+.its-feedback-shot:focus-visible {
+  transform: translateY(-5px);
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+  box-shadow:
+    0 26px 64px -24px rgba(0, 0, 0, .95),
+    0 0 46px -12px color-mix(in srgb, var(--accent) 38%, transparent),
+    0 0 0 1px var(--line-soft) inset;
+}
+
+.case-panel > .its-feedback-flow {
+  grid-column: full;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(15rem, 1.2fr);
+  gap: 1px;
+  margin: clamp(2rem, 5vw, 3rem) 0;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--line);
+}
+
+.its-feedback-flow__step,
+.its-feedback-flow__outputs {
+  margin: 0;
+  padding: clamp(1.15rem, 3vw, 1.65rem);
+  background: var(--surface-lo);
+}
+
+.its-feedback-flow__num {
+  display: block;
+  margin: 0 0 .65rem;
+  color: var(--accent);
+  font-family: var(--display);
+  font-size: .75rem;
+  letter-spacing: .12em;
+}
+
+.its-feedback-flow h3 {
+  margin: 0 0 .55rem;
+  color: var(--text);
+  font-family: var(--display);
+  font-size: 1rem;
+  font-weight: 400;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.its-feedback-flow p {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: .84rem;
+  line-height: 1.55;
+}
+
+.its-feedback-flow__outputs {
+  display: grid;
+  gap: .75rem;
+  padding-left: clamp(1.15rem, 3vw, 1.65rem);
+  list-style: none;
+}
+
+.its-feedback-flow__outputs li {
+  display: grid;
+  grid-template-columns: 6.75rem minmax(0, 1fr);
+  gap: .75rem;
+  margin: 0;
+  font-size: .82rem;
+  line-height: 1.45;
+}
+
+.its-feedback-flow__outputs b {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.its-feedback-flow__outputs span { color: var(--text-dim); }
+
+.its-feedback-scene {
+  grid-column: full;
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(0, 24rem);
+  gap: clamp(1.5rem, 4vw, 3.25rem);
+  align-items: center;
+  margin: clamp(3rem, 8vw, 6rem) 0;
+}
+
+.its-feedback-scene--flip {
+  grid-template-columns: minmax(0, 24rem) minmax(0, 1.45fr);
+}
+
+.its-feedback-scene--flip .its-feedback-scene__media { order: 2; }
+.its-feedback-scene__copy[data-reveal] { transition-delay: 110ms; }
+.its-feedback-scene__copy > :first-child { margin-top: 0; }
+.its-feedback-scene__copy > :last-child { margin-bottom: 0; }
+.its-feedback-scene__copy p { margin: 0 0 1.1rem; }
+
+.its-feedback-scene__copy h2 {
+  position: relative;
+  margin: 0 0 1rem;
+  font-family: var(--display);
+  font-size: clamp(1.5rem, 2.6vw, 1.95rem);
+  font-weight: 400;
+  letter-spacing: .06em;
+  line-height: 1.05;
+  text-transform: uppercase;
+}
+
+.its-feedback-scene__copy h2::before {
+  content: '';
+  position: absolute;
+  top: .1em;
+  bottom: .1em;
+  left: -1.1rem;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--accent);
+  box-shadow: 0 0 14px -3px var(--accent);
+}
+
+.its-feedback-clarity {
+  display: grid;
+  grid-template-columns: minmax(0, .75fr) minmax(0, 1.25fr);
+  align-items: end;
+  gap: clamp(.75rem, 2vw, 1.3rem);
+}
+
+.its-feedback-clarity figure,
+.its-feedback-analytics figure { margin: 0; }
+
+.its-feedback-analytics {
+  display: grid;
+  gap: clamp(.9rem, 2vw, 1.25rem);
+}
+
+.its-feedback-analytics figcaption { font-size: .78rem; }
+
+.its-feedback-disclosure {
+  grid-column: text;
+  margin: clamp(3rem, 7vw, 5rem) 0 0;
+  padding: 1.25rem 0 0 1rem;
+  border-top: 1px solid var(--line);
+  border-left: 2px solid var(--line-tick);
+}
+
+.its-feedback-disclosure h2 {
+  margin: 0 0 1rem;
+  font-size: clamp(1.25rem, 2.2vw, 1.55rem);
+}
+
+.its-feedback-disclosure h2::before { content: none; }
+
+.its-feedback-disclosure p {
+  color: var(--text-dim);
+  font-size: .86rem;
+  line-height: 1.6;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .its-feedback-shot,
+  .its-feedback-shot:hover,
+  .its-feedback-shot:focus-visible { transform: none; transition: none; }
+}
+
+@media (max-width: 60rem) {
+  .case-panel > .its-feedback-flow { grid-template-columns: minmax(0, 1fr); }
+
+  .its-feedback-scene,
+  .its-feedback-scene--flip { grid-template-columns: minmax(0, 1fr); }
+  .its-feedback-scene { gap: clamp(1.1rem, 4vw, 1.75rem); margin: clamp(2.5rem, 8vw, 4rem) 0; }
+  .its-feedback-scene--flip .its-feedback-scene__media { order: 0; }
+  .its-feedback-scene__copy h2::before { left: -.75rem; }
+}
+
+@media (max-width: 36rem) {
+  .its-feedback-clarity { grid-template-columns: minmax(0, 1fr); }
+  .its-feedback-clarity__report { width: min(78%, 20rem); }
+  .its-feedback-flow__outputs li { grid-template-columns: minmax(0, 1fr); gap: .15rem; }
+}
+
+/* --------------------------------------------------------------------------
+   8f. Art Design tab — timeline lightbox
 
    Click a beat, see it large with its caption reset in bigger type. The
    panel gets a FIXED width (not sized to whatever image happens to be

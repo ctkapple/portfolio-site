@@ -30,7 +30,7 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin
       href="../../assets/fonts/inter-latin.woff2">
 
-<link rel="stylesheet" href="../../assets/styles.css?v=a22">
+<link rel="stylesheet" href="../../assets/styles.css?v=a23">
 
 <script>document.documentElement.classList.add('js');</script>
 </head>
@@ -211,11 +211,179 @@
       -->
     </div>
 
-    <!-- ================= User Feedback (stub) ================= -->
+    <!-- ================= User Feedback ================= -->
     <div class="case-panel" id="panel-feedback" role="tabpanel" aria-labelledby="tab-feedback" hidden>
-      <figure class="case-figure case-figure--empty">
-        <figcaption>User Feedback — coming soon.</figcaption>
+      <figure class="its-feedback-hero" data-reveal>
+        <button type="button" class="its-feedback-shot its-feedback-shot--trigger" aria-label="View feedback form full size"
+                data-lightbox-caption="The in-game feedback form. Players can categorize a report and describe what happened without leaving their session.">
+          <img src="../../assets/img/ITS Feedback/its feedback form.png" width="708" height="413"
+               alt="Into the Storm's in-game Send Feedback overlay, showing Bug, Confusing, Idea, and Other categories above a text field">
+        </button>
+        <figcaption>Feedback is always one key away, so the moment stays attached to the report.</figcaption>
       </figure>
+
+      <h2>Feedback without leaving the game</h2>
+
+      <p>
+        The most useful playtest feedback happens at the exact moment a player
+        notices something feels wrong. Asking them to stop, take a screenshot,
+        switch apps, and reconstruct the moment later loses both context and
+        reports. I built feedback directly into <em>Into the Storm</em> so bugs,
+        confusion, ideas, and general notes could be captured without leaving
+        the game.
+      </p>
+
+      <p>
+        Players can open the form from an always-available button or with F12,
+        choose a category, and describe what happened. Each report carries a
+        lightweight tester identity, giving the team a consistent playtest
+        reference without asking players to create an account.
+      </p>
+
+      <h2>One report, three outputs</h2>
+
+      <p>
+        Submitting hides the form and captures the current screen automatically.
+        That single report then serves three jobs: Discord makes it visible to
+        the team quickly, Supabase preserves the structured record for analysis,
+        and a local Markdown log plus PNG protects the report if the network is
+        unavailable.
+      </p>
+
+      <div class="its-feedback-flow" data-reveal aria-label="Feedback routing from an in-game form to Discord, Supabase, and a local fallback log">
+        <div class="its-feedback-flow__step">
+          <span class="its-feedback-flow__num">01</span>
+          <h3>In-game form</h3>
+          <p>Category, note, and tester identity are collected where the issue occurs.</p>
+        </div>
+        <div class="its-feedback-flow__step">
+          <span class="its-feedback-flow__num">02</span>
+          <h3>Context captured</h3>
+          <p>The UI disappears and the current play state is captured automatically.</p>
+        </div>
+        <ol class="its-feedback-flow__outputs">
+          <li><b>Discord</b><span>Fast human triage with the attached screenshot.</span></li>
+          <li><b>Supabase</b><span>Structured feedback, linked to gameplay analytics.</span></li>
+          <li><b>Local fallback</b><span>Markdown and PNG saved immediately on the device.</span></li>
+        </ol>
+      </div>
+
+      <section class="its-feedback-scene its-feedback-scene--flip">
+        <div class="its-feedback-scene__media" data-reveal>
+          <button type="button" class="its-feedback-shot its-feedback-shot--trigger" aria-label="View Discord bug report full size"
+                  data-lightbox-caption="A bug report arriving in the playtest Discord channel with the exact combat state attached.">
+            <img src="../../assets/img/ITS Feedback/Screenshot 2026-08-19 173708.png" width="767" height="829"
+                 alt="Discord playtest feedback message showing a combat screenshot and a bug report about cards becoming stuck at the bottom of the screen">
+          </button>
+        </div>
+        <div class="its-feedback-scene__copy" data-reveal>
+          <h2>Fast enough to act on</h2>
+          <p>
+            Discord is not a separate feedback form. It is the fast human-review
+            channel behind the in-game report. The note, category, tester,
+            timestamp, and screenshot arrive together, so a bug or point of
+            confusion can be understood before someone has to recreate it.
+          </p>
+          <p>
+            Discord hosts the uploaded image and returns its URL; Supabase stores
+            that URL alongside the report metadata rather than duplicating the
+            image binary.
+          </p>
+        </div>
+      </section>
+
+      <section class="its-feedback-scene">
+        <div class="its-feedback-scene__media its-feedback-clarity" data-reveal>
+          <figure class="its-feedback-clarity__report">
+            <button type="button" class="its-feedback-shot its-feedback-shot--trigger" aria-label="View card-ownership feedback full size"
+                    data-lightbox-caption="A player calling out that card borders should better reflect the character they represent.">
+              <img src="../../assets/img/ITS Feedback/Color of cards.png" width="764" height="852"
+                   alt="Discord feedback report suggesting that card borders should reflect the character they represent">
+            </button>
+            <figcaption>Playtest report</figcaption>
+          </figure>
+          <figure class="its-feedback-clarity__result">
+            <button type="button" class="its-feedback-shot its-feedback-shot--trigger" aria-label="View card clarity overhaul full size"
+                    data-lightbox-caption="The card clarity overhaul: character-colour signals, glow, and a highlighted owner make card ownership legible at a glance.">
+              <img src="../../assets/img/ITS Feedback/Card Clarity Overhaul.png" width="1584" height="1056"
+                   alt="Into the Storm combat screen after the card clarity overhaul, with character-colour card signals and a highlighted associated hero">
+            </button>
+            <figcaption>Card clarity overhaul</figcaption>
+          </figure>
+        </div>
+        <div class="its-feedback-scene__copy" data-reveal>
+          <h2>When color-coded was not clear enough</h2>
+          <p>
+            One recurring point of confusion was card ownership. Each character's
+            cards already used different colors, but playtesters still struggled
+            to tell whose card they were holding at a glance. The color existed,
+            but it was not doing enough work in the moment players needed it.
+          </p>
+          <p>
+            I reworked the presentation around a stronger ownership signal:
+            character-colored treatment, glow, and a clear highlight on the
+            associated hero. That specific feedback disappeared in subsequent
+            sessions. It was a small visual change with an outsized effect—and a
+            reminder that creators become accustomed to cues players have never
+            learned.
+          </p>
+        </div>
+      </section>
+
+      <section class="its-feedback-scene its-feedback-scene--flip">
+        <div class="its-feedback-scene__media its-feedback-analytics" data-reveal>
+          <figure>
+            <button type="button" class="its-feedback-shot its-feedback-shot--trigger" aria-label="View combat damage analytics full size"
+                    data-lightbox-caption="Combat damage statistics surfaced from the structured event data.">
+              <img src="../../assets/img/ITS Feedback/Screenshot 2026-08-19 173842.png" width="820" height="581"
+                   alt="Analytics dashboard chart titled Combat Damage Stats, comparing average damage taken across encounters">
+            </button>
+            <figcaption>Combat damage by encounter</figcaption>
+          </figure>
+          <figure>
+            <button type="button" class="its-feedback-shot its-feedback-shot--trigger" aria-label="View death rate analytics full size"
+                    data-lightbox-caption="Death-rate data used alongside player reports to identify encounters worth investigating.">
+              <img src="../../assets/img/ITS Feedback/Screenshot 2026-08-19 174006.png" width="760" height="403"
+                   alt="Analytics dashboard bar chart titled Death Rate 2, comparing death rates across encounters">
+            </button>
+            <figcaption>Death rate by encounter</figcaption>
+          </figure>
+        </div>
+        <div class="its-feedback-scene__copy" data-reveal>
+          <h2>Qualitative reports, behavioral context</h2>
+          <p>
+            Feedback becomes more useful when it can be compared with what
+            happened around it. Each report is associated with a tester, session,
+            run, app version, platform, build type, act, and floor. That allows a
+            comment about an encounter, card, or economy decision to be read
+            alongside behavioral analytics rather than as an isolated note.
+          </p>
+          <p>
+            The same analytics service records sessions, runs, combat outcomes,
+            draft decisions, deck changes, and shop events through Supabase's
+            REST interface. The game sends structured JSON records; it does not
+            connect directly to PostgreSQL.
+          </p>
+        </div>
+      </section>
+
+      <aside class="its-feedback-disclosure">
+        <h2>Built for real playtests</h2>
+        <p>
+          Client-generated UUIDs connect feedback, sessions, runs, and gameplay
+          events. Separate asynchronous request streams, retry backoff, and both
+          client and server timestamps keep analytics work from interrupting play.
+          Sessions and runs are spooled locally for recovery; an individual
+          feedback report that cannot reach Supabase remains in its local log,
+          but must be resent by the tester rather than synchronizing itself later.
+        </p>
+        <p>
+          This was a supervised alpha workflow. Insert-only database permissions
+          and client checks reduced accidental pollution, but a public release
+          would move database and Discord access behind a server-side proxy with
+          authentication and rate limiting.
+        </p>
+      </aside>
     </div>
 
     <p class="case-note">
@@ -266,6 +434,6 @@
   </div>
 </div>
 
-<script src="../../assets/main.js?v=a21"></script>
+<script src="../../assets/main.js?v=a22"></script>
 </body>
 </html>
