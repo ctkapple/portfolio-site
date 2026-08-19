@@ -556,20 +556,6 @@
   }
 
   /* ---------------------------------------------------------------------
-     Before/after art slider. A single source of truth (--pos, a percentage)
-     drives both the clip and the handle position — the range input is the
-     only thing JS has to touch.
-     --------------------------------------------------------------------- */
-
-  Array.prototype.forEach.call(document.querySelectorAll('.art-slider'), function (slider) {
-    var range = slider.querySelector('.art-slider__range');
-    if (!range) return;
-    range.addEventListener('input', function () {
-      slider.style.setProperty('--pos', range.value + '%');
-    });
-  });
-
-  /* ---------------------------------------------------------------------
      Image lightbox. Content is read from the DOM (each trigger's image, plus
      its caption) rather than duplicated into a JS array here — the markup
      stays the single source of truth and this cannot drift from it.
@@ -586,7 +572,7 @@
 
   var lightbox = document.querySelector('.lightbox');
   var triggers = Array.prototype.slice.call(
-    document.querySelectorAll('.art-timeline__trigger, .ygr-shot--trigger, .bev-shot--trigger, .its-feedback-shot--trigger'));
+    document.querySelectorAll('.ygr-shot--trigger, .bev-shot--trigger, .its-feedback-shot--trigger'));
 
   if (lightbox && triggers.length) {
     var lbStage   = lightbox.querySelector('.lightbox__stage');

@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Into the Storm — William Dooling</title>
-<meta name="description" content="Designing a solo-developed roguelite deckbuilder, from playtest friction to shipped alpha.">
+<meta name="description" content="A solo-developed roguelite deckbuilder that grew from a learning project toward a commercial release.">
 <link rel="canonical" href="https://www.williamdooling.com/work/into-the-storm/">
 <meta name="theme-color" content="#0A0A0A">
 
 <meta property="og:title" content="Into the Storm — William Dooling">
-<meta property="og:description" content="Designing a solo-developed roguelite deckbuilder, from playtest friction to shipped alpha.">
+<meta property="og:description" content="A solo-developed roguelite deckbuilder that grew from a learning project toward a commercial release.">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://www.williamdooling.com/work/into-the-storm/">
 <meta property="og:image" content="https://www.williamdooling.com/assets/img/its-og-card.jpg">
@@ -30,13 +30,13 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin
       href="../../assets/fonts/inter-latin.woff2">
 
-<link rel="stylesheet" href="../../assets/styles.css?v=a23">
+<link rel="stylesheet" href="../../assets/styles.css?v=a24">
 
 <script>document.documentElement.classList.add('js');</script>
 </head>
 <body class="case theme-storm">
 
-<div class="case-wrap">
+<div class="case-wrap case-wrap--wide">
 
   <nav class="case-nav" aria-label="Breadcrumb">
     <a class="case-back" href="../../" data-prefetch><span aria-hidden="true">←</span> Back</a>
@@ -46,19 +46,23 @@
   <header class="case-head">
     <span class="case-head__index" aria-hidden="true">02</span>
     <p class="case-eyebrow">Case Study</p>
-    <h1 class="case-title">Into the Storm</h1>
+    <h1 class="its-title">
+      <span class="its-title__text">Into the Storm</span>
+      <img class="its-title__logo" src="../../assets/img/its-logo-official.webp"
+           width="1600" height="873" alt="" aria-hidden="true">
+    </h1>
     <p class="case-sub">
-      <!-- One or two lines: what it is, who it's for. -->
-      A solo-developed roguelite deckbuilder, currently in alpha — designed,
-      directed, and playtested end to end.
+      <em>Into the Storm</em> began as a way to learn game development and grew
+      into a solo-developed roguelite deckbuilder headed toward a commercial
+      release. It is currently in closed alpha.
     </p>
 
     <hr class="rule case-rule">
 
     <dl class="case-facts">
-      <div class="case-fact"><dt>Role</dt><dd>Design, art direction, build</dd></div>
-      <div class="case-fact"><dt>Status</dt><dd>Alpha</dd></div>
-      <div class="case-fact"><dt>Timeline</dt><dd>[dates]</dd></div>
+      <div class="case-fact"><dt>Role</dt><dd>Design, development, art direction</dd></div>
+      <div class="case-fact"><dt>Status</dt><dd>Closed <span class="its-status-alpha">Alpha</span></dd></div>
+      <div class="case-fact"><dt>Timeline</dt><dd>February 2026—Present</dd></div>
     </dl>
   </header>
 
@@ -76,116 +80,132 @@
     <!-- ================= Art Design ================= -->
     <div class="case-panel" id="panel-art" role="tabpanel" aria-labelledby="tab-art">
 
-      <p class="art-attribution">Capsule cover &amp; logo, illustrated by Alejandro Giraldo</p>
+      <figure class="its-art-hero" data-reveal>
+        <img src="../../assets/img/into-the-storm-capsule.webp" width="1200" height="675"
+             alt="Into the Storm's finished capsule illustration: five adventurers gathered beneath a glowing sword and a swirling storm">
+        <figcaption>Capsule illustration and logo by Alejandro Giraldo, developed through an iterative art-direction process.</figcaption>
+      </figure>
 
-      <div class="art-slider-wrap">
-        <div class="art-slider" style="--pos: 50%">
-          <img class="art-slider__img" src="../../assets/img/its-art-final.webp"
-               alt="Finished Steam capsule art, without the logo overlay">
-          <div class="art-slider__clip">
-            <img class="art-slider__img" src="../../assets/img/its-art-proposed.webp"
-                 alt="Black-and-white 'Proposed Direction' sketch">
-          </div>
-          <span class="art-slider__tag art-slider__tag--before">Before</span>
-          <span class="art-slider__tag art-slider__tag--after">After</span>
-          <div class="art-slider__handle" aria-hidden="true"></div>
-          <input class="art-slider__range" type="range" min="0" max="100" value="50"
-                 aria-label="Drag to compare the proposed-direction sketch against the finished capsule art">
+      <section class="its-art-scene">
+        <div class="its-art-scene__media its-art-pair" data-reveal>
+          <figure class="its-art-frame">
+            <img src="../../assets/img/its-art-brief.webp" alt="A mood board of game capsules selected for tone, contrast, typography, and atmosphere">
+            <figcaption>Reference board</figcaption>
+          </figure>
+          <figure class="its-art-frame">
+            <img src="../../assets/img/its-art-sketch.webp" alt="Will's pencil sketch of a lone hero facing a distant castle beneath a storm">
+            <figcaption>My first composition sketch</figcaption>
+          </figure>
         </div>
-        <p class="art-slider-caption">From proposed direction to finished capsule art.</p>
-      </div>
+        <div class="its-art-scene__copy" data-reveal>
+          <h2 class="marker-teal">A point of view before a picture</h2>
+          <p>
+            I began with a feeling rather than a finished composition: a small
+            party facing something much larger than themselves, framed by a
+            storm that felt both dangerous and inviting.
+          </p>
+          <p>
+            The reference board established the contrast, color, and sense of
+            scale; my rough sketch gave that atmosphere its first shape.
+          </p>
+        </div>
+      </section>
 
-      <p class="todo">
-        [Vision] A line or two on coming in with a point of view before Alejandro
-        ever sketched anything — the "Proposed Direction" call (combine capsule C
-        with capsule B's characters, drop "Aurillia," center the title) is the
-        evidence for this.
-      </p>
-      <p class="todo">
-        “Capsule C + the other characters from Capsule B flanking her… Still
-        keeping Zarah as the focal point and the other two as secondary focus.”
-        — from the Proposed Direction brief
-      </p>
-      <p class="todo">
-        [Collaboration] A line or two on how notes were given — specific, each
-        anchored to a reference image, opening positive rather than generic.
-      </p>
-      <p class="todo">
-        “This one is awesome! Definitely my favorite.” /  “You have done such an
-        amazing job bringing this to life, thank you so much!!” — feedback deck
-        pull-quotes, pick final wording
-      </p>
+      <section class="its-art-scene its-art-scene--flip">
+        <div class="its-art-scene__media its-art-stack" data-reveal>
+          <figure class="its-art-frame">
+            <img src="../../assets/img/its-art-mockups.webp" alt="Three black-and-white capsule compositions labeled A, B, and C">
+            <figcaption>Three initial composition options</figcaption>
+          </figure>
+          <figure class="its-art-frame">
+            <img src="../../assets/img/its-art-chosen.webp" alt="The chosen composition with the central sword and the full party gathered around it">
+            <figcaption>The combined direction</figcaption>
+          </figure>
+        </div>
+        <div class="its-art-scene__copy" data-reveal>
+          <h2 class="marker-gold">Finding the composition</h2>
+          <p>
+            Alejandro explored three different ways into the image. Rather than
+            choosing one unchanged, I pulled together the strongest ideas:
+            composition C's central sword and heroic focal point, with the wider
+            party presence of composition B.
+          </p>
+          <p>
+            That decision turned the capsule from a portrait of one character
+            into a statement about the whole adventure.
+          </p>
+        </div>
+      </section>
 
-      <div class="art-timeline">
-        <ul class="art-timeline__track">
-          <li class="art-timeline__beat">
-            <button type="button" class="art-timeline__trigger" aria-label="View full size">
-              <img src="../../assets/img/its-art-brief.webp" alt="Mood-board references from the artist brief">
-            </button>
-            <p><span class="art-timeline__num">01</span>Artist brief — mood-board references for tone and genre</p>
-          </li>
-          <li class="art-timeline__beat">
-            <button type="button" class="art-timeline__trigger" aria-label="View full size">
-              <img src="../../assets/img/its-art-sketch.webp" alt="Will's own pencil sketch, sent alongside the brief">
-            </button>
-            <p><span class="art-timeline__num">02</span>My own pencil sketch, sent alongside the brief</p>
-          </li>
-          <li class="art-timeline__beat">
-            <button type="button" class="art-timeline__trigger" aria-label="View full size">
-              <img src="../../assets/img/its-art-mockups.webp" alt="Three initial composition options, A, B, and C">
-            </button>
-            <p><span class="art-timeline__num">03</span>Three composition options from Alejandro</p>
-          </li>
-          <li class="art-timeline__beat">
-            <button type="button" class="art-timeline__trigger" aria-label="View full size">
-              <img src="../../assets/img/its-art-proposed.webp" alt="Black-and-white 'Proposed Direction' sketch">
-            </button>
-            <p><span class="art-timeline__num">04</span>Proposed Direction — combine composition C with B's characters</p>
-          </li>
-          <li class="art-timeline__beat">
-            <button type="button" class="art-timeline__trigger" aria-label="View full size">
-              <img src="../../assets/img/its-art-chosen.webp" alt="The chosen composition, expanded to the full party">
-            </button>
-            <p><span class="art-timeline__num">05</span>Chosen direction, expanded to the full party</p>
-          </li>
-          <li class="art-timeline__beat">
-            <button type="button" class="art-timeline__trigger" aria-label="View full size">
-              <img src="../../assets/img/its-art-color.webp" alt="First full-color painted pass, before the final logo">
-            </button>
-            <p><span class="art-timeline__num">06</span>First color pass</p>
-          </li>
-          <li class="art-timeline__beat">
-            <button type="button" class="art-timeline__trigger" aria-label="View full size">
-              <img src="../../assets/img/its-art-logo-options.webp" alt="Three numbered logo lockup options">
-            </button>
-            <p><span class="art-timeline__num">07</span>Three logo lockup options</p>
-          </li>
-          <li class="art-timeline__beat">
-            <button type="button" class="art-timeline__trigger" aria-label="View full size">
-              <img src="../../assets/img/its-art-logo-feedback.webp" alt="Logo reference slide with Will's own rough swoosh-line sketch">
-            </button>
-            <p><span class="art-timeline__num">08</span>Logo references &amp; my own rough sketch for the linework</p>
-          </li>
-          <li class="art-timeline__beat">
-            <button type="button" class="art-timeline__trigger" aria-label="View full size">
-              <img src="../../assets/img/its-art-feedback-1.webp" alt="Full-size view of Will's rough Photoshop edit notes on the final art">
-            </button>
-            <p><span class="art-timeline__num">09</span>My rough edit notes, full size</p>
-          </li>
-          <li class="art-timeline__beat">
-            <button type="button" class="art-timeline__trigger" aria-label="View full size">
-              <img src="../../assets/img/its-art-feedback-2.webp" alt="Mood-board of sword-hilt references for a flower/rose motif">
-            </button>
-            <p><span class="art-timeline__num">10</span>Weapon reference notes — flower/rose motif for the sword hilt</p>
-          </li>
-          <li class="art-timeline__beat">
-            <button type="button" class="art-timeline__trigger" aria-label="View full size">
-              <img src="../../assets/img/its-art-final.webp" alt="Final capsule art, without the logo overlay">
-            </button>
-            <p><span class="art-timeline__num">11</span>Final capsule art, without the logo overlay</p>
-          </li>
-        </ul>
-      </div>
+      <section class="its-art-scene">
+        <div class="its-art-scene__media its-art-pair" data-reveal>
+          <figure class="its-art-frame">
+            <img src="../../assets/img/its-art-logo-feedback.webp" alt="Logo references and a rough sketch exploring arcane, musical linework">
+            <figcaption>Logo language</figcaption>
+          </figure>
+          <figure class="its-art-frame">
+            <img src="../../assets/img/its-art-feedback-2.webp" alt="Sword-hilt references centered on ornate flower and rose motifs">
+            <figcaption>Weapon language</figcaption>
+          </figure>
+        </div>
+        <div class="its-art-scene__copy" data-reveal>
+          <h2 class="marker-teal">Directing through references</h2>
+          <p>
+            The feedback became more specific as the identity took shape. For
+            the logo, I referenced thin arcane linework and musical forms rather
+            than prescribing a finished mark. For the sword, I used floral and
+            rose motifs to communicate the kind of ornamentation the world needed.
+          </p>
+          <p>
+            References gave us a shared vocabulary while leaving room for
+            interpretation.
+          </p>
+        </div>
+      </section>
+
+      <section class="its-art-scene its-art-scene--flip">
+        <div class="its-art-scene__media its-art-pair" data-reveal>
+          <figure class="its-art-frame">
+            <img src="../../assets/img/its-art-color.webp" alt="The first full-color painted pass of the party beneath the storm">
+            <figcaption>First color pass</figcaption>
+          </figure>
+          <figure class="its-art-frame">
+            <img src="../../assets/img/its-art-feedback-1.webp" alt="A rough Photoshop edit marking character and costume details on the color artwork">
+            <figcaption>My visual notes</figcaption>
+          </figure>
+        </div>
+        <div class="its-art-scene__copy" data-reveal>
+          <h2 class="marker-gold">Notes you can see</h2>
+          <p>
+            I used rough visual edits when words alone would have been slower or
+            less precise. The goal was not to redraw Alejandro's work, but to
+            clarify hierarchy, character details, and where the image needed
+            another pass.
+          </p>
+          <p>
+            Each round moved from broad composition toward smaller decisions
+            without losing the energy of the original concept.
+          </p>
+        </div>
+      </section>
+
+      <section class="its-art-finale" data-reveal>
+        <div class="its-art-finale__copy">
+          <h2 class="marker-gold">The finished identity</h2>
+          <p>
+            The finished image gave <em>Into the Storm</em> an identity larger
+            than the prototype it began as: a bright party gathered beneath an
+            impossible storm, with the sword and logo sharing the same visual
+            language. What started as a learning project finally looked like a
+            game with a world of its own.
+          </p>
+        </div>
+        <picture class="its-art-finale__image">
+          <source media="(max-width: 48rem)" srcset="../../assets/img/its-capsule-final-1280.webp">
+          <img src="../../assets/img/its-capsule-final-2560.webp" width="2560" height="1388"
+               alt="The final signed Into the Storm capsule illustration and gold logo">
+        </picture>
+      </section>
 
     </div>
 
@@ -387,7 +407,7 @@
     </div>
 
     <p class="case-note">
-      Currently in alpha; a wider release is planned.
+      Development continues in closed <span class="its-status-alpha">Alpha</span>.
     </p>
 
   </main>
@@ -417,7 +437,7 @@
 
 <div class="lightbox" aria-hidden="true">
   <div class="lightbox__backdrop" data-lightbox-close></div>
-  <div class="lightbox__panel" role="dialog" aria-modal="true" aria-label="Timeline image, full size">
+  <div class="lightbox__panel" role="dialog" aria-modal="true" aria-label="Screenshot, full size">
     <button type="button" class="lightbox__close" data-lightbox-close aria-label="Close">
       <span aria-hidden="true">&times;</span>
     </button>
@@ -434,6 +454,6 @@
   </div>
 </div>
 
-<script src="../../assets/main.js?v=a22"></script>
+<script src="../../assets/main.js?v=a23"></script>
 </body>
 </html>

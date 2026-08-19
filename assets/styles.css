@@ -2415,7 +2415,186 @@ img { max-width: 100%; display: block; }
 .art-timeline__trigger:focus-visible img { filter: brightness(1.12); }
 
 /* --------------------------------------------------------------------------
-   8e. User Feedback tab
+   8e. Into the Storm — art-direction story
+
+   The supplied process artifacts have very different shapes, so this section
+   lets each keep its natural ratio. The finished image bookends the story;
+   short alternating chapters explain the decisions without hiding evidence
+   behind the old horizontal timeline or lightbox.
+   -------------------------------------------------------------------------- */
+
+.case.theme-storm .case-head__index { display: none; }
+
+.its-title {
+  width: clamp(19rem, 52vw, 38rem);
+  margin: 0;
+  line-height: 0;
+}
+
+.its-title__text {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.its-title__logo {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 0 28px color-mix(in srgb, var(--storm-gold) 22%, transparent));
+}
+
+.its-status-alpha {
+  color: var(--storm-gold);
+  text-shadow: 0 0 18px color-mix(in srgb, var(--storm-gold) 35%, transparent);
+}
+
+.its-art-hero,
+.its-art-finale {
+  grid-column: full;
+}
+
+.its-art-hero {
+  margin: 0 0 clamp(3.5rem, 8vw, 6rem);
+}
+
+.its-art-hero img,
+.its-art-finale__image img,
+.its-art-frame img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.its-art-hero img,
+.its-art-finale__image {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface-lo);
+  box-shadow:
+    0 22px 58px -26px rgba(0, 0, 0, .92),
+    0 0 34px -22px color-mix(in srgb, var(--storm) 52%, transparent);
+}
+
+.its-art-hero figcaption,
+.its-art-frame figcaption {
+  margin: .75rem 0 0;
+  color: var(--text-dim);
+  font-size: .82rem;
+  line-height: 1.5;
+}
+
+.its-art-scene {
+  grid-column: full;
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 23rem);
+  gap: clamp(1.5rem, 4vw, 3.25rem);
+  align-items: center;
+  margin: clamp(3rem, 8vw, 6rem) 0;
+}
+
+.its-art-scene--flip {
+  grid-template-columns: minmax(0, 23rem) minmax(0, 1.5fr);
+}
+
+.its-art-scene--flip .its-art-scene__media { order: 2; }
+.its-art-scene__copy[data-reveal] { transition-delay: 110ms; }
+.its-art-scene__copy > :first-child { margin-top: 0; }
+.its-art-scene__copy > :last-child { margin-bottom: 0; }
+.its-art-scene__copy p { margin: 0 0 1.1rem; }
+
+.its-art-scene__copy h2,
+.its-art-finale__copy h2 {
+  position: relative;
+  margin: 0 0 1rem;
+  font-family: var(--display);
+  font-size: clamp(1.5rem, 2.6vw, 1.95rem);
+  font-weight: 400;
+  letter-spacing: .06em;
+  line-height: 1.05;
+  text-transform: uppercase;
+}
+
+.its-art-scene__copy h2::before,
+.its-art-finale__copy h2::before {
+  content: '';
+  position: absolute;
+  top: .1em;
+  bottom: .1em;
+  left: -1.1rem;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--bar, var(--storm));
+  box-shadow: 0 0 14px -3px var(--bar, var(--storm));
+}
+
+.case.theme-storm .marker-teal { --bar: var(--storm); }
+.case.theme-storm .marker-gold { --bar: var(--storm-gold); }
+
+.its-art-pair,
+.its-art-stack {
+  display: grid;
+  gap: clamp(.8rem, 2vw, 1.25rem);
+  align-items: center;
+}
+
+.its-art-pair { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.its-art-stack { grid-template-columns: minmax(0, .72fr) minmax(0, 1.28fr); }
+
+.its-art-frame {
+  min-width: 0;
+  margin: 0;
+}
+
+.its-art-frame img {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface-lo);
+  box-shadow: 0 16px 42px -25px rgba(0, 0, 0, .95);
+}
+
+.its-art-finale {
+  margin: clamp(4rem, 10vw, 7rem) 0 0;
+  padding-top: clamp(1.5rem, 4vw, 2.5rem);
+  border-top: 1px solid var(--line);
+}
+
+.its-art-finale__copy {
+  max-width: var(--measure);
+  margin: 0 0 clamp(1.5rem, 4vw, 2.5rem);
+}
+
+.its-art-finale__copy p { margin: 0; }
+.its-art-finale__image { display: block; }
+
+@media (max-width: 60rem) {
+  .its-art-scene,
+  .its-art-scene--flip {
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(1.1rem, 4vw, 1.75rem);
+    margin: clamp(2.5rem, 8vw, 4rem) 0;
+  }
+
+  .its-art-scene--flip .its-art-scene__media { order: 0; }
+  .its-art-scene__copy h2::before,
+  .its-art-finale__copy h2::before { left: -.75rem; }
+}
+
+@media (max-width: 40rem) {
+  .its-title { width: min(100%, 27rem); }
+  .its-art-pair,
+  .its-art-stack { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* --------------------------------------------------------------------------
+   8f. User Feedback tab
 
    The feedback story uses the same screenshot-led grammar as the other case
    studies, but its evidence has three shapes: the player-facing form, a
@@ -2639,7 +2818,7 @@ button.its-feedback-shot { cursor: zoom-in; }
 }
 
 /* --------------------------------------------------------------------------
-   8f. Art Design tab — timeline lightbox
+   8g. Shared case-study lightbox
 
    Click a beat, see it large with its caption reset in bigger type. The
    panel gets a FIXED width (not sized to whatever image happens to be
