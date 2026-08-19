@@ -12,7 +12,6 @@
 <meta property="og:description" content="Risk PM by day, game dev by night.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://www.williamdooling.com/">
-<!-- Absolute by necessity: crawlers don't resolve relative og: URLs. -->
 <meta property="og:image" content="https://www.williamdooling.com/assets/img/og-card.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -22,38 +21,15 @@
 <link rel="icon" href="assets/favicon.ico" sizes="32x32">
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <link rel="manifest" href="site.webmanifest">
-<!-- Fonts are self-hosted; the @font-face rules live in styles.css. There is no
-     longer anything to preconnect to — the whole third-party chain that used to
-     sit in front of the first paint (googleapis for the CSS, then gstatic for
-     the file itself) is gone, which matters most on an ARRIVING page, where a
-     stalled first frame means stalled fog.
-
-     Preloaded rather than left to the stylesheet, because an @font-face is only
-     discovered once the stylesheet that declares it has been fetched and parsed
-     — starting the font a full round trip late. `crossorigin` is mandatory even
-     though these are same-origin: fonts always fetch in CORS mode, and a
-     preload whose mode does not match the real request is discarded and the
-     file simply fetched again.
-
-     Only the `latin` subsets are preloaded. `latin-ext` is declared in
-     styles.css with a unicode-range that English text never touches, so
-     preloading it would be pure waste. -->
 <link rel="preload" as="font" type="font/woff2" crossorigin
       href="assets/fonts/quicksand-latin.woff2">
 <link rel="preload" as="font" type="font/woff2" crossorigin
       href="assets/fonts/inter-latin.woff2">
-
 <link rel="stylesheet" href="assets/styles.css?v=a20">
+<link rel="stylesheet" href="assets/cinematic-split-preview.css?v=7">
 
 <script>
-/* Paints the arrival fog before the first frame of this document, so the two
-   halves of the transition read as one continuous piece of weather. Pure
-   progressive enhancement: if this never runs, no class is set and the page
-   renders normally. Dissipation is CSS-driven — see .is-arriving in styles.css. */
 (function () {
-  /* Marks JS as alive before first paint. Scroll-reveal CSS hides its elements
-     only under this class, so a page whose scripts never load still shows all
-     of its content. */
   document.documentElement.classList.add('js');
   try {
     var raw = sessionStorage.getItem('wd:mist');
@@ -71,146 +47,86 @@
 })();
 </script>
 </head>
-<body class="home">
+<body class="home cinematic-preview">
 
-  <!-- Ambient fog. Always on, independent of the click transition — the page
-       should read as weather even when nothing is happening. Three parallax
-       sheets over a static vignette mask; see §3b of styles.css. -->
   <div class="fog" aria-hidden="true">
     <div class="fog__sheet fog__sheet--far"></div>
     <div class="fog__sheet fog__sheet--mid"></div>
     <div class="fog__sheet fog__sheet--near"></div>
   </div>
 
-  <header class="marquee">
-    <!-- The name is deliberately not shown here. The domain already says it,
-         and it returns inside the profile dot below the cards. It stays as a
-         visually hidden h1 so the document still has a heading and so search
-         engines and screen readers get the name — removing it outright would
-         leave the page anonymous to both. -->
-    <h1 class="vh">William Dooling</h1>
-    <p class="marquee__label">Portfolio — fully designed <em>and</em> developed by me.</p>
-  </header>
+  <h1 class="vh">William Dooling — selected work</h1>
 
-  <main class="roster">
-
-    <a class="card card--bev" href="work/bevfantasy/" data-mist data-label="bevfantasy">
-      <div class="card__float">
-        <div class="card__tilt">
-          <div class="card__inner">
-            <span class="card__sheen" aria-hidden="true"></span>
-
-            <div class="card__art">
-              <!-- Real product UI, replacing the hand-built .mock this slot was
-                   built to receive. Three iPhone captures fanned around the AP
-                   Poll hero, bleeding past the frame's lower edge.
-
-                   aria-hidden and alt="" together: the card's own <h2> and
-                   .card__meta already name the project, and three screenshots
-                   of a stats UI cannot be described usefully in alt text at
-                   this size. They are decoration for a link that is already
-                   labelled. Nothing here is a separate click target — the whole
-                   card is one <a>, so the phones react to hover but never
-                   pretend to be buttons. -->
-              <div class="deck" aria-hidden="true">
-                <div class="deck__shot deck__shot--left">
-                  <img src="assets/img/bev-h2h.webp" alt=""
-                       width="420" height="819" loading="eager" decoding="async">
-                </div>
-                <div class="deck__shot deck__shot--right">
-                  <img src="assets/img/bev-m-earnings.webp" alt=""
-                       width="840" height="1638" loading="eager" decoding="async">
-                </div>
-                <!-- Hero is last so it paints above its siblings even before
-                     z-index is considered. -->
-                <div class="deck__shot deck__shot--hero">
-                  <img src="assets/img/bev-landing.webp" alt=""
-                       width="840" height="1638" loading="eager" decoding="async">
-                </div>
-              </div>
-            </div>
-
-            <div class="card__foot">
-              <div>
-                <h2 class="card__title">bevfantasy</h2>
-                <p class="card__meta">Fantasy league site</p>
-              </div>
-              <span class="card__status">Live</span>
-            </div>
-          </div>
-        </div>
-      </div>
+  <main class="cinematic-preview__stage" aria-label="Selected work">
+    <a class="cinematic-project cinematic-project--bev"
+       href="work/bevfantasy/" data-mist data-label="bevfantasy"
+       aria-label="View the Bev Fantasy case study">
+      <span class="cinematic-project__art cinematic-project__art--bev" aria-hidden="true">
+        <span class="deck">
+          <span class="deck__shot deck__shot--left">
+            <img src="assets/img/bev-h2h.webp" alt=""
+                 width="420" height="819" loading="eager" decoding="async">
+          </span>
+          <span class="deck__shot deck__shot--right">
+            <img src="assets/img/bev-m-earnings.webp" alt=""
+                 width="840" height="1638" loading="eager" decoding="async">
+          </span>
+          <span class="deck__shot deck__shot--hero">
+            <img src="assets/img/bev-landing.webp" alt=""
+                 width="840" height="1638" loading="eager" decoding="async">
+          </span>
+        </span>
+      </span>
+      <span class="cinematic-project__shade" aria-hidden="true"></span>
+      <span class="cinematic-logo">
+        <img class="cinematic-logo__image cinematic-logo__image--bev"
+             src="assets/img/bev-fantasy-logo.webp" alt="Bev Fantasy"
+             width="360" height="345" loading="eager" decoding="async">
+        <span class="cinematic-logo__info">
+          <span>Fantasy league site</span>
+          <b>Live</b>
+        </span>
+      </span>
     </a>
 
-    <a class="card card--storm" href="work/into-the-storm/" data-mist data-label="Into the Storm">
-      <div class="card__float">
-        <div class="card__tilt">
-          <div class="card__inner">
-            <span class="card__sheen" aria-hidden="true"></span>
-
-            <div class="card__art">
-              <img src="assets/img/into-the-storm-capsule.webp" alt=""
-                   width="1200" height="659" loading="eager" decoding="async">
-              <!-- Edge treatment (A5). A real element rather than a pseudo
-                   because it needs three independently-phased layers — the
-                   drifting mist plus two sparkle sets — and .card__art's own
-                   ::after is already the bottom vignette. -->
-              <span class="haze" aria-hidden="true"></span>
-            </div>
-
-            <div class="card__foot">
-              <div>
-                <h2 class="card__title">Into the Storm</h2>
-                <p class="card__meta">Upcoming Steam Release</p>
-              </div>
-              <span class="card__status">In alpha</span>
-            </div>
-          </div>
-        </div>
-      </div>
+    <a class="cinematic-project cinematic-project--storm"
+       href="work/into-the-storm/" data-mist data-label="Into the Storm"
+       aria-label="View the Into the Storm case study">
+      <span class="cinematic-project__art cinematic-project__art--storm" aria-hidden="true">
+        <img src="assets/img/into-the-storm-capsule.webp" alt=""
+             width="1200" height="659" loading="eager" decoding="async">
+        <span class="haze"></span>
+      </span>
+      <span class="cinematic-project__shade" aria-hidden="true"></span>
+      <span class="cinematic-logo">
+        <img class="cinematic-logo__image cinematic-logo__image--storm"
+             src="assets/img/into-the-storm-logo.webp" alt="Into the Storm"
+             width="900" height="491" loading="eager" decoding="async">
+        <span class="cinematic-logo__info">
+          <span>Upcoming Indie Game</span>
+          <b>In alpha</b>
+        </span>
+      </span>
     </a>
 
-    <a class="card card--ygr" href="work/yggdrasil/" data-mist data-label="Yggdrasil">
-      <div class="card__float">
-        <div class="card__tilt">
-          <div class="card__inner">
-            <span class="card__sheen" aria-hidden="true"></span>
-
-            <div class="card__art">
-              <img src="assets/img/ygr-card.webp" alt=""
-                   width="1315" height="1053" loading="eager" decoding="async">
-            </div>
-
-            <div class="card__foot">
-              <div>
-                <h2 class="card__title">Yggdrasil</h2>
-                <p class="card__meta">Org chart visualizer</p>
-              </div>
-              <span class="card__status">Live</span>
-            </div>
-          </div>
-        </div>
-      </div>
+    <a class="cinematic-project cinematic-project--ygg"
+       href="work/yggdrasil/" data-mist data-label="Yggdrasil"
+       aria-label="View the Yggdrasil case study">
+      <img class="cinematic-project--ygg__logo"
+           src="assets/img/yggdrasil-logo.webp" alt="Yggdrasil"
+           width="520" height="520" loading="eager" decoding="async">
+      <span class="cinematic-logo__info cinematic-logo__info--ygg">
+        <span>Org Website</span>
+        <b>Live</b>
+      </span>
     </a>
-
   </main>
 
-  <footer class="site-foot">
-    <!-- The identity, condensed to a single glowing dot so the two cards keep
-         the page. Everything personal lives inside the panel it opens. -->
+  <footer class="site-foot cinematic-preview__foot">
     <div class="me">
-      <!-- Darkens the page behind while a photo is being examined. Fixed, and
-           .me carries no transform, so it stays viewport-anchored. -->
       <div class="me__veil" aria-hidden="true"></div>
 
-      <!-- Metaball filter. Blurs, then hard-thresholds the ALPHA channel only
-           (the last matrix row), so blobs fuse where they overlap while their
-           colour is left untouched. The CSS blur+contrast version of this trick
-           mangles colour, because contrast() acts on RGB and needs an opaque
-           backdrop to work against; this does not. -->
       <svg class="me__goo-def" aria-hidden="true" focusable="false">
-        <!-- Explicit region: the default is 120% of the element box, which would
-             crop the blobs (they are 260% of it) before the clip does. -->
         <filter id="me-goo" x="-25%" y="-25%" width="150%" height="150%"
                 color-interpolation-filters="sRGB">
           <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="blur"/>
@@ -223,9 +139,6 @@
       </svg>
 
       <button class="me__dot" type="button" aria-expanded="false" aria-controls="me-panel">
-        <!-- The liquid fill. .me__liquid clips to the button's morphing shape;
-             .me__goo inside it is the filtered group, so the blobs fuse with
-             each other but the blur never softens the button's silhouette. -->
         <span class="me__liquid" aria-hidden="true">
           <span class="me__goo">
             <span class="me__mote me__mote--a"></span>
@@ -237,87 +150,63 @@
         <span class="me__halo" aria-hidden="true"></span>
       </button>
 
-      <!-- `hidden` is removed by main.js on open. Kept in the markup so the
-           panel is genuinely inert (and unfocusable) when closed, rather than
-           merely transparent. -->
-      <!-- role=dialog without aria-modal: the panel does not trap focus and the
-           rest of the page stays reachable, so claiming modality would be a
-           lie to assistive tech. Esc closes it and focus returns to the dot. -->
       <div class="me__panel" id="me-panel" role="dialog"
            aria-label="About William Dooling" hidden>
-
-        <!-- The skin is the grown drop of liquid: it carries the panel's own
-             background, border and glow, and it is the thing that morphs. The
-             panel box itself is transparent, so the zoomed photos can still
-             overhang its top edge without being clipped by the morph. -->
         <div class="me__skin" aria-hidden="true">
           <div class="me__aura"></div>
         </div>
-        <!-- Sits behind the skin and is deliberately outside its clip, so the
-             glow radiates past the border instead of stopping at it. -->
         <div class="me__bloom" aria-hidden="true"></div>
 
         <div class="me__content">
-
-        <div class="me__shots">
-          <figure class="me__bubble me__shot me__bubble--sky" tabindex="0">
-            <img src="assets/img/skydive.webp" alt="William skydiving over a lake."
-                 width="320" height="320" loading="lazy" decoding="async">
-          </figure>
-          <figure class="me__bubble me__shot me__bubble--run" tabindex="0">
-            <img src="assets/img/marathon.webp" alt="William running a marathon."
-                 width="320" height="320" loading="lazy" decoding="async">
-          </figure>
-          <!-- The crown of the cluster: last to arrive, and the only ring in the
-               panel that is blue rather than pink. -->
-          <figure class="me__bubble me__shot me__bubble--us" tabindex="0">
-            <img src="assets/img/nicole.webp"
-                 alt="William and Nicole kissing in front of a Paris sunset."
-                 width="360" height="360" loading="lazy" decoding="async">
-          </figure>
-          <div class="me__portrait me__shot" tabindex="0">
-            <img src="assets/img/will-and-gibbles.webp"
-                 alt="William Dooling with his dog."
-                 width="360" height="360" loading="lazy" decoding="async">
+          <div class="me__shots">
+            <figure class="me__bubble me__shot me__bubble--sky" tabindex="0">
+              <img src="assets/img/skydive.webp" alt="William skydiving over a lake."
+                   width="320" height="320" loading="lazy" decoding="async">
+            </figure>
+            <figure class="me__bubble me__shot me__bubble--run" tabindex="0">
+              <img src="assets/img/marathon.webp" alt="William running a marathon."
+                   width="320" height="320" loading="lazy" decoding="async">
+            </figure>
+            <figure class="me__bubble me__shot me__bubble--us" tabindex="0">
+              <img src="assets/img/nicole.webp"
+                   alt="William and Nicole kissing in front of a Paris sunset."
+                   width="360" height="360" loading="lazy" decoding="async">
+            </figure>
+            <div class="me__portrait me__shot" tabindex="0">
+              <img src="assets/img/will-and-gibbles.webp"
+                   alt="William Dooling with his dog."
+                   width="360" height="360" loading="lazy" decoding="async">
+            </div>
           </div>
+
+          <svg class="me__motto" viewBox="0 0 320 50" aria-hidden="true" focusable="false">
+            <path id="me-motto-arc" d="M 22 6 Q 160 48 298 6" fill="none"/>
+            <text>
+              <textPath href="#me-motto-arc" startOffset="50%" text-anchor="middle">
+                Risk PM by day, game dev by night.
+              </textPath>
+            </text>
+          </svg>
+          <p class="vh">Risk PM by day, game dev by night.</p>
+          <p class="me__name">William Dooling</p>
+
+          <nav class="me__links" aria-label="Contact">
+            <button class="me__link me__copy" type="button"
+                    data-copy="william.dooling@outlook.com" data-copy-status="me-status">
+              <span class="me__copy-label">Email</span>
+              <span class="me__copy-done" data-copy-done aria-hidden="true">Copied</span>
+            </button>
+            <a class="me__link" href="https://www.linkedin.com/in/wgd/"
+               target="_blank" rel="noopener noreferrer">LinkedIn</a>
+            <a class="me__link" href="about/">About</a>
+          </nav>
+
+          <p class="me__status" id="me-status" role="status" aria-live="polite"></p>
         </div>
-
-        <!-- The motto is set on an arc that mirrors the portrait's lower edge,
-             so it reads as hugging the circle rather than sitting in a box
-             beneath it. role/aria-label carry the text, since a <textPath> is
-             not reliably announced. -->
-        <svg class="me__motto" viewBox="0 0 320 50" aria-hidden="true" focusable="false">
-          <path id="me-motto-arc" d="M 22 6 Q 160 48 298 6" fill="none"/>
-          <text>
-            <textPath href="#me-motto-arc" startOffset="50%" text-anchor="middle">
-              Risk PM by day, game dev by night.
-            </textPath>
-          </text>
-        </svg>
-        <p class="vh">Risk PM by day, game dev by night.</p>
-
-        <p class="me__name">William Dooling</p>
-
-        <nav class="me__links" aria-label="Contact">
-          <button class="me__link me__copy" type="button"
-                  data-copy="william.dooling@outlook.com" data-copy-status="me-status">
-            <span class="me__copy-label">Email</span>
-            <span class="me__copy-done" data-copy-done aria-hidden="true">Copied</span>
-          </button>
-          <a class="me__link" href="https://www.linkedin.com/in/wgd/"
-             target="_blank" rel="noopener noreferrer">LinkedIn</a>
-          <a class="me__link" href="about/">About</a>
-        </nav>
-
-        <p class="me__status" id="me-status" role="status" aria-live="polite"></p>
-
-        </div><!-- /.me__content -->
       </div>
     </div>
   </footer>
 
-  <!-- Mist. Duplicated on every page rather than injected, because the arrival
-       half must exist in the very first painted frame. -->
   <div class="mist" aria-hidden="true">
     <div class="mist__blur"></div>
     <div class="mist__veil"></div>
@@ -329,8 +218,6 @@
 
   <svg class="mist-defs" aria-hidden="true" focusable="false" width="0" height="0">
     <defs>
-      <!-- Static noise: filters resolve before masking, so expanding the mask
-           never re-rasterizes the turbulence. The fog is warped once. -->
       <filter id="mist-warp-a" x="-35%" y="-35%" width="170%" height="170%" color-interpolation-filters="sRGB">
         <feTurbulence type="fractalNoise" baseFrequency="0.0055 0.011" numOctaves="4" seed="7" result="n"/>
         <feDisplacementMap in="SourceGraphic" in2="n" scale="170" xChannelSelector="R" yChannelSelector="G"/>
