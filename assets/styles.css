@@ -2,15 +2,8 @@
    William Dooling — Portfolio
    Tokens follow _internal/portfolio-design-guide.md §4.
 
-   Two deliberate additions beyond the guide:
-
-   1. A violet "mist" ramp. §4 rejects a portfolio-wide accent, and this does
-      not break that rule — violet is never applied to a project. It belongs to
-      the site's atmosphere (transition fog, photo badge, page chrome) while
-      bevfantasy orange and Into the Storm teal stay exclusively on their own
-      cards. The mist is the connective tissue the near-black background was
-      doing alone.
-   2. A broadcast/scoreboard framing layer — ghost numerals, hairline rules with
+   A deliberate addition beyond the guide is a broadcast/scoreboard framing
+   layer — ghost numerals, hairline rules with
       tick marks, tracked micro-labels. §2 asks for sports-coded personality;
       previously only the typeface carried it.
    ========================================================================== */
@@ -29,11 +22,11 @@
   --storm-gold:  #E8C368;
   --ygr:         #7AC138; /* sampled from Yggdrasil's own node-highlight green */
 
-  /* Atmosphere — site chrome only, never a project accent */
-  --mist-deep:   #140B24;
-  --mist-mid:    #2E1E52;
-  --mist-core:   #6B54A8;
-  --mist-glow:   #9B84D9;
+  /* Violet stays in small interface accents and the profile control. */
+  --violet-deep: #140B24;
+  --violet-mid:  #2E1E52;
+  --violet-core: #6B54A8;
+  --violet-glow: #9B84D9;
 
   /* Surfaces */
   --surface:     #121114;
@@ -46,9 +39,8 @@
   --display: 'Quicksand', 'Quicksand Fallback', 'Trebuchet MS', sans-serif;
   --body:    'Inter', 'Inter Fallback', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
 
-  /* Per-project accent. Overridden by .card--* and .theme-*; the violet default
-     only ever applies to site chrome, never to a project. */
-  --accent: var(--mist-glow);
+  /* Per-project accent. Overridden by .card--* and .theme-*. */
+  --accent: var(--violet-glow);
 
   /* Rhythm */
   --gutter:  clamp(1.25rem, 4.5vw, 4rem);
@@ -60,10 +52,6 @@
   --ease-out:    cubic-bezier(.16, 1, .3, 1);    /* fast start, long settle */
   --ease-in:     cubic-bezier(.5, 0, .78, .4);   /* accelerates away        */
 
-  /* The fog's own curve. Tuned so the radius reaches roughly 18% / 43% / 72%
-     at the quarter marks: it gathers visibly from the first frames instead of
-     sitting still and then lunging, which is what a plain ease-in does here. */
-  --ease-fog:    cubic-bezier(.4, .2, .9, .95);
 }
 
 /* ---------------------------------------------------------------------------
@@ -72,10 +60,8 @@
    These used to come from fonts.googleapis.com, which meant a render-blocking
    round trip to one third party followed by the font itself from a second
    (fonts.gstatic.com) — both sitting on the critical path of every first paint.
-   The first paint that matters here belongs to an ARRIVING page whose fog is
-   mid-transition from the page before it, so a slow third party did not just
-   delay text, it froze the transition. First-party now: no extra DNS, no extra
-   TLS, nothing outside this repo between a click and a painted frame.
+   Hosting these first-party avoids extra DNS and TLS work between navigation
+   and a correctly rendered page.
 
    Both faces are VARIABLE. Google's css2 endpoint declares Inter twice, at 400
    and 600, but both declarations point at the same file — it carries a `wght`
@@ -137,8 +123,7 @@
 
 /* Metric-matched fallbacks so the font swap doesn't shift layout. Still earning
    their place with the fonts self-hosted: `font-display: swap` above means the
-   first frame is drawn in a fallback either way, and on an arriving page that
-   frame is the one carrying the fog.
+   first frame can be drawn in a fallback either way.
    Quicksand is a rounded geometric sans with a large x-height; Trebuchet is
    the closest thing installed on both Windows and macOS. */
 @font-face {
@@ -157,21 +142,6 @@
   ascent-override: 90%;
   descent-override: 22%;
   line-gap-override: 0%;
-}
-
-/* Registered so the mist radius can actually interpolate. Everything about the
-   fog's shape derives from this one animated length. */
-@property --mr {
-  syntax: '<length>';
-  inherits: true;
-  initial-value: 0px;
-}
-
-/* Set by main.js to the distance from the click point to the furthest corner. */
-@property --mist-max {
-  syntax: '<length>';
-  inherits: true;
-  initial-value: 120vmax;
 }
 
 /* --------------------------------------------------------------------------
@@ -201,7 +171,7 @@ a { color: inherit; }
 img { max-width: 100%; display: block; }
 
 :focus-visible {
-  outline: 2px solid var(--mist-glow);
+  outline: 2px solid var(--violet-glow);
   outline-offset: 4px;
   border-radius: 3px;
 }
@@ -221,7 +191,7 @@ img { max-width: 100%; display: block; }
   border: 0;
 }
 
-::selection { background: color-mix(in srgb, var(--mist-core) 60%, transparent); }
+::selection { background: color-mix(in srgb, var(--violet-core) 60%, transparent); }
 
 /* Shared micro-label: tracked, uppercase, scoreboard-adjacent. */
 .micro {
@@ -265,241 +235,8 @@ img { max-width: 100%; display: block; }
   position: relative;
 }
 
-/* A very slow violet wash so the page itself reads as "in the mist" before
-   anything is clicked. Pure decoration, zero layout cost. */
-.home::before {
-  content: '';
-  position: fixed;
-  inset: -20%;
-  z-index: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(50% 40% at 18% 8%,  color-mix(in srgb, var(--mist-core) 20%, transparent), transparent 70%),
-    radial-gradient(45% 45% at 85% 92%, color-mix(in srgb, var(--mist-mid)  32%, transparent), transparent 70%);
-  filter: blur(40px);
-  opacity: .75;
-  animation: drift-slow 34s ease-in-out infinite alternate;
-}
-
-@keyframes drift-slow {
-  from { transform: translate3d(-2%, -1%, 0) scale(1);    }
-  to   { transform: translate3d( 3%,  2%, 0) scale(1.08); }
-}
-
-/* --------------------------------------------------------------------------
-   3b. Ambient fog
-   The always-on half of the mist. The click transition (§7) is a moment; this
-   is the climate it happens inside.
-
-   Performance is the whole design here, because this runs forever:
-
-     - The turbulence is baked into assets/img/fog-{a,b}.svg and decoded once.
-       Never `filter: url()` on a moving element — that re-rasterizes per frame,
-       which is what made the first pass stutter.
-     - The vignette mask lives on .fog, which never moves. Masks on animated
-       elements defeat compositing; masks on their static parent do not.
-     - Only transform and opacity animate. Both stay on the compositor.
-     - Each sheet is oversized by 40% so drift and parallax never expose an edge.
-   -------------------------------------------------------------------------- */
-
-.fog {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  overflow: hidden;
-  /* Duration multiplier — smaller is faster. Tuned per breakpoint below so the
-     fog drifts at a comparable perceived rate on a phone and a 1920 display. */
-  --fog-speed: .65;
-  /* Thinner through the middle so the cards stay legible, banking up at the
-     edges. Static — see the note above. */
-  -webkit-mask-image: radial-gradient(ellipse 72% 62% at 50% 48%,
-                      rgba(0,0,0,.22) 0%, rgba(0,0,0,.72) 58%, #000 100%);
-  mask-image: radial-gradient(ellipse 72% 62% at 50% 48%,
-              rgba(0,0,0,.22) 0%, rgba(0,0,0,.72) 58%, #000 100%);
-}
-
-/* The sheet carries pointer parallax; its ::before carries the drift. Split in
-   two so the two transforms never fight over the same property. */
-.fog__sheet {
-  position: absolute;
-  inset: -40%;
-  /* --fog-x/y are unitless (-1..1), set by main.js; --depth is the length they
-     scale into. Number × length is valid calc; length × length is not. */
-  --depth: 0px;
-  transform: translate3d(calc(var(--fog-x, 0) * var(--depth)),
-                         calc(var(--fog-y, 0) * var(--depth)), 0);
-  transition: transform 900ms cubic-bezier(.22, .61, .36, 1);
-  will-change: transform;
-}
-
-.fog__sheet::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-repeat: no-repeat;
-  background-size: cover;
-  will-change: transform;
-}
-
-/* Opacities are measured, not guessed. Against the #0A0A0A ground these lift
-   mean luminance ~4 through the middle of the vignette and ~17 at the edges
-   (peaks ~44), which reads as banked fog while leaving the cards legible.
-   Roughly double these and the near-black ground turns to grey milk. */
-.fog__sheet--far  { --depth: 5px;  opacity: .26; }
-.fog__sheet--mid  { --depth: 11px; opacity: .20; }
-.fog__sheet--near { --depth: 20px; opacity: .15; }
-
-/* Timing is `linear`, deliberately. With `alternate`, an eased curve puts zero
-   velocity at both ends of every cycle — and since a cycle starts on page
-   load, the first thing a visitor sees is the fog at its most stationary.
-   Linear holds a constant speed the whole way.
-
-   The negative delays start each sheet mid-cycle, so the three are never in
-   phase and no two reverse direction together. */
-/* Drift distance is a percentage of the sheet, and the sheet is sized off the
-   viewport — so raw speed in px/s scales with screen width. Left alone, the
-   same amplitude that reads correctly on a laptop drops to ~2.5px/s on a phone
-   (invisible, the original bug) and climbs past 30px/s on a 1920 display
-   (distracting). --fog-speed rescales every duration to hold the perceived
-   rate inside roughly 5-23px/s across the range. Durations are longhand
-   because calc() needs to reach the duration without the shorthand mistaking
-   it for the delay. */
-.fog__sheet::before {
-  animation-iteration-count: infinite;
-  animation-direction: alternate;
-}
-
-.fog__sheet--far::before {
-  background-image: url('img/fog-b.svg');
-  animation-name: fog-drift-a, fog-breathe-a;
-  animation-duration: calc(70s * var(--fog-speed)), calc(31s * var(--fog-speed));
-  animation-delay: -23s, -7s;
-  animation-timing-function: linear, ease-in-out;
-}
-
-.fog__sheet--mid::before {
-  background-image: url('img/fog-a.svg');
-  background-position: 40% 60%;
-  animation-name: fog-drift-b, fog-breathe-b;
-  animation-duration: calc(52s * var(--fog-speed)), calc(43s * var(--fog-speed));
-  animation-delay: -11s, -19s;
-  animation-timing-function: linear, ease-in-out;
-}
-
-.fog__sheet--near::before {
-  background-image: url('img/fog-a.svg');
-  background-position: 70% 20%;
-  transform: scaleX(-1);
-  animation-name: fog-drift-c, fog-breathe-a;
-  animation-duration: calc(38s * var(--fog-speed)), calc(27s * var(--fog-speed));
-  animation-delay: -30s, -3s;
-  animation-timing-function: linear, ease-in-out;
-}
-
-/* Amplitude is set from perceived speed, not from taste. Each sheet is 180% of
-   the viewport (inset -40%), so a ±13% translate is ~590px of travel; over 70s
-   that reads as ~8px/s. Below roughly 5px/s a low-contrast texture this soft
-   stops looking like it is moving at all, which is exactly what the first pass
-   got wrong at 2.6px/s. The 40% overhang is what keeps an edge from swinging
-   into view at these amplitudes.
-
-   Adjacent layers travel in opposite directions: relative motion between banks
-   is far more visible than any single layer's absolute motion. */
-@keyframes fog-drift-a {
-  from { transform: translate3d(-13%,  1.5%, 0) scale(1.06) rotate(-1deg);   }
-  to   { transform: translate3d( 13%, -1.5%, 0) scale(1.14) rotate(1.5deg);  }
-}
-
-@keyframes fog-drift-b {
-  from { transform: translate3d( 15%, -2%,   0) scale(1.12) rotate(1deg);    }
-  to   { transform: translate3d(-15%,  2.5%, 0) scale(1.04) rotate(-1.5deg); }
-}
-
-@keyframes fog-drift-c {
-  from { transform: scaleX(-1) translate3d(-17%,  2%, 0) scale(1.10); }
-  to   { transform: scaleX(-1) translate3d( 17%, -3%, 0) scale(1.20); }
-}
-
-/* Density drift. Periods are coprime-ish with the drift loops so the layers
-   never resynchronise into a visibly repeating pattern. */
-@keyframes fog-breathe-a {
-  from { opacity: .70; }
-  to   { opacity: 1;   }
-}
-
-@keyframes fog-breathe-b {
-  from { opacity: 1;   }
-  to   { opacity: .66; }
-}
-
-/* Hold perceived drift roughly constant across viewport widths. Narrow screens
-   shorten the loops; wide screens stretch them.
-
-   Mobile is deliberately left at its previous, slower value and never gets the
-   warp keyframes below: the fog is already costing too much there and reads
-   poorly on a small screen. Parked pending a proper mobile pass. */
-@media (max-width: 600px)  { .fog { --fog-speed: .45; } }
-
-@media (min-width: 601px) and (max-width: 1000px) { .fog { --fog-speed: .48; } }
-
-@media (min-width: 1601px) { .fog { --fog-speed: .88; } }
-
-/* --------------------------------------------------------------------------
-   Warp — internal deformation, ≥601px only.
-
-   Translating a rigid texture is drift, not fog: the cloud keeps its exact
-   shape and only changes position. These variants add non-uniform scale (the
-   bank stretches along one axis while compressing on the other) and a skew
-   that shears it, so the silhouette itself churns as it travels.
-
-   Deliberately NOT animating the feTurbulence: warping the noise itself would
-   look better and would re-rasterize the filter every frame, which is the
-   original stutter. Scale and skew are transform, so they stay composited.
-
-   Every keyframe lists the same functions in the same order. Mismatched
-   sequences fall back to matrix decomposition, which interpolates skew and
-   scale unpredictably and can flip the shape mid-cycle.
-   -------------------------------------------------------------------------- */
-@media (min-width: 601px) {
-  .fog__sheet--far::before  { animation-name: fog-warp-a, fog-breathe-a; }
-  .fog__sheet--mid::before  { animation-name: fog-warp-b, fog-breathe-b; }
-  .fog__sheet--near::before { animation-name: fog-warp-c, fog-breathe-a; }
-}
-
-@keyframes fog-warp-a {
-  0%   { transform: translate3d(-13%,  1.5%, 0) rotate(-1deg)   skewX(-3deg) scale(1.10, 1.04); }
-  50%  { transform: translate3d(  0%, -1%,   0) rotate(0.4deg)  skewX(3.5deg) scale(1.02, 1.17); }
-  100% { transform: translate3d( 13%, -1.5%, 0) rotate(1.5deg)  skewX(-2deg) scale(1.15, 1.05); }
-}
-
-@keyframes fog-warp-b {
-  0%   { transform: translate3d( 15%, -2%,   0) rotate(1deg)    skewX(2.5deg)  scale(1.14, 1.06); }
-  50%  { transform: translate3d(  0%,  1%,   0) rotate(-0.5deg) skewX(-4deg)   scale(1.20, 1.02); }
-  100% { transform: translate3d(-15%,  2.5%, 0) rotate(-1.5deg) skewX(1.5deg)  scale(1.05, 1.15); }
-}
-
-@keyframes fog-warp-c {
-  0%   { transform: scaleX(-1) translate3d(-17%,  2%, 0) rotate(0.5deg)  skewX(-2deg) scale(1.10, 1.08); }
-  50%  { transform: scaleX(-1) translate3d(  0%, -0.5%, 0) rotate(-1deg) skewX(3deg)  scale(1.22, 1.02); }
-  100% { transform: scaleX(-1) translate3d( 17%, -3%, 0) rotate(1.2deg)  skewX(-1deg) scale(1.12, 1.20); }
-}
-
-/* Everything above the atmosphere. */
+/* Keep the homepage interface above its project art. */
 .marquee, .roster, .site-foot { position: relative; z-index: 1; }
-
-/* Recede: applied to the whole page except the clicked card while the mist
-   closes, so the transition reads as depth rather than an overlay. */
-.is-leaving .marquee,
-.is-leaving .site-foot,
-.is-leaving .card:not(.is-chosen),
-.is-leaving .case-wrap,
-.is-leaving .case-foot {
-  transition: opacity 320ms var(--ease), filter 320ms var(--ease), transform 420ms var(--ease);
-  opacity: .18;
-  filter: blur(7px);
-  transform: scale(.985);
-}
 
 /* --------------------------------------------------------------------------
    4. Marquee (header)
@@ -676,9 +413,7 @@ img { max-width: 100%; display: block; }
    from main.js instead: added once per genuine entry, dropped on animationend,
    and held through a short grace period so a flicker cannot re-fire it.
 
-   These must stay ABOVE the :active and .is-chosen rules — all three are
-   (0,3,0) and (0,2,1), so source order is what lets their `animation: none`
-   guards win. */
+   These stay above :active so the press state can cancel the animation. */
 .card:focus-visible .card__inner { animation: card-pop 460ms var(--ease-out); }
 .card.is-popping    .card__inner { animation: card-pop 460ms var(--ease-out); }
 
@@ -707,21 +442,6 @@ img { max-width: 100%; display: block; }
   transform: translateY(-2px) scale(.995);
   animation: none;
   transition-duration: 110ms;
-}
-
-/* The chosen card advances toward the viewer as the mist takes it. */
-.card.is-chosen .card__float { animation-play-state: paused; }
-
-.card.is-chosen .card__inner {
-  /* The card is still hovered at click time, so the pop may be mid-flight and
-     would keep control of transform while the mist tries to advance the card.
-     Cancel it. */
-  animation: none;
-  transition: transform 620ms var(--ease-in), box-shadow 620ms var(--ease);
-  transform: translateY(-14px) scale(1.07);
-  box-shadow:
-    inset 0 1px 0 rgba(245, 245, 240, .14),
-    0 48px 110px -10px color-mix(in srgb, var(--accent) 68%, transparent);
 }
 
 .card--bev   { --accent: var(--bev); }
@@ -1003,109 +723,6 @@ img { max-width: 100%; display: block; }
   to { --deck-angle: 360deg; }
 }
 
-/* Card art — Into the Storm's misty edge (A5) ----------------------------- */
-
-/* The two cards deliberately do NOT share a treatment. bev gets hard, precise,
-   travelling light because it is a product; the storm gets soft weather and
-   sparks because it is a game. What they do share is an intensity budget —
-   comparable peak brightness and a comparable rate of change — so the page
-   still reads as one page. Both run on --accent, never on the profile palette.
-
-   Three layers, three phases: the element carries the mist, and its two
-   pseudo-elements carry a sparkle set each. A single element cannot animate its
-   background layers independently, so out-of-phase sparkles need separate
-   boxes — that is the whole reason .haze exists in the markup. */
-.haze {
-  position: absolute;
-  inset: 0;
-  z-index: 3;
-  border-radius: inherit;
-  pointer-events: none;
-  /* Two rings at different depths: a tight one that reads as a lit edge and a
-     broad one that reads as fog pressing against the glass. */
-  box-shadow:
-    inset 0 0 14px -2px color-mix(in srgb, var(--accent) 42%, transparent),
-    inset 0 0 44px -14px color-mix(in srgb, var(--accent) 55%, transparent);
-  opacity: .62;
-  animation: haze-breathe 11s var(--ease) infinite alternate;
-  transition: opacity 360ms var(--ease);
-}
-
-.card:hover .haze { opacity: .95; }
-
-/* A3 measured the floor at ~5px/s before a soft texture stops reading as
-   moving. This one is not travelling, it is breathing, so the equivalent floor
-   is amplitude: below about .2 of opacity swing the change is invisible on a
-   low-contrast tint. .62 -> .88 clears that without ever pulsing hard enough to
-   compete with the near fog sheet behind the card. */
-@keyframes haze-breathe {
-  to { opacity: .88; }
-}
-
-/* Sparkles. Fixed positions rather than anything random-looking: a handful of
-   points hugging the frame, sized between 1 and 1.6px so they read as specks of
-   light and not as dust on the screen.
-
-   Both sets are masked to a band around the edge — a sparkle in the middle of
-   the key art would look like a dead pixel. The mask is a rectangle inset from
-   all four sides, subtracted from the full box, which leaves only the border
-   region lit. */
-.haze::before,
-.haze::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  -webkit-mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-          mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-          mask-composite: exclude;
-  padding: 13px;
-}
-
-.haze::before {
-  background:
-    radial-gradient(circle at 11% 14%,  rgba(245,245,240,.95) 0 1.1px, transparent 2.4px),
-    radial-gradient(circle at 47% 4%,   color-mix(in srgb, var(--accent) 90%, #fff) 0 1.5px, transparent 3px),
-    radial-gradient(circle at 88% 27%,  rgba(245,245,240,.9)  0 1px,   transparent 2.2px),
-    radial-gradient(circle at 71% 96%,  color-mix(in srgb, var(--accent) 90%, #fff) 0 1.3px, transparent 2.8px);
-  animation: sparkle-a 5.5s var(--ease) infinite;
-}
-
-.haze::after {
-  background:
-    radial-gradient(circle at 4% 62%,   color-mix(in srgb, var(--storm-gold) 92%, #fff) 0 1.2px, transparent 2.6px),
-    radial-gradient(circle at 27% 97%,  rgba(245,245,240,.9)  0 1px,   transparent 2.2px),
-    radial-gradient(circle at 96% 71%,  color-mix(in srgb, var(--accent) 90%, #fff) 0 1.4px, transparent 2.9px),
-    radial-gradient(circle at 60% 3%,   rgba(245,245,240,.85) 0 1px,   transparent 2.2px);
-  animation: sparkle-b 7.3s var(--ease) infinite;
-  animation-delay: 2.4s;
-}
-
-/* Each set spends most of its cycle dark and ignites briefly, so the two
-   together read as occasional rather than as a string of fairy lights. The
-   100% frame is the dark one on purpose: under reduced motion the duration
-   collapses to ~0 and the animation parks on its last keyframe, which must
-   leave the sparkles off rather than frozen at full brightness. */
-@keyframes sparkle-a {
-  0%, 100% { opacity: 0; transform: scale(.88); }
-  14%      { opacity: .95; transform: scale(1); }
-  30%      { opacity: 0; transform: scale(.85); }
-}
-
-@keyframes sparkle-b {
-  0%, 100% { opacity: 0; transform: scale(.88); }
-  11%      { opacity: .8; transform: scale(1); }
-  26%      { opacity: 0; transform: scale(.85); }
-}
-
-.card:hover .haze::before,
-.card:hover .haze::after { filter: brightness(1.5); }
-
 .card__foot {
   display: flex;
   align-items: flex-end;
@@ -1170,8 +787,7 @@ img { max-width: 100%; display: block; }
    blobs with soft border-radii, clipped to the button — the same trick as the
    classic liquid-button demo, but anchored to a level that rises on hover
    instead of a rectangle that slides. Deliberately not an SVG goo filter,
-   which would re-rasterize every frame for the same reason the fog does not
-   filter its moving layers. */
+   which would re-rasterize every moving frame. */
 .me__dot {
   position: relative;
   display: grid;
@@ -1500,15 +1116,9 @@ img { max-width: 100%; display: block; }
    here are the fallback for when the script never runs.
    -------------------------------------------------------------------------- */
 /* --------------------------------------------------------------------------
-   The profile component's own palette. Scoped to `.me` on purpose: the site's
-   violet (`--mist-*`) still owns the fog, the page transition, focus rings and
-   text selection, and none of that changes. Only the ball and the panel it
-   grows into speak this language.
-
-   Mapped by ROLE, not swapped one-for-one. Pink carries light — rim highlights,
-   the surface of the liquid, anything that would have been `--mist-glow`. Blue
-   carries depth, where `--mist-deep` sat. The purple is the bridge, and it is
-   deliberately the smallest share of the three.
+   The profile component's own palette. Scoped to `.me` so only the ball and
+   the panel it grows into speak this brighter language. Pink carries light,
+   blue carries depth, and purple bridges the two.
    -------------------------------------------------------------------------- */
 .me {
   --me-hot:  #ff0080;
@@ -1720,9 +1330,8 @@ img { max-width: 100%; display: block; }
    plus a bloom that is deliberately OUTSIDE the skin's clip so the glow
    radiates past the border rather than stopping dead at it.
 
-   Both are gradient-only. The goo filter is affordable on a 54px button and
-   is not affordable on a 340px panel sitting over three animated fog sheets,
-   which is the same reasoning that keeps the fog itself unfiltered.
+   Both are gradient-only. The goo filter is affordable on a 54px button but
+   too expensive on a 340px panel.
    -------------------------------------------------------------------------- */
 .me__aura {
   position: absolute;
@@ -2223,7 +1832,7 @@ img { max-width: 100%; display: block; }
   transition: transform 300ms var(--ease-out);
 }
 
-.contact a:hover { color: var(--mist-glow); }
+.contact a:hover { color: var(--violet-glow); }
 .contact a:hover::after { transform: scaleX(1); }
 
 /* The email copy button. Same behaviour as the home page's me panel — the
@@ -2254,7 +1863,7 @@ img { max-width: 100%; display: block; }
   transition: transform 300ms var(--ease-out);
 }
 
-.contact__copy:hover { color: var(--mist-glow); }
+.contact__copy:hover { color: var(--violet-glow); }
 .contact__copy:hover::after { transform: scaleX(1); }
 .contact__copy:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
 
@@ -2298,270 +1907,11 @@ img { max-width: 100%; display: block; }
   white-space: nowrap;
 }
 
-/* Cross-document View Transitions — pure seam-hider layered over the
-   sessionStorage handoff below, not a replacement for it. Where supported,
-   the browser snapshots the outgoing frame and holds it on screen while the
-   new document loads, then cross-fades into its first paint; both frames are
-   opaque fog at the same origin point, so the cross-fade reads as nothing
-   happening. Firefox does not implement this at-rule at all yet (tracked:
-   bugzil.la/1860854) — the block is silently ignored there and the
-   reconstruction below runs unchanged, which is why it stays.
-   Gated on prefers-reduced-motion: the UA's default root transition is
-   itself a cross-fade, which is motion the rest of this component already
-   opts out of. */
-@media (prefers-reduced-motion: no-preference) {
-  @view-transition {
-    navigation: auto;
-  }
-}
-
-/* --------------------------------------------------------------------------
-   7. The mist — §4's signature moment
-   Layered masks over a single animated radius. Turbulence warps each layer's
-   painted fog once (filters resolve before masking, so expanding the mask does
-   not re-rasterize the noise).
-   -------------------------------------------------------------------------- */
-
-/* Origin and tint live on :root so the inline head script on an arriving page
-   can set them before first paint — the fog must already be there when the new
-   document paints, or the navigation seam shows. */
-:root {
-  --ox:   50%;
-  --oy:   50%;
-  --tint: var(--mist-glow);
-}
-
-.mist {
-  position: fixed;
-  inset: 0;
-  z-index: 90;
-  visibility: hidden;
-  pointer-events: none;
-}
-
-.mist.is-entering { visibility: visible; pointer-events: auto; }
-
-.mist > * {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-
-/* Shared soft-edged reveal. The feather spans the outer ~45% of the radius —
-   this is the whole difference between fog and a circle wipe. */
-.mist__blur,
-.mist__veil,
-.mist__wisp {
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-}
-
-.mist__blur {
-  backdrop-filter: blur(18px) saturate(.7);
-  -webkit-backdrop-filter: blur(18px) saturate(.7);
-  -webkit-mask-image: radial-gradient(circle calc(var(--mr) * .96) at var(--ox) var(--oy),
-                      #000 0%, #000 62%, rgba(0,0,0,.4) 84%, transparent 100%);
-  mask-image: radial-gradient(circle calc(var(--mr) * .96) at var(--ox) var(--oy),
-              #000 0%, #000 62%, rgba(0,0,0,.4) 84%, transparent 100%);
-}
-
-.mist__veil {
-  background:
-    radial-gradient(circle 58vmax at var(--ox) var(--oy),
-      color-mix(in srgb, var(--tint) 24%, var(--mist-mid)) 0%,
-      var(--mist-deep) 40%,
-      rgba(7, 6, 11, .97) 76%);
-  -webkit-mask-image: radial-gradient(circle var(--mr) at var(--ox) var(--oy),
-                      #000 0%, #000 55%, rgba(0,0,0,.55) 78%, transparent 100%);
-  mask-image: radial-gradient(circle var(--mr) at var(--ox) var(--oy),
-              #000 0%, #000 55%, rgba(0,0,0,.55) 78%, transparent 100%);
-}
-
-/* Wisps: turbulence-warped fog blobs, each on its own radius multiplier and
-   drift, so the leading edge is lumpy and never a clean circle. */
-.mist__wisp {
-  mix-blend-mode: screen;
-  opacity: .85;
-  will-change: transform;
-}
-
-.mist__wisp--a {
-  background:
-    radial-gradient(46% 38% at calc(var(--ox) - 12vmin) calc(var(--oy) - 8vmin),
-      color-mix(in srgb, var(--mist-core) 58%, transparent), transparent 68%),
-    radial-gradient(34% 30% at calc(var(--ox) + 16vmin) calc(var(--oy) + 10vmin),
-      color-mix(in srgb, var(--tint) 30%, transparent), transparent 70%);
-  filter: url(#mist-warp-a);
-  -webkit-mask-image: radial-gradient(circle calc(var(--mr) * 1.16) at var(--ox) var(--oy),
-                      #000 0%, #000 38%, transparent 100%);
-  mask-image: radial-gradient(circle calc(var(--mr) * 1.16) at var(--ox) var(--oy),
-              #000 0%, #000 38%, transparent 100%);
-}
-
-.mist__wisp--b {
-  background:
-    radial-gradient(52% 44% at calc(var(--ox) + 10vmin) calc(var(--oy) - 14vmin),
-      color-mix(in srgb, var(--mist-glow) 42%, transparent), transparent 72%);
-  filter: url(#mist-warp-b);
-  opacity: .6;
-  -webkit-mask-image: radial-gradient(circle calc(var(--mr) * 1.3) at var(--ox) var(--oy),
-                      #000 0%, #000 28%, transparent 100%);
-  mask-image: radial-gradient(circle calc(var(--mr) * 1.3) at var(--ox) var(--oy),
-              #000 0%, #000 28%, transparent 100%);
-}
-
-.mist__wisp--c {
-  background:
-    radial-gradient(60% 50% at var(--ox) var(--oy),
-      color-mix(in srgb, var(--mist-mid) 72%, transparent), transparent 66%);
-  filter: url(#mist-warp-a);
-  opacity: .5;
-  -webkit-mask-image: radial-gradient(circle calc(var(--mr) * .82) at var(--ox) var(--oy),
-                      #000 0%, #000 46%, transparent 100%);
-  mask-image: radial-gradient(circle calc(var(--mr) * .82) at var(--ox) var(--oy),
-              #000 0%, #000 46%, transparent 100%);
-}
-
-/* Enter: 700ms of fog. --mist-max is set to ~2.2x the distance to the furthest
-   corner, because the mask's opaque core only reaches 55% of the radius — at a
-   smaller max the screen corners would still be see-through at the moment we
-   navigate, and the page swap would show. */
-.mist.is-entering {
-  animation: mist-grow 700ms var(--ease-fog) forwards;
-}
-
-@keyframes mist-grow {
-  from { --mr: 0px; }
-  to   { --mr: var(--mist-max, 120vmax); }
-}
-
-.mist.is-entering .mist__wisp--a { animation: wisp-a 700ms var(--ease-out) forwards; }
-.mist.is-entering .mist__wisp--b { animation: wisp-b 700ms var(--ease-out) forwards; }
-.mist.is-entering .mist__wisp--c { animation: wisp-c 820ms var(--ease-out) forwards; }
-
-@keyframes wisp-a {
-  from { transform: translate3d(0, 0, 0) rotate(0deg) scale(.8); }
-  to   { transform: translate3d(-3%, -4%, 0) rotate(9deg) scale(1.25); }
-}
-
-@keyframes wisp-b {
-  from { transform: translate3d(0, 0, 0) rotate(0deg) scale(.85); }
-  to   { transform: translate3d(4%, 3%, 0) rotate(-11deg) scale(1.3); }
-}
-
-@keyframes wisp-c {
-  from { transform: translate3d(0, 0, 0) rotate(0deg) scale(.9); }
-  to   { transform: translate3d(2%, -6%, 0) rotate(5deg) scale(1.18); }
-}
-
-/* Exit: the fog the visitor arrived inside, thinning and lifting away.
-   Not a reverse wipe — it disperses, which is how fog actually clears.
-
-   Driven entirely by a class the inline head script puts on <html>, so the fog
-   is painted with the very first frame of the new document and clears without
-   waiting on main.js. If the script never runs, no class is set and the page
-   simply renders normally. */
-.is-arriving .mist {
-  visibility: visible;
-  --mr: var(--mist-max);
-  animation: mist-clear 980ms var(--ease-out) 80ms forwards;
-}
-
-@keyframes mist-clear {
-  from { opacity: 1; }
-  to   { opacity: 0; visibility: hidden; }
-}
-
-.is-arriving .mist__blur { animation: blur-clear 980ms var(--ease-out) 80ms forwards; }
-
-@keyframes blur-clear {
-  from { backdrop-filter: blur(18px) saturate(.7); -webkit-backdrop-filter: blur(18px) saturate(.7); }
-  to   { backdrop-filter: blur(0px) saturate(1);   -webkit-backdrop-filter: blur(0px) saturate(1);   }
-}
-
-.is-arriving .mist__wisp--a { animation: wisp-lift-a 1180ms var(--ease-out) forwards; }
-.is-arriving .mist__wisp--b { animation: wisp-lift-b 1180ms var(--ease-out) forwards; }
-.is-arriving .mist__wisp--c { animation: wisp-lift-c 1180ms var(--ease-out) forwards; }
-
-/* Content surfaces from under the fog rather than starting fully present. */
-.is-arriving .case-wrap,
-.is-arriving .case-foot,
-.is-arriving .notfound > * {
-  animation: surface 760ms var(--ease-out) 120ms both;
-}
-
-@keyframes surface {
-  from { opacity: 0; transform: translateY(10px); filter: blur(3px); }
-  to   { opacity: 1; transform: none;             filter: blur(0);   }
-}
-
-@keyframes wisp-lift-a {
-  from { transform: translate3d(-3%, -4%, 0) rotate(9deg)  scale(1.25); opacity: .85; }
-  to   { transform: translate3d(-8%, -16%, 0) rotate(19deg) scale(1.7); opacity: 0; }
-}
-
-@keyframes wisp-lift-b {
-  from { transform: translate3d(4%, 3%, 0)   rotate(-11deg) scale(1.3); opacity: .6; }
-  to   { transform: translate3d(10%, -12%, 0) rotate(-22deg) scale(1.8); opacity: 0; }
-}
-
-@keyframes wisp-lift-c {
-  from { transform: translate3d(2%, -6%, 0)  rotate(5deg)  scale(1.18); opacity: .5; }
-  to   { transform: translate3d(-4%, -20%, 0) rotate(12deg) scale(1.65); opacity: 0; }
-}
-
-/* Label — the project name, held inside the fog across the navigation. */
-.mist__label {
-  display: grid;
-  place-content: center;
-  text-align: center;
-}
-
-.mist__label span {
-  display: block;
-  font-family: var(--display);
-  font-size: clamp(2rem, 7vw, 4.75rem);
-  letter-spacing: .1em;
-  line-height: 1;
-  text-transform: uppercase;
-  color: color-mix(in srgb, var(--tint) 78%, var(--text));
-  text-shadow: 0 0 42px color-mix(in srgb, var(--tint) 45%, transparent);
-  opacity: 0;
-}
-
-.mist.is-entering .mist__label span {
-  animation: label-rise 300ms var(--ease-out) 240ms forwards;
-}
-
-@keyframes label-rise {
-  from { opacity: 0; transform: translateY(14px) scale(.97); filter: blur(6px); }
-  to   { opacity: 1; transform: none;                        filter: blur(0);   }
-}
-
-.is-arriving .mist__label span {
-  opacity: 1;
-  animation: label-dissolve 520ms var(--ease) 80ms forwards;
-}
-
-@keyframes label-dissolve {
-  from { opacity: 1; transform: none;                          filter: blur(0);    }
-  to   { opacity: 0; transform: translateY(-16px) scale(1.04); filter: blur(10px); }
-}
-
-/* The turbulence <svg> is inline in the document but must never take up space. */
-.mist-defs {
-  position: absolute;
-  width: 0;
-  height: 0;
-  overflow: hidden;
-  pointer-events: none;
-}
-
 /* --------------------------------------------------------------------------
    8. Case study pages — §5: quieter than the homepage, readability over flair.
    -------------------------------------------------------------------------- */
 
-.case { --accent: var(--mist-glow); }
+.case { --accent: var(--violet-glow); }
 .case.theme-bev   { --accent: var(--bev); }
 .case.theme-storm { --accent: var(--storm); }
 .case.theme-ygr   { --accent: var(--ygr); }
@@ -3233,17 +2583,6 @@ body.lightbox-open { overflow: hidden; }
   overflow: hidden;
 }
 
-.notfound::before {
-  content: '';
-  position: absolute;
-  inset: -25%;
-  background: radial-gradient(40% 40% at 50% 45%,
-              color-mix(in srgb, var(--mist-core) 34%, transparent), transparent 70%);
-  filter: blur(50px);
-  animation: drift-slow 26s ease-in-out infinite alternate;
-  pointer-events: none;
-}
-
 .notfound > * { position: relative; }
 
 .notfound h1 {
@@ -3252,15 +2591,12 @@ body.lightbox-open { overflow: hidden; }
   margin: 0;
   line-height: .85;
   letter-spacing: .04em;
-  color: transparent;
-  background: linear-gradient(180deg, var(--text) 40%, var(--mist-core) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
+  color: var(--text);
 }
 
 .notfound p { color: var(--text-dim); }
 
-.notfound a { color: var(--mist-glow); }
+.notfound a { color: var(--violet-glow); }
 
 /* --------------------------------------------------------------------------
    10. Responsive
@@ -3340,9 +2676,7 @@ body.lightbox-open { overflow: hidden; }
 
 /* --------------------------------------------------------------------------
    11. Reduced motion — §4 requires this.
-   Idle drift, tilt, float and fog are all removed. The transition degrades to
-   a short cross-fade, which carries no vestibular risk but still marks the
-   navigation rather than snapping.
+   Idle drift, tilt, float and component motion are removed.
    -------------------------------------------------------------------------- */
 
 @media (prefers-reduced-motion: reduce) {
@@ -3353,20 +2687,16 @@ body.lightbox-open { overflow: hidden; }
     scroll-behavior: auto !important;
   }
 
-  .home::before,
-  .notfound::before,
   /* The panel still opens and every photo still lands in its final place —
      it simply arrives rather than springing. */
   .me__halo        { animation: none; }
   .me__dot         { animation: none; opacity: .85; }
-  /* The fill stays painted and simply stops sloshing — same rule as the fog:
-     no motion, but not a blank button either. */
+  /* The fill stays painted and simply stops sloshing. */
   .me__goo::before,
   .me__goo::after { animation: none; }
   .me__mote        { animation: none; }
   /* No morph: the skin is simply already the panel, at the panel's colour, and
-     the aura is painted but still. Reduced motion means no MOTION, not a bare
-     grey box — same rule as the fog. */
+     the aura is painted but still. */
   .me__skin        { animation: none; transform: none; }
   .me__skin::before { animation: none; opacity: 0; }
   .me__content     { animation: none; }
@@ -3383,23 +2713,6 @@ body.lightbox-open { overflow: hidden; }
   .me-open .roster,
   .me-open .marquee { filter: none; opacity: .7; }
 
-  /* Reduced motion means no MOTION, not no ATMOSPHERE. The fog stays fully
-     painted and simply stops moving — a still, lit, foggy page rather than a
-     bare one. Sheets are posed at their mid-drift positions (the keyframes
-     would otherwise snap them to `from`, which stacks all three in register and
-     reads as one flat wash) and lifted slightly in opacity, since a static
-     texture reads thinner than a moving one. */
-  .fog__sheet          { transition: none; transform: none; }
-  .fog__sheet::before  { animation: none !important; }
-
-  .fog__sheet--far  { opacity: .32; }
-  .fog__sheet--mid  { opacity: .25; }
-  .fog__sheet--near { opacity: .19; }
-
-  .fog__sheet--far::before  { transform: translate3d( 1%, -1%, 0) scale(1.12) rotate(.5deg);  }
-  .fog__sheet--mid::before  { transform: translate3d(-2%,  2%, 0) scale(1.07) rotate(-1deg);  }
-  .fog__sheet--near::before { transform: scaleX(-1) translate3d(1%, -1%, 0) scale(1.15);      }
-
   .card__float               { animation: none; }
   .card__tilt                { transform: none !important; }
   /* No pop, no squash. The hover still reads through border, glow and sheen,
@@ -3415,36 +2728,6 @@ body.lightbox-open { overflow: hidden; }
   .deck.is-lifted,
   .deck.is-popping             { transform: none; animation: none; }
   .card:hover .card__art > img { transform: scale(1.02); }
-  .card.is-chosen .card__inner { transform: none; }
-
-  .is-leaving .marquee,
-  .is-leaving .site-foot,
-  .is-leaving .card:not(.is-chosen),
-  .is-leaving .case-wrap,
-  .is-leaving .case-foot { opacity: 1; filter: none; transform: none; }
-
-  /* Fade only — no expanding fog, no wisps, no label motion. The fade itself is
-     driven by main.js through the Web Animations API, because the blanket
-     transition-duration override above would otherwise flatten it to nothing. */
-  .mist__wisp { display: none; }
-  .mist__blur { display: none; }
-
-  .mist.is-entering,
-  .is-arriving .mist { animation: none !important; }
-
-  .mist__veil {
-    -webkit-mask-image: none;
-    mask-image: none;
-    background: var(--bg);
-  }
-
-  .is-arriving .mist { visibility: hidden; }
-
-  .is-arriving .case-wrap,
-  .is-arriving .case-foot,
-  .is-arriving .notfound > * { animation: none; opacity: 1; filter: none; transform: none; }
-
-  .mist__label span { opacity: 0 !important; animation: none !important; }
 }
 
 /* --------------------------------------------------------------------------

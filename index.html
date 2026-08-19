@@ -25,41 +25,18 @@
       href="assets/fonts/quicksand-latin.woff2">
 <link rel="preload" as="font" type="font/woff2" crossorigin
       href="assets/fonts/inter-latin.woff2">
-<link rel="stylesheet" href="assets/styles.css?v=a20">
-<link rel="stylesheet" href="assets/cinematic-split-preview.css?v=7">
+<link rel="stylesheet" href="assets/styles.css?v=a22">
+<link rel="stylesheet" href="assets/cinematic-split-preview.css?v=8">
 
-<script>
-(function () {
-  document.documentElement.classList.add('js');
-  try {
-    var raw = sessionStorage.getItem('wd:mist');
-    if (!raw) return;
-    var m = JSON.parse(raw);
-    if (!m || Date.now() - m.t > 6000) return;
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    var s = document.documentElement.style;
-    s.setProperty('--ox', m.ox + 'px');
-    s.setProperty('--oy', m.oy + 'px');
-    s.setProperty('--mist-max', m.max + 'px');
-    s.setProperty('--tint', m.tint);
-    document.documentElement.classList.add('is-arriving');
-  } catch (e) {}
-})();
-</script>
+<script>document.documentElement.classList.add('js');</script>
 </head>
 <body class="home cinematic-preview">
-
-  <div class="fog" aria-hidden="true">
-    <div class="fog__sheet fog__sheet--far"></div>
-    <div class="fog__sheet fog__sheet--mid"></div>
-    <div class="fog__sheet fog__sheet--near"></div>
-  </div>
 
   <h1 class="vh">William Dooling — selected work</h1>
 
   <main class="cinematic-preview__stage" aria-label="Selected work">
     <a class="cinematic-project cinematic-project--bev"
-       href="work/bevfantasy/" data-mist data-label="bevfantasy"
+       href="work/bevfantasy/" data-prefetch
        aria-label="View the Bev Fantasy case study">
       <span class="cinematic-project__art cinematic-project__art--bev" aria-hidden="true">
         <span class="deck">
@@ -90,12 +67,11 @@
     </a>
 
     <a class="cinematic-project cinematic-project--storm"
-       href="work/into-the-storm/" data-mist data-label="Into the Storm"
+       href="work/into-the-storm/" data-prefetch
        aria-label="View the Into the Storm case study">
       <span class="cinematic-project__art cinematic-project__art--storm" aria-hidden="true">
         <img src="assets/img/into-the-storm-capsule.webp" alt=""
              width="1200" height="659" loading="eager" decoding="async">
-        <span class="haze"></span>
       </span>
       <span class="cinematic-project__shade" aria-hidden="true"></span>
       <span class="cinematic-logo">
@@ -110,14 +86,14 @@
     </a>
 
     <a class="cinematic-project cinematic-project--ygg"
-       href="work/yggdrasil/" data-mist data-label="Yggdrasil"
+       href="work/yggdrasil/" data-prefetch
        aria-label="View the Yggdrasil case study">
       <img class="cinematic-project--ygg__logo"
            src="assets/img/yggdrasil-logo.webp" alt="Yggdrasil"
            width="520" height="520" loading="eager" decoding="async">
       <span class="cinematic-logo__info cinematic-logo__info--ygg">
-        <span>Org Website</span>
-        <b>Live</b>
+        <span>Internal org site</span>
+        <b>In use</b>
       </span>
     </a>
   </main>
@@ -207,28 +183,6 @@
     </div>
   </footer>
 
-  <div class="mist" aria-hidden="true">
-    <div class="mist__blur"></div>
-    <div class="mist__veil"></div>
-    <div class="mist__wisp mist__wisp--c"></div>
-    <div class="mist__wisp mist__wisp--a"></div>
-    <div class="mist__wisp mist__wisp--b"></div>
-    <div class="mist__label"><span></span></div>
-  </div>
-
-  <svg class="mist-defs" aria-hidden="true" focusable="false" width="0" height="0">
-    <defs>
-      <filter id="mist-warp-a" x="-35%" y="-35%" width="170%" height="170%" color-interpolation-filters="sRGB">
-        <feTurbulence type="fractalNoise" baseFrequency="0.0055 0.011" numOctaves="4" seed="7" result="n"/>
-        <feDisplacementMap in="SourceGraphic" in2="n" scale="170" xChannelSelector="R" yChannelSelector="G"/>
-      </filter>
-      <filter id="mist-warp-b" x="-35%" y="-35%" width="170%" height="170%" color-interpolation-filters="sRGB">
-        <feTurbulence type="fractalNoise" baseFrequency="0.009 0.006" numOctaves="3" seed="23" result="n"/>
-        <feDisplacementMap in="SourceGraphic" in2="n" scale="120" xChannelSelector="R" yChannelSelector="G"/>
-      </filter>
-    </defs>
-  </svg>
-
-  <script src="assets/main.js?v=a20"></script>
+  <script src="assets/main.js?v=a21"></script>
 </body>
 </html>

@@ -28,37 +28,16 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin
       href="../assets/fonts/inter-latin.woff2">
 
-<link rel="stylesheet" href="../assets/styles.css?v=a20">
+<link rel="stylesheet" href="../assets/styles.css?v=a22">
 
-<script>
-/* Paints the arrival fog before this document's first frame. See assets/main.js. */
-(function () {
-  /* Marks JS as alive before first paint. Scroll-reveal CSS hides its elements
-     only under this class, so a page whose scripts never load still shows all
-     of its content. */
-  document.documentElement.classList.add('js');
-  try {
-    var raw = sessionStorage.getItem('wd:mist');
-    if (!raw) return;
-    var m = JSON.parse(raw);
-    if (!m || Date.now() - m.t > 6000) return;
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    var s = document.documentElement.style;
-    s.setProperty('--ox', m.ox + 'px');
-    s.setProperty('--oy', m.oy + 'px');
-    s.setProperty('--mist-max', m.max + 'px');
-    s.setProperty('--tint', m.tint);
-    document.documentElement.classList.add('is-arriving');
-  } catch (e) {}
-})();
-</script>
+<script>document.documentElement.classList.add('js');</script>
 </head>
 <body class="case">
 
 <div class="case-wrap">
 
   <nav class="case-nav" aria-label="Breadcrumb">
-    <a class="case-back" href="../" data-mist><span aria-hidden="true">←</span> Back</a>
+    <a class="case-back" href="../" data-prefetch><span aria-hidden="true">←</span> Back</a>
   </nav>
 
   <header class="case-head">
@@ -112,7 +91,7 @@
 </div>
 
 <footer class="case-foot">
-  <a class="case-next" href="../work/bevfantasy/" data-mist data-label="bevfantasy"
+  <a class="case-next" href="../work/bevfantasy/" data-prefetch
      style="--next-accent: var(--bev);">
     <div>
       <p class="micro case-next__label">Case study</p>
@@ -122,28 +101,6 @@
   </a>
 </footer>
 
-<div class="mist" aria-hidden="true">
-  <div class="mist__blur"></div>
-  <div class="mist__veil"></div>
-  <div class="mist__wisp mist__wisp--c"></div>
-  <div class="mist__wisp mist__wisp--a"></div>
-  <div class="mist__wisp mist__wisp--b"></div>
-  <div class="mist__label"><span>About</span></div>
-</div>
-
-<svg class="mist-defs" aria-hidden="true" focusable="false" width="0" height="0">
-  <defs>
-    <filter id="mist-warp-a" x="-35%" y="-35%" width="170%" height="170%" color-interpolation-filters="sRGB">
-      <feTurbulence type="fractalNoise" baseFrequency="0.0055 0.011" numOctaves="4" seed="7" result="n"/>
-      <feDisplacementMap in="SourceGraphic" in2="n" scale="170" xChannelSelector="R" yChannelSelector="G"/>
-    </filter>
-    <filter id="mist-warp-b" x="-35%" y="-35%" width="170%" height="170%" color-interpolation-filters="sRGB">
-      <feTurbulence type="fractalNoise" baseFrequency="0.009 0.006" numOctaves="3" seed="23" result="n"/>
-      <feDisplacementMap in="SourceGraphic" in2="n" scale="120" xChannelSelector="R" yChannelSelector="G"/>
-    </filter>
-  </defs>
-</svg>
-
-<script src="../assets/main.js?v=a20"></script>
+<script src="../assets/main.js?v=a21"></script>
 </body>
 </html>
