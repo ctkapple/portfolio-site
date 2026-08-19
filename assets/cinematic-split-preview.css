@@ -386,9 +386,9 @@
   .cinematic-project--ygg {
     position: absolute;
     left: 50%;
-    bottom: calc(50svh - 72px);
-    width: 144px;
-    min-height: 144px;
+    bottom: calc(50svh - 64px);
+    width: 128px;
+    min-height: 128px;
     margin: 0;
     transform: translateX(-50%);
   }
