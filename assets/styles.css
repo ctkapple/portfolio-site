@@ -2023,7 +2023,7 @@ img { max-width: 100%; display: block; }
   top: .12em;
   bottom: .12em;
   width: 2px;
-  background: var(--accent);
+  background: var(--bar, var(--accent));
   border-radius: 2px;
 }
 
@@ -2596,9 +2596,22 @@ img { max-width: 100%; display: block; }
 
 .case.theme-storm .case-head__index { display: none; }
 
+/* Centering treatment carried over from the Bev Fantasy header. */
+.case.theme-storm .case-eyebrow { text-align: center; }
+
+.case.theme-storm .case-sub {
+  max-width: none;
+  text-align: center;
+}
+
+.case.theme-storm .case-facts {
+  justify-content: center;
+  text-align: center;
+}
+
 .its-title {
   width: clamp(19rem, 52vw, 38rem);
-  margin: 0;
+  margin: 0 auto;
   line-height: 0;
 }
 
@@ -2626,6 +2639,28 @@ img { max-width: 100%; display: block; }
   text-shadow: 0 0 18px color-mix(in srgb, var(--storm-gold) 35%, transparent);
   text-underline-offset: .2em;
 }
+
+/* Inline links in body prose: gold for a person credited by name, teal for a
+   plain reference link (matches the marker-teal/marker-gold split above). */
+.its-link-gold {
+  color: var(--storm-gold);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--storm-gold) 55%, transparent);
+  text-underline-offset: .18em;
+  transition: text-decoration-color 250ms var(--ease), color 250ms var(--ease);
+}
+
+.its-link-gold:hover { text-decoration-color: var(--storm-gold); }
+
+.its-link {
+  color: var(--text);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--storm) 55%, transparent);
+  text-underline-offset: .18em;
+  transition: text-decoration-color 250ms var(--ease), color 250ms var(--ease);
+}
+
+.its-link:hover { color: var(--storm); text-decoration-color: var(--storm); }
 
 .its-art-hero,
 .its-art-finale {
@@ -2665,15 +2700,13 @@ img { max-width: 100%; display: block; }
 }
 
 .its-art-hero img,
-.its-art-finale__image img,
 .its-art-frame img {
   display: block;
   width: 100%;
   height: auto;
 }
 
-.its-art-hero img,
-.its-art-finale__image {
+.its-art-hero img {
   overflow: hidden;
   border: 1px solid var(--line);
   border-radius: 14px;
@@ -2766,17 +2799,134 @@ img { max-width: 100%; display: block; }
   border-top: 1px solid var(--line);
 }
 
+/* Centered and full-width so the closing statement reads as a headline over
+   the comparison slider, rather than a narrow column beside it. */
 .its-art-finale__copy {
-  max-width: var(--measure);
-  margin: 0 0 clamp(1.5rem, 4vw, 2.5rem);
+  max-width: 34rem;
+  margin: 0 auto clamp(1.75rem, 4vw, 2.5rem);
+  text-align: center;
+}
+
+/* Centered heading trades the side tick every other scene uses for a
+   centered underline, and carries the marker color on the text itself so
+   "teal" or "gold" still reads without a bar to hang it on. */
+.its-art-finale__copy h2 {
+  color: var(--bar, var(--storm));
+}
+
+.its-art-finale__copy h2::before {
+  top: auto;
+  bottom: -.6rem;
+  left: 50%;
+  height: 2px;
+  width: 2.75rem;
+  transform: translateX(-50%);
 }
 
 .its-art-finale__copy p { margin: 0; }
-.its-art-finale__image { display: block; }
-.its-art-finale__image picture { display: block; }
 
 .its-art-stack .its-art-frame:first-child {
   grid-row: 1 / span 2;
+}
+
+/* ---- Before/after comparison slider ---------------------------------- */
+
+.its-compare { margin: 0; }
+
+.its-compare__frame {
+  position: relative;
+  aspect-ratio: 2560 / 1388;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface-lo);
+  box-shadow:
+    0 22px 58px -26px rgba(0, 0, 0, .92),
+    0 0 34px -22px color-mix(in srgb, var(--storm) 52%, transparent);
+}
+
+.its-compare__img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.its-compare__img--after {
+  clip-path: inset(0 calc(100% - var(--pos, 50%)) 0 0);
+}
+
+.its-compare__handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--pos, 50%);
+  width: 2px;
+  margin-left: -1px;
+  background: var(--storm-gold);
+  box-shadow: 0 0 14px -2px color-mix(in srgb, var(--storm-gold) 70%, transparent);
+  pointer-events: none;
+}
+
+.its-compare__grip {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  place-items: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  transform: translate(-50%, -50%);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-lo);
+  box-shadow: 0 8px 22px -10px rgba(0, 0, 0, .85);
+  color: var(--storm-gold);
+  font-size: .9rem;
+}
+
+.its-compare__range {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  appearance: none;
+  background: none;
+  cursor: ew-resize;
+}
+
+.its-compare__range::-webkit-slider-runnable-track { background: transparent; }
+.its-compare__range::-webkit-slider-thumb {
+  appearance: none;
+  width: 2.4rem;
+  height: 100%;
+  opacity: 0;
+}
+.its-compare__range::-moz-range-track { background: transparent; border: none; }
+.its-compare__range::-moz-range-thumb {
+  width: 2.4rem;
+  height: 100%;
+  opacity: 0;
+  border: none;
+}
+
+.its-compare__range:focus-visible + .its-compare__handle .its-compare__grip {
+  outline: 2px solid var(--storm-gold);
+  outline-offset: 3px;
+}
+
+.its-compare__labels {
+  display: flex;
+  justify-content: space-between;
+  margin: .75rem 0 0;
+  color: var(--text-dim);
+  font-size: .82rem;
+  line-height: 1.5;
 }
 
 @media (max-width: 60rem) {
@@ -2818,12 +2968,20 @@ img { max-width: 100%; display: block; }
    the in-game result they helped produce.
    -------------------------------------------------------------------------- */
 
-.its-feedback-hero {
+/* The form and the Discord message it produces lead the tab together, at a
+   matched size, rather than the form running full width on its own. */
+.its-feedback-top {
   grid-column: full;
-  margin: 0 0 clamp(1rem, 2.5vw, 1.75rem);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
+  gap: clamp(1.25rem, 3vw, 2rem);
+  margin: 0 0 clamp(1.5rem, 4vw, 2.5rem);
 }
 
-.its-feedback-hero figcaption,
+.its-feedback-top figure { margin: 0; }
+
+.its-feedback-top figcaption,
 .its-feedback-clarity figcaption,
 .its-feedback-analytics figcaption {
   margin: .8rem 0 0;
@@ -2831,6 +2989,20 @@ img { max-width: 100%; display: block; }
   font-size: .84rem;
   line-height: 1.5;
 }
+
+/* Frictionless Feedback and Transparent Iteration read as a matched pair,
+   the same grammar the intro spread on the Bev Fantasy page uses. */
+.its-feedback-intro {
+  grid-column: full;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(2rem, 6vw, 5rem);
+  margin: clamp(1rem, 3vw, 2rem) 0 0;
+}
+
+.its-feedback-intro__col { max-width: var(--measure); }
+.its-feedback-intro__col h2 { grid-column: auto; margin-top: 0; }
+.its-feedback-intro__col > :last-child { margin-bottom: 0; }
 
 .its-feedback-shot {
   display: block;
@@ -2968,8 +3140,8 @@ button.its-feedback-shot { cursor: zoom-in; }
   left: -1.1rem;
   width: 3px;
   border-radius: 2px;
-  background: var(--accent);
-  box-shadow: 0 0 14px -3px var(--accent);
+  background: var(--bar, var(--accent));
+  box-shadow: 0 0 14px -3px var(--bar, var(--accent));
 }
 
 .its-feedback-clarity {
@@ -2982,9 +3154,14 @@ button.its-feedback-shot { cursor: zoom-in; }
 .its-feedback-clarity figure,
 .its-feedback-analytics figure { margin: 0; }
 
+/* Smaller and flush with the column's outer edge, so the two charts read as
+   supporting evidence for "Data driven design" rather than competing with it
+   for weight. */
 .its-feedback-analytics {
   display: grid;
   gap: clamp(.9rem, 2vw, 1.25rem);
+  max-width: 82%;
+  margin-left: auto;
 }
 
 .its-feedback-analytics figcaption { font-size: .78rem; }
@@ -3024,6 +3201,13 @@ button.its-feedback-shot { cursor: zoom-in; }
   .its-feedback-scene { gap: clamp(1.1rem, 4vw, 1.75rem); margin: clamp(2.5rem, 8vw, 4rem) 0; }
   .its-feedback-scene--flip .its-feedback-scene__media { order: 0; }
   .its-feedback-scene__copy h2::before { left: -.75rem; }
+
+  .its-feedback-top { grid-template-columns: minmax(0, 1fr); }
+
+  .its-feedback-intro { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .its-feedback-intro__col + .its-feedback-intro__col h2 { margin-top: 3rem; }
+
+  .its-feedback-analytics { max-width: none; margin-left: 0; }
 }
 
 @media (max-width: 36rem) {

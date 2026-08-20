@@ -804,6 +804,25 @@
   }
 
   /* ---------------------------------------------------------------------
+     Before/after comparison slider. The range input drives a CSS custom
+     property that the "after" image clips against, so a single 'input'
+     listener is the whole implementation.
+     --------------------------------------------------------------------- */
+
+  Array.prototype.forEach.call(document.querySelectorAll('.its-compare'), function (compare) {
+    var frame = compare.querySelector('.its-compare__frame');
+    var range = compare.querySelector('.its-compare__range');
+    if (!frame || !range) return;
+
+    function update() {
+      frame.style.setProperty('--pos', range.value + '%');
+    }
+
+    update();
+    range.addEventListener('input', update);
+  });
+
+  /* ---------------------------------------------------------------------
      Reveal on scroll. Elements start hidden in CSS and are unhidden once
      they cross into view; the observer drops each element after it fires,
      so nothing re-animates on scroll back up.
