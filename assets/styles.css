@@ -2277,6 +2277,13 @@ img { max-width: 100%; display: block; }
 
 .case-foot .contact { margin-top: clamp(1.75rem, 4vw, 2.5rem); }
 
+.case-foot__note {
+  margin: clamp(1.75rem, 4vw, 2.5rem) 0 0;
+  color: var(--text-dim);
+  font-size: .82rem;
+  line-height: 1.6;
+}
+
 /* --------------------------------------------------------------------------
    8b. Case study — category tabs (Gameplay / Art Design / User Feedback)
 
@@ -3644,6 +3651,18 @@ button.ygr-shot { cursor: zoom-in; }
   text-align: center;
 }
 
+/* The description used to sit as a narrow left column under a centered
+   eyebrow; both now read as one centered block spanning the full header. */
+.case.theme-bev .case-sub {
+  max-width: none;
+  text-align: center;
+}
+
+.case.theme-bev .case-facts {
+  justify-content: center;
+  text-align: center;
+}
+
 .case-fact__live[href] {
   text-decoration: underline;
   text-decoration-color: color-mix(in srgb, var(--ygr) 45%, transparent);
@@ -3898,6 +3917,9 @@ button.ygr-shot { cursor: zoom-in; }
 }
 
 .bev-scene__proof b { color: var(--text); font-weight: 600; }
+
+/* The one ticker symbol that's a signature rather than a data point. */
+.bev-will { color: #b18cff; font-weight: 600; }
 
 .bev-scene__dek {
   margin: -.15rem 0 1.25rem;

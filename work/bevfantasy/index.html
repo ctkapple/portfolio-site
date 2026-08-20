@@ -60,12 +60,12 @@
       <hr class="rule case-rule">
 
       <dl class="case-facts">
-        <div class="case-fact"><dt>Role</dt><dd>Design, product, build</dd></div>
+        <div class="case-fact"><dt>Role</dt><dd>Design, Develop, Maintain</dd></div>
         <div class="case-fact">
           <dt>Status</dt>
-          <dd>Live
+          <dd>Live -
             <a class="case-fact__live" href="https://bevfantasy.com"
-               target="_blank" rel="noopener">bevfantasy.com</a>
+               target="_blank" rel="noopener">BevFantasy.com</a>
           </dd>
         </div>
         <div class="case-fact"><dt>Timeline</dt><dd>3 years, on and off</dd></div>
@@ -105,29 +105,15 @@
           in the memory of whoever tells the story loudest and least accurately.
         </p>
 
-        <p>
-          So the league had a memory problem and an engagement problem, and they
-          turned out to be one problem. Group chat traffic in July is the honest
-          measure of whether a league is healthy, and ours went quiet every
-          February.
-        </p>
       </div>
 
       <div class="bev-intro__col">
-        <h2 class="bar-white">What I optimized for</h2>
-
-        <p>
-          The API will hand you everything you could ever need and more. The
-          failure mode for a project like this is a wall of accurate tables that
-          technically answers every question and gets opened twice.
-        </p>
+        <h2 class="bar-white">Optimized for Being Shared</h2>
 
         <p>
           I optimized for things worth screenshotting. Every feature had to
           survive one test before I built it: Would somebody paste this into the
-          group chat to make fun of a friend? That sounds unserious, and it was
-          the most useful constraint I had. It killed a lot of correct, boring
-          ideas, and it is why the things that shipped actually get used.
+          group chat to make fun of a friend?
         </p>
 
         <p>
@@ -184,20 +170,17 @@
       <div class="bev-scene__copy" data-reveal>
         <h2>Money, in the language they already speak</h2>
         <p>
-          Most of this league works in finance. So instead of another standings
-          table, everyone got a ticker. Mine is $WILL, and you'll notice it's at
-          the top. The page is an exchange: a scrolling tape of lifetime
-          winnings along the top, a cumulative equity curve underneath, and a
-          holdings table breaking every dollar down by year and by league.
-        </p>
-        <p>
-          The tape is what made it land. A total is a fact and a number that
-          moves is a story, so each symbol carries the season's change beside
-          it, green if the year cleared your buy-in and red if it did not.
+          Most of the league members work in finance. So instead of another
+          standings table, everyone got a ticker. The earnings page is modeled
+          after an exchange, a scrolling tape of the most recent year's
+          results, a lifetime graph showing earnings, and a detailed ledger of
+          every financial transaction for full transparency.
         </p>
         <p class="bev-scene__proof">
           The ledger runs back to 2021 and nets <b>every buy-in ever paid</b>,
-          which is the number most of them would rather not look at.
+          which is the number most of them would rather not look at. Mine is
+          <span class="bev-will">$WILL</span>, and you'll notice it's at the
+          top.
         </p>
       </div>
     </section>
@@ -235,19 +218,21 @@
           getting the details horribly wrong.
         </p>
         <p>
-          A reverse chronological list of a hundred trades is an archive, not a
-          tool, so the whole design problem was the filter bar. It stacks
-          free-text search over the four dimensions people actually think in: season,
-          position, who was involved, and what changed hands.
+          Initially, I pulled in all trades, from most recent to oldest,
+          separated by year, and figured folks could ctrl+F to find the trade
+          they were looking for. Despite using it myself to locate a few
+          trades, it didn't see much use until I got feedback from a few users
+          and added the filter bar.
         </p>
         <p>
-          The manager control took the most thought. The obvious version filters
-          to trades involving one person. The version people immediately wanted
-          allows a second name, because the real question isn't "show me my
-          trades"; it's "how many times have I fleeced Adam?" Draft picks and
-          FAAB are their own filters rather than search
-          terms, since "every trade where somebody moved a first" is a different
-          question from a player's name, and it is the one that starts fights.
+          What people wanted this tool to solve was not seeing a list of every
+          trade, but answering the important questions, like "how many times
+          have I fleeced Adam?" The version people immediately wanted allows a
+          second name, because the real question isn't "show me my trades";
+          it's "how many times have I fleeced Adam?" Draft picks and FAAB are
+          their own filters rather than search terms, since "every trade where
+          somebody moved a first" is a different question from a player's
+          name, and it is the one that starts fights.
         </p>
       </div>
     </section>
@@ -276,17 +261,14 @@
           </div>
         </div>
         <p>
-          You pick two faces from a grid. No dropdowns, no names to type. That
-          choice does more work than it looks like it does: selecting someone by
-          their face is fast enough that people browse, and browsing is how
-          anyone finds out that a rivalry they never thought about is 4-2.
-        </p>
-        <p>
-          What people came for is the biggest blowout with its margin and when
-          it happened, the closest game the two of them have ever played, and a
-          line I called Certified Hater: the player on the other roster who has
-          personally scored the most points against you. I wrote it purely to
-          prove that Ja'Marr Chase has a grudge against me personally.
+          What people came for is discovering the interesting matchups.
+          Finding out you're undefeated in a rivalry going back six years, or
+          that you've only beaten someone once, is a delight. It also surfaces
+          the closest game the two of them have ever played, and a stat I
+          called Certified Hater: the player on the other roster who has
+          personally scored the most points against you. I built it to prove
+          Kyren Williams had a grudge against me, and instead found out,
+          embarrassingly, that Justin Fields is my true archenemy.
         </p>
         <p class="bev-scene__proof">
           Now you can ensure pre-game trash talk is backed by verified data,
@@ -415,6 +397,16 @@
       </div>
     </section>
 
+    <!-- ================= Act III ================= -->
+    <div class="bev-act" data-reveal>
+      <p class="bev-act__eyebrow">Act three</p>
+      <h2 class="bev-act__title">The Evolution</h2>
+      <p class="bev-act__note">
+        Who made the mark, and how the site got from a blog nobody opened to
+        where it is now.
+      </p>
+    </div>
+
     <h2>The mark</h2>
 
     <p>
@@ -430,9 +422,10 @@
       When I work with artists, I prefer to let them cook, then respond to the
       work in front of me with clear, actionable feedback. I usually begin with
       a strong vision, but visions are never brought to life alone. The more
-      people who bring passion to a project—even when their ideas differ from
-      my original vision—the stronger the result. I prefer to lead through
-      friendly, passionate collaboration with talented people.
+      people who bring their passion and ideas to a project—even when those
+      differ from my original vision—the stronger the result. The most
+      effective way to deliver quality results is through friendly, passionate
+      collaboration with talented people.
     </p>
 
     <ul class="bev-duo" data-reveal>
@@ -452,30 +445,25 @@
       </li>
     </ul>
 
-    <p class="bev-credit">
-      Everything else is the orange and black of the high school team most of us
-      played on together, which won two state championships and which none of us
-      has stopped talking about since. The screens on this page show real league
-      data. The chat screenshots are cropped to the conversation and surnames
-      are blurred.
-    </p>
-
-    <h2 class="bar-white">How it evolved</h2>
+    <h2 class="bar-white">Where it started</h2>
 
     <p>
-      Before Bev Fantasy, we had other fantasy leagues but no dedicated site. I
-      started the keeper league in 2021 and built the admittedly terrible Wix
-      site that same year. In 2023, I built the first version of Bev Fantasy and
-      have been iterating on it ever since.
+      Before Bev Fantasy, we had several other fantasy leagues throughout our
+      childhood on various platforms but no dedicated site. I started the
+      keeper league in 2021, moved to Sleeper, and built the admittedly
+      terrible original site that same year using a typical free hosting
+      service. In 2023 (after winning and wanting to use some of the pot to
+      invest back in the league with an official domain), I built the first
+      version of BevFantasy.com and have been iterating on it ever since.
     </p>
 
     <figure class="bev-evolution" data-reveal>
       <button type="button" class="bev-shot bev-shot--trigger" aria-label="View full size"
-              data-lightbox-caption="The 2021 Wix site. Mostly a blog, rarely visited, and very much the first version.">
+              data-lightbox-caption="The first version of the league site. Mostly a blog, rarely visited, and lacking anything you'd call advanced stats, outside a few screenshots of my janky Excel power rankings.">
         <img src="../../assets/img/bev-old-site.webp" width="1593" height="1076"
-             alt="The original 2021 Bev Keeper fantasy football Wix site, showing a simple blog post layout">
+             alt="The original 2021 Bev Keeper fantasy football site, showing a simple blog post layout">
       </button>
-      <figcaption>The 2021 Wix site. Mostly a blog, rarely visited, and very much the first version.</figcaption>
+      <figcaption>The first version of the league site. Mostly a blog, rarely visited, and lacking anything you'd call advanced stats, outside a few screenshots of my janky Excel power rankings.</figcaption>
     </figure>
 
     <p>
@@ -533,6 +521,11 @@
     <a href="../../about/" data-prefetch>About</a>
     <p class="contact__status" id="foot-status" role="status" aria-live="polite"></p>
   </nav>
+
+  <p class="case-foot__note">
+    The orange and black theme is from our hometown team, the Beverly
+    Panthers', colors. Some league surnames have been blurred for privacy.
+  </p>
 </footer>
 
 <script src="../../assets/main.js?v=a25"></script>
