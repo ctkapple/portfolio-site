@@ -572,7 +572,7 @@
 
   var lightbox = document.querySelector('.lightbox');
   var triggers = Array.prototype.slice.call(
-    document.querySelectorAll('.ygr-shot--trigger, .bev-shot--trigger, .its-feedback-shot--trigger'));
+    document.querySelectorAll('.its-art-shot--trigger, .ygr-shot--trigger, .bev-shot--trigger, .its-feedback-shot--trigger'));
 
   if (lightbox && triggers.length) {
     var lbStage   = lightbox.querySelector('.lightbox__stage');

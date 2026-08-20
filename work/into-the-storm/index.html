@@ -30,7 +30,7 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin
       href="../../assets/fonts/inter-latin.woff2">
 
-<link rel="stylesheet" href="../../assets/styles.css?v=a24">
+<link rel="stylesheet" href="../../assets/styles.css?v=a25">
 
 <script>document.documentElement.classList.add('js');</script>
 </head>
@@ -54,14 +54,14 @@
     <p class="case-sub">
       <em>Into the Storm</em> began as a way to learn game development and grew
       into a solo-developed roguelite deckbuilder headed toward a commercial
-      release. It is currently in closed alpha.
+      release. It is currently in alpha.
     </p>
 
     <hr class="rule case-rule">
 
     <dl class="case-facts">
       <div class="case-fact"><dt>Role</dt><dd>Design, development, art direction</dd></div>
-      <div class="case-fact"><dt>Status</dt><dd>Closed <span class="its-status-alpha">Alpha</span></dd></div>
+      <div class="case-fact"><dt>Status</dt><dd><span class="its-status-alpha">Alpha</span></dd></div>
       <div class="case-fact"><dt>Timeline</dt><dd>February 2026—Present</dd></div>
     </dl>
   </header>
@@ -81,19 +81,25 @@
     <div class="case-panel" id="panel-art" role="tabpanel" aria-labelledby="tab-art">
 
       <figure class="its-art-hero" data-reveal>
-        <img src="../../assets/img/into-the-storm-capsule.webp" width="1200" height="659"
-             alt="Into the Storm's finished capsule illustration: five adventurers gathered beneath a glowing sword and a swirling storm">
+        <button type="button" class="its-art-shot its-art-shot--trigger" aria-label="View finished capsule illustration full size">
+          <img src="../../assets/img/into-the-storm-capsule.webp" width="1200" height="659"
+               alt="Into the Storm's finished capsule illustration: five adventurers gathered beneath a glowing sword and a swirling storm">
+        </button>
         <figcaption>Capsule illustration and logo by Alejandro Giraldo, developed through an iterative art-direction process.</figcaption>
       </figure>
 
       <section class="its-art-scene">
         <div class="its-art-scene__media its-art-pair" data-reveal>
           <figure class="its-art-frame">
-            <img src="../../assets/img/its-art-brief.webp" alt="A mood board of game capsules selected for tone, contrast, typography, and atmosphere">
+            <button type="button" class="its-art-shot its-art-shot--trigger" aria-label="View reference board full size">
+              <img src="../../assets/img/its-art-brief.webp" alt="A mood board of game capsules selected for tone, contrast, typography, and atmosphere">
+            </button>
             <figcaption>Reference board</figcaption>
           </figure>
           <figure class="its-art-frame">
-            <img src="../../assets/img/its-art-sketch.webp" alt="Will's pencil sketch of a lone hero facing a distant castle beneath a storm">
+            <button type="button" class="its-art-shot its-art-shot--trigger" aria-label="View first composition sketch full size">
+              <img src="../../assets/img/its-art-sketch.webp" alt="Will's pencil sketch of a lone hero facing a distant castle beneath a storm">
+            </button>
             <figcaption>My first composition sketch</figcaption>
           </figure>
         </div>
@@ -114,12 +120,22 @@
       <section class="its-art-scene its-art-scene--flip">
         <div class="its-art-scene__media its-art-stack" data-reveal>
           <figure class="its-art-frame">
-            <img src="../../assets/img/its-art-mockups.webp" alt="Three black-and-white capsule compositions labeled A, B, and C">
+            <button type="button" class="its-art-shot its-art-shot--trigger" aria-label="View initial composition options full size">
+              <img src="../../assets/img/its-art-mockups.webp" alt="Three black-and-white capsule compositions labeled A, B, and C">
+            </button>
             <figcaption>Three initial composition options</figcaption>
           </figure>
           <figure class="its-art-frame">
-            <img src="../../assets/img/its-art-chosen.webp" alt="The chosen composition with the central sword and the full party gathered around it">
-            <figcaption>The combined direction</figcaption>
+            <button type="button" class="its-art-shot its-art-shot--trigger" aria-label="View chosen direction full size">
+              <img src="../../assets/img/its-art-proposed.webp" alt="The selected direction combining the central sword composition with the wider party">
+            </button>
+            <figcaption>The direction I chose</figcaption>
+          </figure>
+          <figure class="its-art-frame">
+            <button type="button" class="its-art-shot its-art-shot--trigger" aria-label="View final sketch full size">
+              <img src="../../assets/img/its-art-chosen.webp" alt="The final sketch with the central sword and the full party gathered around it">
+            </button>
+            <figcaption>Final sketch</figcaption>
           </figure>
         </div>
         <div class="its-art-scene__copy" data-reveal>
@@ -140,11 +156,15 @@
       <section class="its-art-scene">
         <div class="its-art-scene__media its-art-pair" data-reveal>
           <figure class="its-art-frame">
-            <img src="../../assets/img/its-art-logo-feedback.webp" alt="Logo references and a rough sketch exploring arcane, musical linework">
+            <button type="button" class="its-art-shot its-art-shot--trigger" aria-label="View logo references full size">
+              <img src="../../assets/img/its-art-logo-feedback.webp" alt="Logo references and a rough sketch exploring arcane, musical linework">
+            </button>
             <figcaption>Logo language</figcaption>
           </figure>
           <figure class="its-art-frame">
-            <img src="../../assets/img/its-art-feedback-2.webp" alt="Sword-hilt references centered on ornate flower and rose motifs">
+            <button type="button" class="its-art-shot its-art-shot--trigger" aria-label="View weapon references full size">
+              <img src="../../assets/img/its-art-feedback-2.webp" alt="Sword-hilt references centered on ornate flower and rose motifs">
+            </button>
             <figcaption>Weapon language</figcaption>
           </figure>
         </div>
@@ -166,11 +186,15 @@
       <section class="its-art-scene its-art-scene--flip">
         <div class="its-art-scene__media its-art-pair" data-reveal>
           <figure class="its-art-frame">
-            <img src="../../assets/img/its-art-color.webp" alt="The first full-color painted pass of the party beneath the storm">
+            <button type="button" class="its-art-shot its-art-shot--trigger" aria-label="View first color pass full size">
+              <img src="../../assets/img/its-art-color.webp" alt="The first full-color painted pass of the party beneath the storm">
+            </button>
             <figcaption>First color pass</figcaption>
           </figure>
           <figure class="its-art-frame">
-            <img src="../../assets/img/its-art-feedback-1.webp" alt="A rough Photoshop edit marking character and costume details on the color artwork">
+            <button type="button" class="its-art-shot its-art-shot--trigger" aria-label="View visual feedback notes full size">
+              <img src="../../assets/img/its-art-feedback-1.webp" alt="A rough Photoshop edit marking character and costume details on the color artwork">
+            </button>
             <figcaption>My visual notes</figcaption>
           </figure>
         </div>
@@ -200,11 +224,15 @@
             game with a world of its own.
           </p>
         </div>
-        <picture class="its-art-finale__image">
-          <source media="(max-width: 48rem)" srcset="../../assets/img/its-capsule-final-1280.webp">
-          <img src="../../assets/img/its-capsule-final-2560.webp" width="2560" height="1388"
-               alt="The final signed Into the Storm capsule illustration and gold logo">
-        </picture>
+        <button type="button" class="its-art-finale__image its-art-shot its-art-shot--trigger"
+                aria-label="View final signed capsule illustration full size"
+                data-lightbox-caption="The final signed Into the Storm capsule illustration and gold logo.">
+          <picture>
+            <source media="(max-width: 48rem)" srcset="../../assets/img/its-capsule-final-1280.webp">
+            <img src="../../assets/img/its-capsule-final-2560.webp" width="2560" height="1388"
+                 alt="The final signed Into the Storm capsule illustration and gold logo">
+          </picture>
+        </button>
       </section>
 
     </div>
@@ -407,7 +435,7 @@
     </div>
 
     <p class="case-note">
-      Development continues in closed <span class="its-status-alpha">Alpha</span>.
+      Development continues in <span class="its-status-alpha">Alpha</span>.
     </p>
 
   </main>
@@ -454,6 +482,6 @@
   </div>
 </div>
 
-<script src="../../assets/main.js?v=a23"></script>
+<script src="../../assets/main.js?v=a24"></script>
 </body>
 </html>
