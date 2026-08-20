@@ -3801,6 +3801,32 @@ button.ygr-shot { cursor: zoom-in; }
   line-height: 1.6;
 }
 
+/* The Evolution act reintroduces the wordmark from the page header, set
+   beside the act's own title rather than above it. */
+.bev-act--evolution {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: clamp(1.5rem, 4vw, 3rem);
+}
+
+.bev-act--evolution .bev-act__copy { flex: 1 1 auto; }
+
+.bev-act__mark {
+  flex: 0 0 auto;
+  width: clamp(5rem, 11vw, 7.5rem);
+  height: auto;
+  filter: drop-shadow(0 0 24px color-mix(in srgb, var(--accent) 42%, transparent));
+}
+
+@media (max-width: 48rem) {
+  .bev-act--evolution {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .bev-act__mark { width: clamp(4rem, 20vw, 5.5rem); }
+}
+
 /* ---- Scene ---------------------------------------------------------------- */
 
 .bev-scene {
@@ -4130,7 +4156,7 @@ button.bev-shot { cursor: zoom-in; }
 .bev-mark-row {
   grid-column: full;
   display: grid;
-  grid-template-columns: minmax(0, 1.5fr) minmax(0, 20rem);
+  grid-template-columns: minmax(0, 28rem) minmax(0, 1.2fr);
   gap: clamp(1.5rem, 4vw, 3rem);
   align-items: start;
   margin: clamp(2.5rem, 6vw, 4rem) 0 0;
@@ -4224,11 +4250,26 @@ button.bev-shot { cursor: zoom-in; }
   display: grid;
   grid-template-columns: minmax(0, 22rem) minmax(0, 1fr);
   gap: clamp(1.5rem, 4vw, 3rem);
-  align-items: center;
+  align-items: start;
   margin: clamp(2.5rem, 6vw, 4rem) 0 0;
 }
 
-.bev-history-row__media { margin: 0; }
+/* The old site screenshot now stacks under the power rankings shot rather
+   than running full-width later in the page, so this column holds two
+   figures instead of one. */
+.bev-history-row__media {
+  display: grid;
+  gap: clamp(1.25rem, 3vw, 2rem);
+  margin: 0;
+}
+.bev-history-row__media figure { margin: 0; }
+.bev-history-row__media .bev-evolution {
+  grid-column: auto;
+  margin: 0;
+}
+.bev-history-row__media .bev-evolution--tight {
+  max-width: none;
+}
 .bev-history-row__media .bev-shot { border-radius: 12px; }
 .bev-history-row__media figcaption {
   margin: .65rem 0 0;

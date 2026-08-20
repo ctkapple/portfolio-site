@@ -28,7 +28,7 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin
       href="../../assets/fonts/inter-latin.woff2">
 
-<link rel="stylesheet" href="../../assets/styles.css?v=a30">
+<link rel="stylesheet" href="../../assets/styles.css?v=a31">
 
 <script>document.documentElement.classList.add('js');</script>
 </head>
@@ -154,7 +154,8 @@
       <p class="bev-act__eyebrow">Act one</p>
       <h2 class="bev-act__title">The record</h2>
       <p class="bev-act__note">
-        What the league did, kept somewhere it can be found and argued with.
+        A full ledger of the entire league history, somewhere it can be found
+        and argued about.
       </p>
     </div>
 
@@ -305,8 +306,8 @@
       <p class="bev-act__eyebrow">Act two</p>
       <h2 class="bev-act__title">The engine</h2>
       <p class="bev-act__note">
-        Two features built at specific people who had stopped participating, for
-        specific reasons I could name.
+        Driving engagement through product design, one checked out member at a
+        time.
       </p>
     </div>
 
@@ -400,10 +401,11 @@
         </div>
       </div>
       <div class="bev-scene__copy" data-reveal>
-        <h2>The two people who never played</h2>
+        <h2>Reengaging the people who tuned out</h2>
         <p>
-          Every league has members who show up less. Our keeper league had two
-          who had gone four straight years without submitting their keepers
+          Every league contains members with varying levels of fantasy
+          enthusiasm. Our leagues are no different — in keeper, we had several
+          managers who went four years without ever setting their keepers
           before the draft.
         </p>
         <p>
@@ -422,9 +424,9 @@
           already been kept, and a plain yes or no for keeper eligibility.
         </p>
         <p class="bev-scene__proof">
-          Both managers set full keepers the first year it existed. It is the
-          only feature I have shipped where I could name the two people it was
-          for <b>before I wrote a line of it</b>.
+          Every manager set full keepers for the first time in league history
+          the year it rolled out. It's the only feature I've shipped where I
+          could name who it was for <b>before I wrote a line of it</b>.
         </p>
       </div>
     </section>
@@ -440,13 +442,17 @@
     <!-- ================= Act III ================= -->
     <div class="case-panel" id="panel-evolution" role="tabpanel" aria-labelledby="tab-evolution" hidden>
 
-    <div class="bev-act" data-reveal>
-      <p class="bev-act__eyebrow">Act three</p>
-      <h2 class="bev-act__title">The Evolution</h2>
-      <p class="bev-act__note">
-        Who made the mark, and how the site got from a blog nobody opened to
-        where it is now.
-      </p>
+    <div class="bev-act bev-act--evolution" data-reveal>
+      <div class="bev-act__copy">
+        <p class="bev-act__eyebrow">Act three</p>
+        <h2 class="bev-act__title">The Evolution</h2>
+        <p class="bev-act__note">
+          How the site went from a blog nobody opened to something we can't
+          imagine playing without.
+        </p>
+      </div>
+      <img class="bev-act__mark" src="../../assets/img/bev-logo.webp" width="900" height="864"
+           alt="" aria-hidden="true">
     </div>
 
     <div class="bev-mark-row" data-reveal>
@@ -492,14 +498,25 @@
     </div>
 
     <div class="bev-history-row" data-reveal>
-      <figure class="bev-history-row__media">
-        <button type="button" class="bev-shot bev-shot--trigger" aria-label="View full size"
-                data-lightbox-caption="The power rankings, run out of a spreadsheet before the site could compute anything itself.">
-          <img src="../../assets/img/fantasy trash talk/og power rankings throwback.png" width="1192" height="781"
-               alt="A janky spreadsheet titled Power Rankings, manually ranking ten fantasy teams by two different formulas and averaging them">
-        </button>
-        <figcaption>The power rankings, run out of a spreadsheet before the site could compute anything itself.</figcaption>
-      </figure>
+      <div class="bev-history-row__media">
+        <figure>
+          <button type="button" class="bev-shot bev-shot--trigger" aria-label="View full size"
+                  data-lightbox-caption="The power rankings, run out of an ugly spreadsheet before the site could compute anything itself.">
+            <img src="../../assets/img/fantasy trash talk/og power rankings throwback.png" width="1192" height="781"
+                 alt="A janky spreadsheet titled Power Rankings, manually ranking ten fantasy teams by two different formulas and averaging them">
+          </button>
+          <figcaption>The power rankings, run out of an <em>ugly</em> spreadsheet before the site could compute anything itself.</figcaption>
+        </figure>
+
+        <figure class="bev-evolution bev-evolution--tight">
+          <button type="button" class="bev-shot bev-shot--trigger" aria-label="View full size"
+                  data-lightbox-caption="The first version of the league site. Mostly a blog, rarely visited, and lacking anything you'd call advanced stats, outside a few screenshots of my janky Excel power rankings.">
+            <img src="../../assets/img/bev-old-site-crop.webp" width="1593" height="849"
+                 alt="The original 2021 Bev Keeper fantasy football site, showing a simple blog post layout">
+          </button>
+          <figcaption>The first version of the league site. Mostly a blog, rarely visited, and lacking anything you'd call advanced stats, outside a few screenshots of my janky Excel power rankings.</figcaption>
+        </figure>
+      </div>
 
       <div class="bev-history-row__copy">
         <h2 class="bar-white">How far it's come</h2>
@@ -513,30 +530,22 @@
           invest back in the league with an official domain), I built the first
           version of BevFantasy.com and have been iterating on it ever since.
         </p>
+
+        <p>
+          The site now refreshes from Sleeper's API every night, so its history
+          and transaction log stay current without anyone maintaining them.
+          Three leagues share one codebase, and adding a fourth takes one
+          config file.
+        </p>
+
+        <p>
+          The blogs were fun to write, but the time and energy to write them
+          evaporated as I got older. Automated stat tracking, convenient
+          tooling, and visually interesting and useful graphs have done a much
+          better job of keeping engagement high without giving me arthritis.
+        </p>
       </div>
     </div>
-
-    <figure class="bev-evolution bev-evolution--tight" data-reveal>
-      <button type="button" class="bev-shot bev-shot--trigger" aria-label="View full size"
-              data-lightbox-caption="The first version of the league site. Mostly a blog, rarely visited, and lacking anything you'd call advanced stats, outside a few screenshots of my janky Excel power rankings.">
-        <img src="../../assets/img/bev-old-site-crop.webp" width="1593" height="849"
-             alt="The original 2021 Bev Keeper fantasy football site, showing a simple blog post layout">
-      </button>
-      <figcaption>The first version of the league site. Mostly a blog, rarely visited, and lacking anything you'd call advanced stats, outside a few screenshots of my janky Excel power rankings.</figcaption>
-    </figure>
-
-    <p>
-      The site now refreshes from Sleeper's API every night, so its history and
-      transaction log stay current without anyone maintaining them. Three
-      leagues share one codebase, and adding a fourth takes one config file.
-    </p>
-
-    <p>
-      The blogs were fun to write, but the time and energy to write them
-      evaporated as I got older. Automated stat tracking, convenient tooling,
-      and visually interesting and useful graphs have done a much better job of
-      keeping engagement high without giving me arthritis.
-    </p>
 
     <h2>What's next</h2>
 
@@ -551,7 +560,7 @@
       history as I can recover from old platforms and past seasons to push our
       data back even further. I've also thought about open-sourcing a
       templated version of the site, with walkthroughs for other leagues to run
-      their own. Both are further out. Prioritization, as above: tbd.
+      their own. The paramount priority this year is defending my title 😤
     </p>
 
     </div>
