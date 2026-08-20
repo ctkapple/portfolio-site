@@ -553,6 +553,15 @@
         }
       });
     });
+
+    Array.prototype.forEach.call(document.querySelectorAll('[data-next-tab]'), function (link) {
+      link.addEventListener('click', function () {
+        var nextTab = document.getElementById(link.getAttribute('data-next-tab'));
+        if (!nextTab) return;
+        selectTab(nextTab, true);
+        tablist.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'start' });
+      });
+    });
   }
 
   /* ---------------------------------------------------------------------
@@ -572,7 +581,7 @@
 
   var lightbox = document.querySelector('.lightbox');
   var triggers = Array.prototype.slice.call(
-    document.querySelectorAll('.its-art-shot--trigger, .ygr-shot--trigger, .bev-shot--trigger, .its-feedback-shot--trigger'));
+    document.querySelectorAll('.its-art-shot--trigger, .ygr-shot--trigger, .bev-shot--trigger, .its-feedback-shot--trigger, .me-photo-shot'));
 
   if (lightbox && triggers.length) {
     var lbStage   = lightbox.querySelector('.lightbox__stage');

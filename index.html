@@ -25,7 +25,7 @@
       href="assets/fonts/quicksand-latin.woff2">
 <link rel="preload" as="font" type="font/woff2" crossorigin
       href="assets/fonts/inter-latin.woff2">
-<link rel="stylesheet" href="assets/styles.css?v=a22">
+<link rel="stylesheet" href="assets/styles.css?v=a27">
 <link rel="stylesheet" href="assets/cinematic-split-preview.css?v=13">
 
 <script>document.documentElement.classList.add('js');</script>
@@ -135,24 +135,22 @@
 
         <div class="me__content">
           <div class="me__shots">
-            <figure class="me__bubble me__shot me__bubble--sky" tabindex="0">
+            <button type="button" class="me__bubble me__shot me__bubble--sky me-photo-shot" aria-label="View full-size skydiving photo"
+                    data-lightbox-caption="Skydiving in the Swiss Alps!">
               <img src="assets/img/skydive.webp" alt="William skydiving over a lake."
                    width="320" height="320" loading="lazy" decoding="async">
-            </figure>
-            <figure class="me__bubble me__shot me__bubble--run" tabindex="0">
+            </button>
+            <button type="button" class="me__bubble me__shot me__bubble--run me-photo-shot" aria-label="View full-size marathon photo"
+                    data-lightbox-caption="Philadelphia Marathon - 3:24">
               <img src="assets/img/marathon.webp" alt="William running a marathon."
                    width="320" height="320" loading="lazy" decoding="async">
-            </figure>
-            <figure class="me__bubble me__shot me__bubble--us" tabindex="0">
-              <img src="assets/img/nicole.webp"
-                   alt="William and Nicole kissing in front of a Paris sunset."
+            </button>
+            <button type="button" class="me__portrait me__shot me-photo-shot" aria-label="View full-size Gatsby photo"
+                    data-lightbox-caption="My infamous poodle Gatsby!">
+              <img src="assets/img/Me and Gatsby.jpg"
+                   alt="William Dooling with his poodle Gatsby."
                    width="360" height="360" loading="lazy" decoding="async">
-            </figure>
-            <div class="me__portrait me__shot" tabindex="0">
-              <img src="assets/img/will-and-gibbles.webp"
-                   alt="William Dooling with his dog."
-                   width="360" height="360" loading="lazy" decoding="async">
-            </div>
+            </button>
           </div>
 
           <svg class="me__motto" viewBox="0 0 320 50" aria-hidden="true" focusable="false">
@@ -183,6 +181,23 @@
     </div>
   </footer>
 
-  <script src="assets/main.js?v=a21"></script>
+  <div class="lightbox" aria-hidden="true">
+    <div class="lightbox__backdrop" data-lightbox-close></div>
+    <div class="lightbox__panel" role="dialog" aria-modal="true" aria-label="Photo, full size">
+      <button type="button" class="lightbox__close" data-lightbox-close aria-label="Close">
+        <svg viewBox="0 0 24 24" aria-hidden="true" width="20" height="20"><path d="M5 5l14 14M19 5L5 19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </button>
+      <button type="button" class="lightbox__nav lightbox__nav--prev" aria-label="Previous">
+        <svg viewBox="0 0 24 24" aria-hidden="true" width="22" height="22"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="lightbox__stage"><img class="lightbox__img" src="" alt=""></div>
+      <p class="lightbox__caption"></p>
+      <button type="button" class="lightbox__nav lightbox__nav--next" aria-label="Next">
+        <svg viewBox="0 0 24 24" aria-hidden="true" width="22" height="22"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <script src="assets/main.js?v=a25"></script>
 </body>
 </html>

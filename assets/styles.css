@@ -1431,11 +1431,10 @@ img { max-width: 100%; display: block; }
   z-index: 2;
   width: 132px;
   height: 132px;
+  padding: 0;
+  border: 0;
   border-radius: 50%;
-  /* `backwards`, not `both`. A forwards fill would keep the 100% keyframe in
-     control of transform for good, and the hover zoom below would never
-     apply. Backwards fills only during the delay, then hands the element back
-     to the static rule — which resolves to the same value, so nothing jumps. */
+  background: transparent;
   animation: portrait-in 520ms var(--ease-out) 220ms backwards;
 }
 
@@ -1448,9 +1447,6 @@ img { max-width: 100%; display: block; }
 }
 
 .me__portrait img {
-  /* 2px, not the 3px these carried under the old lavender. At full saturation
-     the same width reads considerably heavier, so the ring is thinned to hold
-     the weight it had before the palette changed. */
   border: 2px solid color-mix(in srgb, var(--me-hot) 58%, transparent);
   box-shadow: 0 0 22px -2px color-mix(in srgb, var(--me-mid) 75%, transparent);
 }
@@ -1461,19 +1457,16 @@ img { max-width: 100%; display: block; }
   100% { transform: scale(1);    opacity: 1; }
 }
 
-/* The two action shots fan outward from behind the portrait on an arc. Each
-   keyframe lists translate/rotate/scale in the same order so the browser
-   interpolates the functions rather than falling back to matrix decomposition,
-   which would swing them through a visibly wrong path. */
-/* Mouse ears: up and outward, overlapping the portrait's upper edge and
-   sitting behind it (z-index below .me__portrait), each tilted away from
-   centre. See the note on `backwards` above — same reason here. */
+/* The two action shots are the only photos in the profile control. */
 .me__bubble {
   position: absolute;
   z-index: 1;
   width: 88px;
   height: 88px;
   margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
   transform: translate(var(--tx), var(--ty)) rotate(var(--rot)) scale(1);
   animation: bubble-in 620ms var(--ease-out) backwards;
 }
@@ -1483,52 +1476,13 @@ img { max-width: 100%; display: block; }
   box-shadow: 0 0 16px -3px color-mix(in srgb, var(--me-mid) 70%, transparent);
 }
 
-/* Fanned to ±94 from the ±84 they sat at while there were only two of them.
-   The crown below is 80px wide and centred, so it occupies -40..40; at ±84 the
-   ears reached in to -40 and the three circles would have been touching. This
-   opens a 10px channel on each side and still leaves the ears overlapping the
-   portrait, which is what makes the cluster read as one object. */
 .me__bubble--sky { --tx: -94px; --ty: -56px; --rot: -13deg; animation-delay: 310ms; }
 .me__bubble--run { --tx:  94px; --ty: -56px; --rot:  13deg; animation-delay: 375ms; }
-
-/* The crown. Smaller than the ears and wedged into the gap between them,
-   riding high enough over the portrait's top edge that ~58px of it clears —
-   about the same visible share the ears get, despite being tucked deeper. */
-.me__bubble--us {
-  --tx: 0px;
-  --ty: -84px;
-  --rot: 0deg;
-  width: 80px;
-  height: 80px;
-  /* Its own entrance, not the ears' — see `us-in`. The shorthand is repeated
-     in full rather than overriding animation-name alone, because the base rule
-     also sets a duration and this one is deliberately slower. */
-  animation: us-in 720ms var(--ease-out) 560ms backwards;
-}
-
-/* Blue where everything else in the panel is pink, and the one bright blue in
-   the component (`--me-lit`) rather than `--me-cold`, which at 2px on a dark
-   ground would simply not be visible. */
-.me__bubble--us img {
-  border: 2px solid color-mix(in srgb, var(--me-lit) 62%, transparent);
-  box-shadow: 0 0 16px -3px color-mix(in srgb, var(--me-lit) 55%, transparent);
-}
 
 @keyframes bubble-in {
   0%   { transform: translate(0, 0) rotate(0deg) scale(.2); opacity: 0; }
   62%  { transform: translate(var(--tx), var(--ty)) rotate(var(--rot)) scale(1.16); opacity: 1; }
   100% { transform: translate(var(--tx), var(--ty)) rotate(var(--rot)) scale(1);    opacity: 1; }
-}
-
-/* A rise and a fade, deliberately not the ears' pop. They spring out from
-   behind the portrait with an overshoot; this one is already in place and
-   simply surfaces — later, slower, and without the bounce, so it lands as its
-   own beat rather than as a third copy of the same gesture. Starting from the
-   settled --tx/--ty plus an offset (rather than from 0,0) is what keeps it
-   travelling straight up instead of arcing out of the centre. */
-@keyframes us-in {
-  0%   { transform: translate(var(--tx), calc(var(--ty) + 26px)) rotate(var(--rot)) scale(.94); opacity: 0; }
-  100% { transform: translate(var(--tx), var(--ty)) rotate(var(--rot)) scale(1); opacity: 1; }
 }
 
 /* Examining a photo ---------------------------------------------------------
@@ -1548,14 +1502,14 @@ img { max-width: 100%; display: block; }
 
 /* A lift, not a takeover. The earlier 1.62/2.1 pair covered most of the panel
    and took 380ms to get there, which read as sluggish rather than deliberate. */
-.me__portrait:hover,
-.me__portrait:focus-visible { transform: scale(1.28); z-index: 4; }
-
 .me__bubble:hover,
 .me__bubble:focus-visible {
   transform: translate(var(--tx), var(--ty)) rotate(0deg) scale(1.55);
   z-index: 4;
 }
+
+.me__portrait:hover,
+.me__portrait:focus-visible { transform: scale(1.28); z-index: 4; }
 
 /* Non-hovered shots recede. */
 .me__shots:has(.me__shot:hover) .me__shot:not(:hover),
@@ -2349,6 +2303,37 @@ img { max-width: 100%; display: block; }
 
 .case-panel { display: contents; }
 .case-panel[hidden] { display: none; }
+
+/* In-tab progression keeps a case study readable as a sequence while the
+   category tabs remain available for visitors who want to jump around. */
+.case-panel-next {
+  grid-column: text;
+  justify-self: end;
+  display: inline-grid;
+  grid-template-columns: auto auto auto;
+  align-items: baseline;
+  gap: .75rem;
+  margin: clamp(2rem, 5vw, 3rem) 0 0;
+  padding: .8rem 0;
+  border: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 50%, transparent);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 220ms var(--ease), border-color 220ms var(--ease), transform 220ms var(--ease-out);
+}
+.case-panel-next .micro { color: var(--text-dim); }
+.case-panel-next > :nth-child(2) {
+  font-family: var(--display);
+  font-size: 1.15rem;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.case-panel-next > :last-child { color: var(--accent); font-size: 1.25rem; }
+.case-panel-next:hover,
+.case-panel-next:focus-visible { color: var(--accent); border-color: var(--accent); transform: translateX(4px); }
 
 /* Because the panel is display:contents, its children are the case-body grid's
    items, and .case-body > * never matches them. Without this, ordinary prose
@@ -3510,6 +3495,19 @@ button.ygr-shot { cursor: zoom-in; }
   font-weight: 600;
 }
 
+/* The opening problem and product rationale answer each other, so desktop
+   readers can compare them directly before moving into the feature scenes. */
+.ygr-intro {
+  grid-column: full;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(2rem, 6vw, 5rem);
+  margin: clamp(2.5rem, 6vw, 4rem) 0 0;
+}
+.ygr-intro__section { max-width: var(--measure); }
+.ygr-intro__section h2 { grid-column: auto; margin-top: 0; }
+.ygr-intro__section > :last-child { margin-bottom: 0; }
+
 /* ---- Feature gallery ------------------------------------------------------ */
 
 /* Selector carries the panel so it outranks .case-panel > ul, which would
@@ -3567,6 +3565,8 @@ button.ygr-shot { cursor: zoom-in; }
 }
 
 @media (max-width: 60rem) {
+  .ygr-intro { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .ygr-intro__section + .ygr-intro__section h2 { margin-top: 3rem; }
   .ygr-scene {
     grid-template-columns: minmax(0, 1fr);
     gap: clamp(1.1rem, 4vw, 1.75rem);
@@ -3762,6 +3762,65 @@ button.ygr-shot { cursor: zoom-in; }
   grid-template-columns: minmax(0, 23rem) minmax(0, 1.5fr);
 }
 .bev-scene--flip .bev-scene__media { order: 2; }
+
+/* The earnings chart needs to read first; the two conversations are supporting
+   evidence beneath it rather than competing with it in the prose column. */
+.bev-scene--money { align-items: start; }
+.bev-money-media { display: grid; gap: clamp(.9rem, 2vw, 1.4rem); }
+.bev-money-media > .bev-shot img {
+  aspect-ratio: 2.25 / 1;
+  object-fit: cover;
+  object-position: center top;
+}
+.bev-money-media__chats {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, .58fr);
+  align-items: start;
+  gap: clamp(.75rem, 1.7vw, 1.25rem);
+}
+.bev-money-media__chats figure { margin: 0; }
+.bev-money-media__chats figure .bev-shot { width: 78%; margin-left: auto; }
+.bev-money-media__chats figure img {
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  object-position: center 48%;
+}
+.bev-money-media__chats figcaption,
+.bev-trade-phones figcaption {
+  margin: .55rem 0 0;
+  color: var(--text-dim);
+  font-size: .76rem;
+  line-height: 1.45;
+}
+
+/* Trades are intentionally phone-first: the mobile filter UI and the resulting
+   conversation stack together in the dedicated right-hand media column. */
+.bev-scene--trades {
+  grid-template-columns: minmax(0, 1.5fr) minmax(13rem, 22rem);
+  align-items: start;
+}
+.bev-scene--trades .bev-scene__media { order: 2; }
+.bev-trade-phones {
+  display: grid;
+  gap: clamp(.9rem, 2vw, 1.4rem);
+  justify-items: center;
+}
+.bev-trade-phones__phone,
+.bev-trade-phones__chat { width: min(74%, 15rem); margin: 0; }
+.bev-trade-phones__chat { justify-self: end; }
+.bev-trade-phones .bev-shot { border-radius: clamp(10px, 1.6vw, 18px); }
+
+/* Keep the ballot as the right-column focal point instead of diluting it with
+   a smaller second device capture. */
+.bev-scene--poll .bev-scene__media { width: 100%; }
+
+/* Crop to the useful keeper controls rather than showing the entire desktop
+   page at a reduced scale. */
+.bev-scene--keepers .bev-scene__media > .bev-shot img {
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  object-position: center 40%;
+}
 
 .bev-scene__copy[data-reveal] { transition-delay: 110ms; }
 .bev-scene__copy > :first-child { margin-top: 0; }
@@ -4059,10 +4118,18 @@ button.bev-shot { cursor: zoom-in; }
     margin: clamp(2.5rem, 8vw, 4rem) 0;
   }
   .bev-scene--flip .bev-scene__media { order: 0; }
+  .bev-scene--trades .bev-scene__media { order: 0; }
   .bev-scene__copy h2::before { left: -.75rem; }
 
   /* On one column a 21% phone would be a few millimetres wide, so the pair
      stacks and the phone takes a share you can actually read. */
   .bev-pair { grid-template-columns: minmax(0, 1fr); }
   .bev-pair__phone { width: 46%; justify-self: end; }
+  .bev-money-media__chats { grid-template-columns: minmax(0, 1fr) minmax(0, .65fr); }
+  .bev-trade-phones {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+  .bev-trade-phones__phone,
+  .bev-trade-phones__chat { width: min(100%, 15rem); }
 }

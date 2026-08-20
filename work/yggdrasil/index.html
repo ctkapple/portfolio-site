@@ -28,7 +28,7 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin
       href="../../assets/fonts/inter-latin.woff2">
 
-<link rel="stylesheet" href="../../assets/styles.css?v=a22">
+<link rel="stylesheet" href="../../assets/styles.css?v=a27">
 
 <script>document.documentElement.classList.add('js');</script>
 </head>
@@ -55,7 +55,7 @@
     <hr class="rule case-rule">
 
     <dl class="case-facts">
-      <div class="case-fact"><dt>Role</dt><dd>Design, product, build</dd></div>
+      <div class="case-fact"><dt>Role</dt><dd>Design, Develop, Maintain</dd></div>
       <div class="case-fact"><dt>Status</dt><dd>Live <span class="case-fact__live">(internal)</span></dd></div>
       <div class="case-fact"><dt>Timeline</dt><dd>2 weeks to rollout</dd></div>
     </dl>
@@ -81,52 +81,58 @@
         <figcaption>Tree view. The whole organization on one screen, teams read as colour.</figcaption>
       </figure>
 
-      <h2 class="hue-1">The chart existed. Nobody could use it.</h2>
+      <div class="ygr-intro">
+        <section class="ygr-intro__section" data-reveal>
+          <h2 class="hue-1">The chart existed. Nobody could use it.</h2>
 
-      <p>
-        Everything you needed to understand the org was already written down
-        somewhere. Reporting lines lived in one internal system, roles and
-        locations in a second, skills and subject matter expertise in a third.
-        The three never quite agreed, and none of them answered the question
-        people were actually asking, which was some version of "who owns this,
-        and who do I talk to about it."
-      </p>
+          <p>
+            Reporting lines lived in one internal system, roles and locations in
+            a second, skills and subject matter expertise in a third. The three
+            never quite agreed, and none of them answered the question people
+            were actually asking, which was some version of "who owns this, and
+            who do I talk to about it."
+          </p>
 
-      <p>
-        So people asked a manager. The manager pointed them at someone else, and
-        that person pointed them somewhere else again. New hires got the worst
-        version of it, because they did not yet know enough to know who to ask.
-        Every partner team, every cross department project, every onboarding week
-        paid the same small tax.
-      </p>
+          <p>
+            So people asked a manager. The manager pointed them at someone else,
+            and that person pointed them somewhere else again. New hires got the
+            worst version of it, because they did not yet know enough to know who
+            to ask. Every partner team, every cross department project, every
+            onboarding week paid the same small tax.
+          </p>
 
-      <p>
-        Scale is what made it stick. The organization is one group inside a
-        company of more than five thousand people, so reporting lines rarely stay
-        tidy. They cross into neighbouring groups and back again, and the person
-        who actually owns a thing is often several steps from anyone you already
-        know. A chart that only covers your immediate surroundings does not help
-        with that, and a chart that covers everything is unreadable.
-      </p>
+          <p>
+            Scale is what made it stick. The organization is one group inside a
+            company of more than five thousand people, so reporting lines rarely
+            stay tidy. They cross into neighbouring groups and back again, and
+            the person who actually owns a thing is often several steps from
+            anyone you already know. A chart that only covers your immediate
+            surroundings does not help with that, and a chart that covers
+            everything is unreadable.
+          </p>
+        </section>
 
-      <h2 class="hue-2">Why a tree, and why this one</h2>
+        <section class="ygr-intro__section" data-reveal>
+          <h2 class="hue-2">Why a tree, and why this one</h2>
 
-      <p>
-        The name comes from the world tree at the center of Norse cosmology, the
-        thing every realm hangs off. An org chart is a tree too, so the reference
-        did real work rather than sitting on top as a skin. Drawn radially, the
-        whole organization fits in one frame. Distance from the center reads as
-        distance from leadership, colour reads as team, and the density of a
-        branch tells you how large a group is before you read a single name.
-      </p>
+          <p>
+            The name comes from the world tree at the center of Norse cosmology,
+            the thing every realm hangs off. An org chart is a tree too, so the
+            reference did real work rather than sitting on top as a skin. Drawn
+            radially, the whole organization fits in one frame. Distance from
+            the center reads as distance from leadership, colour reads as team,
+            and the density of a branch tells you how large a group is before you
+            read a single name.
+          </p>
 
-      <p>
-        The look followed from the same idea. Dark field, luminous nodes, teams
-        named for realms. It is unapologetically beautiful, and that was a
-        product decision rather than a personal indulgence. A tool nobody wants
-        to open does not get opened, and this one had to survive being forwarded
-        to a stakeholder who had no particular reason to care.
-      </p>
+          <p>
+            The look followed from the same idea: dark field, luminous nodes,
+            teams named for realms. I focused heavily on brand and aesthetic
+            design because even the most useful information gets lost if people
+            do not want to engage with it.
+          </p>
+        </section>
+      </div>
 
       <dl class="ygr-stats" data-reveal>
         <div class="ygr-stat"><dt>250+</dt><dd>people in the live chart</dd></div>
@@ -153,9 +159,7 @@
           </p>
           <p>
             Directory is for lookup. Same data, familiar table, grouped by team
-            with role, location, manager and report count on every row. It became
-            the most used view in the product, which is the sort of thing you
-            only find out after you ship both.
+            with role, location, manager and report count on every row.
           </p>
           <p>
             Neither one is a mode you get stuck in. Any person in the directory
@@ -229,11 +233,10 @@
       <h2 class="hue-7">Where it landed</h2>
 
       <p>
-        It shipped in about two weeks and then kept getting used, which is the
-        part that surprised me. Managers use it to plan, outside collaborators
-        use it to find an owner, and new hires open it in their first week
-        instead of asking three people in a row. The three system scavenger hunt
-        is gone.
+        From idea to implementation, rollout, and adoption took less than two
+        weeks. It later expanded into an organization-wide home page and
+        internal site with highly specific tooling, shortcuts, and automations
+        requested by senior management.
       </p>
 
       <p class="ygr-disclosure">
@@ -334,9 +337,7 @@
 
     </div>
 
-    <p class="case-note">
-      Built with AI-assisted development. Live internally; not publicly deployed.
-    </p>
+    <p class="case-note">Live internally; not publicly deployed.</p>
 
   </main>
 </div>
@@ -382,6 +383,6 @@
   </nav>
 </footer>
 
-<script src="../../assets/main.js?v=a21"></script>
+<script src="../../assets/main.js?v=a25"></script>
 </body>
 </html>

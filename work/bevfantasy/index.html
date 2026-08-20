@@ -28,7 +28,7 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin
       href="../../assets/fonts/inter-latin.woff2">
 
-<link rel="stylesheet" href="../../assets/styles.css?v=a22">
+<link rel="stylesheet" href="../../assets/styles.css?v=a27">
 
 <script>document.documentElement.classList.add('js');</script>
 </head>
@@ -89,7 +89,7 @@
          spread rather than one after the other. -->
     <div class="bev-intro" data-reveal>
       <div class="bev-intro__col">
-        <h2>A league is a group chat with a scoreboard</h2>
+        <h2>Fantasy leagues are competitive group chats</h2>
 
         <p>
           Fantasy football is the thing that kept sixteen friends talking after
@@ -158,19 +158,28 @@
     </div>
 
     <!-- Earnings -->
-    <section class="bev-scene">
-      <div class="bev-scene__media bev-pair bev-pair--chat" data-reveal>
+    <section class="bev-scene bev-scene--money">
+      <div class="bev-scene__media bev-money-media" data-reveal>
         <button type="button" class="bev-shot bev-shot--trigger" aria-label="View full size"
                 data-lightbox-caption="The earnings exchange. A lifetime equity curve across all three leagues, with a live ticker tape of every manager's winnings above it.">
           <img src="../../assets/img/bev-earnings.webp" width="2000" height="1125"
                alt="A line chart titled Lifetime Equity Curve tracking each manager's cumulative winnings from 2021 to 2025, with a scrolling ticker of stock-style symbols above it">
         </button>
-        <div class="bev-pair__phone">
+
+        <div class="bev-money-media__chats">
           <button type="button" class="bev-shot bev-shot--trigger" aria-label="View full size"
                   data-lightbox-caption="What happened after I won the 2025 championship by 2 points.">
             <img src="../../assets/img/bev-chat-earnings-crop.webp" width="1330" height="1182"
-                 alt="A cropped group chat exchange calling for $WILL to be sold immediately because of bad fundamentals and a high P/E ratio">
+                alt="A cropped group chat exchange calling for $WILL to be sold immediately because of bad fundamentals and a high P/E ratio">
           </button>
+          <figure>
+            <button type="button" class="bev-shot bev-shot--trigger" aria-label="View full size"
+                    data-lightbox-caption="The equity curve immediately becoming group chat ammunition.">
+              <img src="../../assets/img/bev-proof-earnings.webp" width="852" height="1846"
+                  alt="A privacy-edited group chat debating a preseason performance above a screenshot of the Lifetime Equity Curve">
+            </button>
+            <figcaption>The equity curve immediately became group chat ammunition.</figcaption>
+          </figure>
         </div>
       </div>
       <div class="bev-scene__copy" data-reveal>
@@ -182,15 +191,6 @@
           winnings along the top, a cumulative equity curve underneath, and a
           holdings table breaking every dollar down by year and by league.
         </p>
-
-        <figure class="bev-receipt">
-          <button type="button" class="bev-shot bev-shot--trigger" aria-label="View full size"
-                  data-lightbox-caption="The equity curve immediately becoming group chat ammunition.">
-            <img src="../../assets/img/bev-proof-earnings.webp" width="852" height="1846"
-                 alt="A privacy-edited group chat debating a preseason performance above a screenshot of the Lifetime Equity Curve">
-          </button>
-          <figcaption>The equity curve immediately became group chat ammunition.</figcaption>
-        </figure>
         <p>
           The tape is what made it land. A total is a fact and a number that
           moves is a story, so each symbol carries the season's change beside
@@ -204,20 +204,23 @@
     </section>
 
     <!-- Trades -->
-    <section class="bev-scene bev-scene--flip">
-      <div class="bev-scene__media bev-pair" data-reveal>
-        <button type="button" class="bev-shot bev-shot--trigger" aria-label="View full size"
-                data-lightbox-caption="The trade log filtered to one pair of managers, in reverse chronological order.">
-          <img src="../../assets/img/bev-trades-private.webp" width="1672" height="941"
-               alt="A trade log filtered to Will and Matt, showing the surviving trades grouped by season">
-        </button>
-        <div class="bev-pair__phone">
+    <section class="bev-scene bev-scene--trades">
+      <div class="bev-scene__media bev-trade-phones" data-reveal>
+        <div class="bev-trade-phones__phone">
           <button type="button" class="bev-shot bev-shot--trigger" aria-label="View full size"
                   data-lightbox-caption="The filter bar on a phone, where the chips wrap into rows and stay reachable with a thumb.">
             <img src="../../assets/img/bev-m-trades.webp" width="840" height="1760"
                  alt="The trade filter bar on a phone, with season and position chips wrapped into rows above the results">
           </button>
         </div>
+        <figure class="bev-trade-phones__chat">
+          <button type="button" class="bev-shot bev-shot--trigger" aria-label="View full size"
+                  data-lightbox-caption="Four years later, the trade was still being called a fleece.">
+            <img src="../../assets/img/bev-proof-trades.webp" width="862" height="1825"
+                 alt="A privacy-edited group chat calling an old trade a fleece above a Bev Fantasy standings screenshot">
+          </button>
+          <figcaption>Four years later, the trade was still being called a fleece.</figcaption>
+        </figure>
       </div>
       <div class="bev-scene__copy" data-reveal>
         <h2 class="bar-white">A hundred trades and no way to find one</h2>
@@ -247,15 +250,6 @@
           terms, since "every trade where somebody moved a first" is a different
           question from a player's name, and it is the one that starts fights.
         </p>
-
-        <figure class="bev-receipt bev-receipt--left">
-          <button type="button" class="bev-shot bev-shot--trigger" aria-label="View full size"
-                  data-lightbox-caption="Four years later, the trade was still being called a fleece.">
-            <img src="../../assets/img/bev-proof-trades.webp" width="862" height="1825"
-                 alt="A privacy-edited group chat calling an old trade a fleece above a Bev Fantasy standings screenshot">
-          </button>
-          <figcaption>Four years later, the trade was still being called a fleece.</figcaption>
-        </figure>
       </div>
     </section>
 
@@ -313,20 +307,13 @@
     </div>
 
     <!-- AP Poll -->
-    <section class="bev-scene bev-scene--flip">
-      <div class="bev-scene__media bev-pair" data-reveal>
+    <section class="bev-scene bev-scene--flip bev-scene--poll">
+      <div class="bev-scene__media" data-reveal>
         <button type="button" class="bev-shot bev-shot--trigger" aria-label="View full size"
                 data-lightbox-caption="The ballot. Drag to rank all fourteen teams, with the roster of whichever team you are weighing open beside it.">
           <img src="../../assets/img/bev-ballot.webp" width="2000" height="1125"
                alt="A drag-to-rank ballot listing fourteen teams in order, beside a Team Snapshot panel showing the selected team's top five projected players">
         </button>
-        <div class="bev-pair__phone">
-          <button type="button" class="bev-shot bev-shot--trigger" aria-label="View full size"
-                  data-lightbox-caption="The ballot on a phone, with the projected roster pulled up as a sheet over it. This is where almost every ballot actually gets filled out.">
-            <img src="../../assets/img/bev-m-ballot.webp" width="840" height="1552"
-                 alt="The ranking ballot on a phone with a Team Snapshot sheet slid up over it, listing the selected team's top projected players">
-          </button>
-        </div>
       </div>
       <div class="bev-scene__copy" data-reveal>
         <h2 class="bar-white">Manufacturing an event</h2>
@@ -385,7 +372,7 @@
     </section>
 
     <!-- Keeper assistant -->
-    <section class="bev-scene">
+    <section class="bev-scene bev-scene--keepers">
       <div class="bev-scene__media bev-pair" data-reveal>
         <button type="button" class="bev-shot bev-shot--trigger" aria-label="View full size"
                 data-lightbox-caption="The Keeper Assistant. Every player on a roster with their cost basis, what they would cost to keep, how long they have been kept, and whether they are eligible at all.">
@@ -461,21 +448,6 @@
       keeping engagement high without giving me arthritis.
     </p>
 
-    <p>
-      What I got right was the constraint. Optimizing for what people would send
-      each other, rather than for coverage, is why the pages that get traffic
-      are the poll, head to head and trades, and not the statistically richer
-      views sitting next to them in the nav.
-    </p>
-
-    <p>
-      What I got wrong, repeatedly, is that I still ship things nobody asked
-      for. The Keeper Assistant worked because I watched two specific people
-      fail at a specific task for four years. The features that flopped are the
-      ones where I found interesting data and went looking for a reason to show
-      it. Knowing the difference in advance is the part I am still bad at.
-    </p>
-
     <h2>The mark</h2>
 
     <p>
@@ -489,9 +461,11 @@
 
     <p>
       When I work with artists, I prefer to let them cook, then respond to the
-      work in front of me with clear, actionable feedback. I can be headstrong
-      about the original vision, but the best results usually come when I work
-      closely with people who know their craft better than I do.
+      work in front of me with clear, actionable feedback. I usually begin with
+      a strong vision, but visions are never brought to life alone. The more
+      people who bring passion to a project—even when their ideas differ from
+      my original vision—the stronger the result. I prefer to lead through
+      friendly, passionate collaboration with talented people.
     </p>
 
     <ul class="bev-duo" data-reveal>
@@ -517,10 +491,6 @@
       has stopped talking about since. The screens on this page show real league
       data. The chat screenshots are cropped to the conversation and surnames
       are blurred.
-    </p>
-
-    <p class="case-note">
-      Built with AI-assisted development.
     </p>
 
   </main>
@@ -567,6 +537,6 @@
   </nav>
 </footer>
 
-<script src="../../assets/main.js?v=a21"></script>
+<script src="../../assets/main.js?v=a25"></script>
 </body>
 </html>

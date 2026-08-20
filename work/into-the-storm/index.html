@@ -30,7 +30,7 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin
       href="../../assets/fonts/inter-latin.woff2">
 
-<link rel="stylesheet" href="../../assets/styles.css?v=a25">
+<link rel="stylesheet" href="../../assets/styles.css?v=a27">
 
 <script>document.documentElement.classList.add('js');</script>
 </head>
@@ -60,7 +60,7 @@
     <hr class="rule case-rule">
 
     <dl class="case-facts">
-      <div class="case-fact"><dt>Role</dt><dd>Design, development, art direction</dd></div>
+      <div class="case-fact"><dt>Role</dt><dd>Design, development, vision</dd></div>
       <div class="case-fact"><dt>Status</dt><dd><a class="its-status-alpha" href="https://studiogibbles.com/" target="_blank" rel="noopener noreferrer">Alpha</a></dd></div>
       <div class="case-fact"><dt>Timeline</dt><dd>February 2026—Present</dd></div>
     </dl>
@@ -70,9 +70,9 @@
 
     <div class="case-tabs" role="tablist" aria-label="Case study categories">
       <button type="button" class="case-tab" id="tab-art" role="tab"
-              aria-selected="true" aria-controls="panel-art" data-tab="art">Art Design</button>
+              aria-selected="true" aria-controls="panel-art" data-tab="art">Vision</button>
       <button type="button" class="case-tab" id="tab-gameplay" role="tab"
-              aria-selected="false" aria-controls="panel-gameplay" tabindex="-1" data-tab="gameplay">Gameplay</button>
+              aria-selected="false" aria-controls="panel-gameplay" tabindex="-1" data-tab="gameplay">Tech</button>
       <button type="button" class="case-tab" id="tab-feedback" role="tab"
               aria-selected="false" aria-controls="panel-feedback" tabindex="-1" data-tab="feedback">User Feedback</button>
     </div>
@@ -235,13 +235,19 @@
         </button>
       </section>
 
+      <button type="button" class="case-panel-next" data-next-tab="tab-gameplay">
+        <span class="micro">Next section</span>
+        <span>Tech</span>
+        <span aria-hidden="true">→</span>
+      </button>
+
     </div>
 
     <!-- ================= Gameplay (stub) ================= -->
     <div class="case-panel" id="panel-gameplay" role="tabpanel" aria-labelledby="tab-gameplay" hidden>
       <figure class="case-figure case-figure--empty">
         <figcaption>
-          Gameplay — coming soon. This is where the playtest → friction → iterate
+          Tech — coming soon. This is where the playtest → friction → iterate
           loop goes (§5): pick two or three specific frictions, what players did,
           what changed, whether it worked.
         </figcaption>
@@ -257,6 +263,11 @@
         <figcaption>[Before / after of the change]</figcaption>
       </figure>
       -->
+      <button type="button" class="case-panel-next" data-next-tab="tab-feedback">
+        <span class="micro">Next section</span>
+        <span>User Feedback</span>
+        <span aria-hidden="true">→</span>
+      </button>
     </div>
 
     <!-- ================= User Feedback ================= -->
@@ -425,13 +436,12 @@
           feedback report that cannot reach Supabase remains in its local log,
           but must be resent by the tester rather than synchronizing itself later.
         </p>
-        <p>
-          This was a supervised alpha workflow. Insert-only database permissions
-          and client checks reduced accidental pollution, but a public release
-          would move database and Discord access behind a server-side proxy with
-          authentication and rate limiting.
-        </p>
       </aside>
+      <a class="case-panel-next" href="../yggdrasil/" data-prefetch>
+        <span class="micro">Next project</span>
+        <span>Yggdrasil</span>
+        <span aria-hidden="true">→</span>
+      </a>
     </div>
 
     <p class="case-note">
@@ -482,6 +492,6 @@
   </div>
 </div>
 
-<script src="../../assets/main.js?v=a24"></script>
+<script src="../../assets/main.js?v=a25"></script>
 </body>
 </html>
