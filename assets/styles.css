@@ -2102,6 +2102,142 @@ img { max-width: 100%; display: block; }
   font-size: .85rem;
 }
 
+/* About page — resume depth, kept inside the case-study visual language. */
+.about-page .case-sub { max-width: 42rem; }
+
+.about-page .case-facts a,
+.about-entry a { text-underline-offset: .18em; }
+
+.about-section + .about-section { margin-top: clamp(3.5rem, 8vw, 5.5rem); }
+
+.about-section > h2 { margin-top: 0; }
+
+.about-entry {
+  padding: 1.35rem 0 1.5rem;
+  border-top: 1px solid var(--line);
+}
+
+.about-entry:last-child { border-bottom: 1px solid var(--line); }
+
+.about-entry__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.25rem 2rem;
+  margin-bottom: .85rem;
+}
+
+.about-entry h3 {
+  margin: 0 0 .28rem;
+  color: var(--text);
+  font-family: var(--display);
+  font-size: clamp(1.05rem, 2vw, 1.3rem);
+  font-weight: 500;
+  letter-spacing: .025em;
+  line-height: 1.15;
+  text-transform: uppercase;
+}
+
+.about-entry h3 a { color: inherit; }
+
+.about-entry__role,
+.about-entry__meta {
+  margin: 0;
+  color: var(--accent);
+  font-size: .82rem;
+  line-height: 1.45;
+}
+
+.about-entry__role--previous {
+  margin-top: .15rem;
+  color: var(--text-dim);
+}
+
+.about-entry__meta {
+  max-width: 16rem;
+  color: var(--text-dim);
+  text-align: right;
+}
+
+.about-entry > p:last-child,
+.about-entry > ul:last-child { margin-bottom: 0; }
+
+.about-section--split {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr);
+  gap: clamp(2.5rem, 6vw, 5rem);
+}
+
+.about-section--split h2 { margin-top: 0; }
+
+.about-entry--compact { border-bottom: 1px solid var(--line); }
+
+.about-skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .55rem;
+  padding: 0;
+  list-style: none;
+}
+
+.about-skills li {
+  margin: 0;
+  padding: .42rem .7rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--text-dim);
+  font-size: .78rem;
+}
+
+.about-contact > p { color: var(--text-dim); }
+
+.about-contact__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .75rem;
+  margin-top: .35rem;
+}
+
+.about-contact__link {
+  display: inline-flex;
+  align-items: center;
+  gap: .55rem;
+  min-height: 2.75rem;
+  padding: .65rem .9rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 48%, var(--line));
+  border-radius: 999px;
+  color: var(--text);
+  font-size: .84rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: border-color 220ms var(--ease), background 220ms var(--ease), transform 220ms var(--ease-out);
+}
+
+.about-contact__link svg {
+  width: 1.1rem;
+  height: 1.1rem;
+  flex: none;
+  fill: currentColor;
+  color: var(--accent);
+}
+
+.about-contact__link:hover {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  transform: translateY(-2px);
+}
+
+.about-contact__link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+@media (max-width: 680px) {
+  .about-entry__head { display: block; }
+  .about-entry__meta { margin-top: .45rem; max-width: none; text-align: left; }
+  .about-section--split { grid-template-columns: 1fr; }
+}
+
 /* Scaffolding markers — delete these along with the placeholder content.
    Note: one .todo is on the homepage and carries a second class, so the old
    `grep -rn 'class="todo"' work/` no longer finds everything. Use:
@@ -2453,6 +2589,7 @@ img { max-width: 100%; display: block; }
 .its-status-alpha {
   color: var(--storm-gold);
   text-shadow: 0 0 18px color-mix(in srgb, var(--storm-gold) 35%, transparent);
+  text-underline-offset: .2em;
 }
 
 .its-art-hero,
