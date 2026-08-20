@@ -1897,6 +1897,28 @@ img { max-width: 100%; display: block; }
 
 .case-back:hover { color: var(--text); gap: .75rem; }
 
+.case-nav__right {
+  display: flex;
+  align-items: center;
+  gap: .9rem;
+}
+
+/* Same arrow the footer's next-project card ends on, surfaced at the top too
+   so jumping to the next case study doesn't require scrolling to the bottom. */
+.case-nav__next {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-dim);
+  text-decoration: none;
+  font-size: 1.05rem;
+  line-height: 1;
+  transition: color 220ms var(--ease), transform 220ms var(--ease-out);
+}
+
+.case-nav__next:hover,
+.case-nav__next:focus-visible { color: var(--accent); transform: translateX(3px); }
+
 /* Accent carry-through: enough that the page you land on clearly belongs to
    the card you clicked, without breaking §5's calm. */
 .case-head {

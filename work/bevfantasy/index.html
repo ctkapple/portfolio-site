@@ -28,7 +28,7 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin
       href="../../assets/fonts/inter-latin.woff2">
 
-<link rel="stylesheet" href="../../assets/styles.css?v=a29">
+<link rel="stylesheet" href="../../assets/styles.css?v=a30">
 
 <script>document.documentElement.classList.add('js');</script>
 </head>
@@ -38,7 +38,12 @@
 
   <nav class="case-nav" aria-label="Breadcrumb">
     <a class="case-back" href="../../" data-prefetch><span aria-hidden="true">←</span> Back</a>
-    <p class="micro">01 / 03</p>
+    <div class="case-nav__right">
+      <p class="micro">01 / 03</p>
+      <a class="case-nav__next" href="../into-the-storm/" data-prefetch aria-label="Next case study: Into the Storm">
+        <span aria-hidden="true">→</span>
+      </a>
+    </div>
   </nav>
 
   <header class="case-head">
@@ -133,7 +138,18 @@
       <div class="bev-stat"><dt>100+</dt><dd>trades, filterable</dd></div>
     </dl>
 
+    <div class="case-tabs" role="tablist" aria-label="Case study acts">
+      <button type="button" class="case-tab" id="tab-record" role="tab"
+              aria-selected="true" aria-controls="panel-record" data-tab="record">The Record</button>
+      <button type="button" class="case-tab" id="tab-engine" role="tab"
+              aria-selected="false" aria-controls="panel-engine" tabindex="-1" data-tab="engine">The Engine</button>
+      <button type="button" class="case-tab" id="tab-evolution" role="tab"
+              aria-selected="false" aria-controls="panel-evolution" tabindex="-1" data-tab="evolution">The Evolution</button>
+    </div>
+
     <!-- ================= Act I ================= -->
+    <div class="case-panel" id="panel-record" role="tabpanel" aria-labelledby="tab-record">
+
     <div class="bev-act" data-reveal>
       <p class="bev-act__eyebrow">Act one</p>
       <h2 class="bev-act__title">The record</h2>
@@ -274,7 +290,17 @@
       </div>
     </section>
 
+      <button type="button" class="case-panel-next" data-next-tab="tab-engine">
+        <span class="micro">Next section</span>
+        <span>The Engine</span>
+        <span aria-hidden="true">→</span>
+      </button>
+
+    </div>
+
     <!-- ================= Act II ================= -->
+    <div class="case-panel" id="panel-engine" role="tabpanel" aria-labelledby="tab-engine" hidden>
+
     <div class="bev-act" data-reveal>
       <p class="bev-act__eyebrow">Act two</p>
       <h2 class="bev-act__title">The engine</h2>
@@ -403,7 +429,17 @@
       </div>
     </section>
 
+      <button type="button" class="case-panel-next" data-next-tab="tab-evolution">
+        <span class="micro">Next section</span>
+        <span>The Evolution</span>
+        <span aria-hidden="true">→</span>
+      </button>
+
+    </div>
+
     <!-- ================= Act III ================= -->
+    <div class="case-panel" id="panel-evolution" role="tabpanel" aria-labelledby="tab-evolution" hidden>
+
     <div class="bev-act" data-reveal>
       <p class="bev-act__eyebrow">Act three</p>
       <h2 class="bev-act__title">The Evolution</h2>
@@ -517,6 +553,8 @@
       templated version of the site, with walkthroughs for other leagues to run
       their own. Both are further out. Prioritization, as above: tbd.
     </p>
+
+    </div>
 
   </main>
 </div>
