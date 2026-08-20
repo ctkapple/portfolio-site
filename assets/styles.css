@@ -3593,20 +3593,23 @@ button.ygr-shot { cursor: zoom-in; }
 
 /* ---- Header ---------------------------------------------------------------- */
 
-/* The title and mark are one project lockup. Keeping them in the same row
-   makes the mark read as identity instead of a detached corner ornament. */
+/* The wordmark is the page heading and sits alone as the hero identity. */
 .case.theme-bev .case-head__copy { width: 100%; }
 .case.theme-bev .case-head__index { display: none; }
 
 .bev-lockup {
   display: flex;
-  align-items: center;
-  gap: clamp(1.25rem, 3vw, 2.25rem);
+  justify-content: center;
+}
+
+.bev-title {
+  margin: 0;
+  line-height: 0;
 }
 
 .bev-mark {
   flex: 0 0 auto;
-  width: clamp(12rem, 24vw, 19rem);
+  width: clamp(15rem, 34vw, 24rem);
   height: auto;
   margin: 0;
   /* The source art is flat orange on transparent; the drop shadow gives it
@@ -3614,11 +3617,11 @@ button.ygr-shot { cursor: zoom-in; }
   filter: drop-shadow(0 0 34px color-mix(in srgb, var(--accent) 42%, transparent));
 }
 
-/* The eyebrow and the title swap their usual roles here: the accent belongs on
-   the project's own name, which is the thing being introduced, not on the word
-   "case study", which is the same on all three pages. */
-.case.theme-bev .case-eyebrow { color: var(--text); }
-.case.theme-bev .case-title   { color: var(--accent); }
+.case.theme-bev .case-eyebrow {
+  margin-top: clamp(1.25rem, 3vw, 2rem);
+  color: var(--text);
+  text-align: center;
+}
 
 .case-fact__live[href] {
   text-decoration: underline;
@@ -3687,14 +3690,7 @@ button.ygr-shot { cursor: zoom-in; }
 }
 
 @media (max-width: 48rem) {
-  .case.theme-bev .case-eyebrow { text-align: center; }
-  .bev-lockup {
-    flex-direction: column;
-    gap: .65rem;
-  }
-  .bev-lockup .case-title { text-align: center; }
   .bev-mark {
-    order: -1;
     width: clamp(10rem, 48vw, 13rem);
   }
 }
