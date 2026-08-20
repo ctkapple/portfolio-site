@@ -27,6 +27,7 @@
   --violet-mid:  #2E1E52;
   --violet-core: #6B54A8;
   --violet-glow: #9B84D9;
+  --about-blue:  #58BFF3; /* existing Bifröst blue from the portfolio palette */
 
   /* Surfaces */
   --surface:     #121114;
@@ -2061,6 +2062,26 @@ img { max-width: 100%; display: block; }
 
 .about-page .case-facts a,
 .about-entry a { text-underline-offset: .18em; }
+
+.about-page .about-title::before {
+  background: var(--violet-glow);
+  box-shadow: 0 0 14px -3px var(--violet-glow);
+}
+
+.about-page .about-title--blue::before {
+  background: var(--about-blue);
+  box-shadow: 0 0 14px -3px var(--about-blue);
+}
+
+.about-page .about-fact-link--bev,
+.about-page .about-project-link--bev { color: var(--bev); }
+.about-page .about-fact-link--storm,
+.about-page .about-project-link--storm { color: var(--storm-gold); }
+.about-page .about-fact-link,
+.about-page .about-project-link { text-decoration: none; }
+.about-page .about-draftkings { color: var(--ygr); }
+.about-page .about-section--experience .about-entry__role { color: var(--about-blue); }
+.about-page .case-sub { margin-top: 0; }
 
 .about-section + .about-section { margin-top: clamp(3.5rem, 8vw, 5.5rem); }
 

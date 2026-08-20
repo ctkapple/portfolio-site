@@ -28,7 +28,7 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin
       href="../assets/fonts/inter-latin.woff2">
 
-<link rel="stylesheet" href="../assets/styles.css?v=a26">
+<link rel="stylesheet" href="../assets/styles.css?v=a27">
 
 <script>document.documentElement.classList.add('js');</script>
 </head>
@@ -41,8 +41,6 @@
   </nav>
 
   <header class="case-head">
-    <p class="case-eyebrow">About</p>
-    <h1 class="case-title">William Dooling</h1>
     <p class="case-sub">
       I’m a product-minded risk specialist who builds practical systems for
       complicated problems. I run BevFantasy and am solo-developing and
@@ -52,21 +50,21 @@
     <hr class="rule case-rule">
 
     <dl class="case-facts">
-      <div class="case-fact"><dt>Now</dt><dd>Risk Enablement Specialist at DraftKings</dd></div>
+      <div class="case-fact case-fact--role"><dt>Role</dt><dd>Risk Enablement Specialist at <span class="about-draftkings">DraftKings</span></dd></div>
       <div class="case-fact"><dt>Based</dt><dd>Baltimore, Maryland</dd></div>
-      <div class="case-fact"><dt>Making</dt><dd><a href="../work/bevfantasy/">BevFantasy</a> · <a href="../work/into-the-storm/">Into the Storm</a></dd></div>
+      <div class="case-fact case-fact--building"><dt>Building</dt><dd><a class="about-fact-link about-fact-link--bev" href="../work/bevfantasy/">BevFantasy</a> · <a class="about-fact-link about-fact-link--storm" href="../work/into-the-storm/">Into the Storm</a></dd></div>
     </dl>
   </header>
 
   <main class="case-body">
 
     <section class="about-section" aria-labelledby="independent-projects">
-      <h2 id="independent-projects">Independent design projects</h2>
+      <h2 class="about-title" id="independent-projects">Independent design projects</h2>
 
       <article class="about-entry">
         <div class="about-entry__head">
           <div>
-            <h3><a href="../work/bevfantasy/">BevFantasy.com</a></h3>
+            <h3><a class="about-project-link about-project-link--bev" href="../work/bevfantasy/">BevFantasy.com</a></h3>
             <p class="about-entry__role">Designer &amp; Developer</p>
           </div>
           <p class="about-entry__meta">15+ core members · 3 leagues · 40+ team rosters</p>
@@ -86,7 +84,7 @@
       <article class="about-entry">
         <div class="about-entry__head">
           <div>
-            <h3><a href="../work/into-the-storm/">Into the Storm</a></h3>
+            <h3><a class="about-project-link about-project-link--storm" href="../work/into-the-storm/">Into the Storm</a></h3>
             <p class="about-entry__role">Solo Founder, Game &amp; Systems Designer · <a href="https://studiogibbles.com/" target="_blank" rel="noopener noreferrer">Studio Gibbles</a></p>
           </div>
           <p class="about-entry__meta">50+ hours observing playtesters · Alpha</p>
@@ -102,13 +100,13 @@
       </article>
     </section>
 
-    <section class="about-section" aria-labelledby="experience">
-      <h2 id="experience">Experience</h2>
+    <section class="about-section about-section--experience" aria-labelledby="experience">
+      <h2 class="about-title about-title--blue" id="experience">Experience</h2>
 
       <article class="about-entry">
         <div class="about-entry__head">
           <div>
-            <h3>DraftKings</h3>
+            <h3><span class="about-draftkings">DraftKings</span></h3>
             <p class="about-entry__role">Risk Enablement Specialist</p>
             <p class="about-entry__role about-entry__role--previous">Previously Senior Risk Withdrawals Associate</p>
           </div>
@@ -155,7 +153,7 @@
 
     <div class="about-section about-section--split">
       <section aria-labelledby="education">
-        <h2 id="education">Education</h2>
+        <h2 class="about-title" id="education">Education</h2>
         <article class="about-entry about-entry--compact">
           <h3>University of Massachusetts Lowell</h3>
           <p class="about-entry__role">B.A., Political Science · Law &amp; Politics concentration</p>
@@ -164,9 +162,8 @@
       </section>
 
       <section aria-labelledby="skills">
-        <h2 id="skills">Skills</h2>
+        <h2 class="about-title about-title--blue" id="skills">Skills</h2>
         <ul class="about-skills" aria-labelledby="skills">
-          <li>Figma</li>
           <li>Design systems</li>
           <li>User research &amp; iteration</li>
           <li>Cross-functional collaboration</li>
@@ -177,7 +174,7 @@
     </div>
 
     <section class="about-section" aria-labelledby="outside-work">
-      <h2 id="outside-work">Outside of work</h2>
+      <h2 class="about-title" id="outside-work">Outside of work</h2>
       <p>
         I’m a long-distance runner with several marathons completed, a PC- and
         server-building enthusiast, and a GeoGuessr world-record holder. I’m
@@ -187,7 +184,7 @@
     </section>
 
     <section class="about-section about-contact" aria-labelledby="get-in-touch">
-      <h2 id="get-in-touch">Get in touch</h2>
+      <h2 class="about-title about-title--blue" id="get-in-touch">Get in touch</h2>
       <p>Want to talk product, systems, games, or a project of your own?</p>
       <div class="about-contact__links">
         <a class="about-contact__link" href="mailto:william.dooling@outlook.com">
@@ -207,17 +204,6 @@
 
   </main>
 </div>
-
-<footer class="case-foot">
-  <a class="case-next" href="../work/bevfantasy/" data-prefetch
-     style="--next-accent: var(--bev);">
-    <div>
-      <p class="micro case-next__label">Case study</p>
-      <p class="case-next__name">bevfantasy</p>
-    </div>
-    <span class="case-next__arrow" aria-hidden="true">→</span>
-  </a>
-</footer>
 
 <script src="../assets/main.js?v=a21"></script>
 </body>
