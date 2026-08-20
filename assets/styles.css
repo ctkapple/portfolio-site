@@ -3864,10 +3864,27 @@ button.ygr-shot { cursor: zoom-in; }
   display: grid;
   gap: clamp(1rem, 2.25vw, 1.5rem);
   align-content: start;
+  align-self: start;
 }
-.bev-poll-media .bev-note-shot {
-  width: min(66%, 18rem);
-  margin: 0;
+
+/* The two pieces of feedback that changed the poll sit side by side, each
+   carrying one point, rather than one wide shot with the second point
+   cropped out of view. */
+.bev-poll-feedback {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(.75rem, 1.7vw, 1.1rem);
+}
+.bev-poll-feedback .bev-note-shot { margin: 0; }
+
+/* Manufacturing an event carries far more prose than the other scenes, so the
+   usual 23rem copy column runs much taller than the media beside it. Giving
+   copy more width shortens that column and closes most of the gap; align-items
+   start keeps the media flush with the heading instead of centered in the
+   leftover space. */
+.bev-scene--poll {
+  grid-template-columns: minmax(0, 28rem) minmax(0, 1.2fr);
+  align-items: start;
 }
 
 /* Crop to the useful keeper controls rather than showing the entire desktop
@@ -4086,6 +4103,32 @@ button.bev-shot { cursor: zoom-in; }
 
 .bev-duo li { margin: 0; }
 
+/* The mark's story is prose-first, so it gets the wide track; the brief and
+   the first draft sit beside it as reference rather than leading the section. */
+.bev-mark-row {
+  grid-column: full;
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 20rem);
+  gap: clamp(1.5rem, 4vw, 3rem);
+  align-items: start;
+  margin: clamp(2.5rem, 6vw, 4rem) 0 0;
+}
+
+.bev-mark-row__copy { max-width: var(--measure); }
+.bev-mark-row__copy h2 { margin-top: 0; }
+.bev-mark-row__copy > :last-child { margin-bottom: 0; }
+
+.bev-mark-media {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: start;
+  gap: clamp(.75rem, 1.6vw, 1.1rem);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.bev-mark-media li { margin: 0; }
+
 /* Inline link inside body prose. `.case-body a` has no treatment of its own,
    so without this the one link in the running text is indistinguishable from
    the text around it. */
@@ -4143,6 +4186,39 @@ button.bev-shot { cursor: zoom-in; }
 
 .bev-evolution .bev-shot { border-radius: 12px; }
 
+/* The old site is evidence, not a hero shot — shown at a size that matches
+   the weight it carries in the story now that the power rankings image
+   introduces this beat instead. */
+.bev-evolution--tight {
+  max-width: 34rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* The power rankings spreadsheet leads "How far it's come", with the heading
+   and its paragraph reading beside it rather than underneath. */
+.bev-history-row {
+  grid-column: full;
+  display: grid;
+  grid-template-columns: minmax(0, 22rem) minmax(0, 1fr);
+  gap: clamp(1.5rem, 4vw, 3rem);
+  align-items: center;
+  margin: clamp(2.5rem, 6vw, 4rem) 0 0;
+}
+
+.bev-history-row__media { margin: 0; }
+.bev-history-row__media .bev-shot { border-radius: 12px; }
+.bev-history-row__media figcaption {
+  margin: .65rem 0 0;
+  color: var(--text-dim);
+  font-size: .78rem;
+  line-height: 1.45;
+}
+
+.bev-history-row__copy { max-width: var(--measure); }
+.bev-history-row__copy h2 { margin-top: 0; }
+.bev-history-row__copy > :last-child { margin-bottom: 0; }
+
 /* ---- Credits -------------------------------------------------------------- */
 
 .bev-credit {
@@ -4186,5 +4262,6 @@ button.bev-shot { cursor: zoom-in; }
   .bev-pair__phone { width: 46%; justify-self: end; }
   .bev-money-media__chats { grid-template-columns: minmax(0, 1fr) minmax(0, .65fr); }
   .bev-trade-phones { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .bev-poll-media .bev-note-shot { width: min(76%, 20rem); }
+  .bev-mark-row { grid-template-columns: minmax(0, 1fr); gap: 1.25rem; }
+  .bev-history-row { grid-template-columns: minmax(0, 1fr); }
 }
