@@ -223,7 +223,7 @@
         </figure>
       </div>
       <div class="bev-scene__copy" data-reveal>
-        <h2 class="bar-white">A hundred trades and no way to find one</h2>
+        <h2 class="bar-white">Every Trade, Easily Findable</h2>
         <p class="bev-scene__dek">
           Every time a trade goes down, the whole league calls it a fleece,
           regardless of what it contains. Down the road, I want to add a Fleece
@@ -254,21 +254,7 @@
     </section>
 
     <!-- Head to head -->
-    <section class="bev-scene">
-      <div class="bev-scene__media bev-pair" data-reveal>
-        <button type="button" class="bev-shot bev-shot--trigger" aria-label="View full size"
-                data-lightbox-caption="Head to head. Two faces picked from a grid produce an all-time record, the closest game the two have played, and the player who has done the most damage.">
-          <img src="../../assets/img/bev-h2h-wide.webp" width="2000" height="1125"
-               alt="A head-to-head comparison showing two managers' portraits either side of a 4-2 all-time record, with total points, biggest blowout and a Certified Hater stat beneath each">
-        </button>
-        <div class="bev-pair__phone">
-          <button type="button" class="bev-shot bev-shot--trigger" aria-label="View full size"
-                  data-lightbox-caption="The same matchup on a phone. This is the screen that ends up in the group chat.">
-            <img src="../../assets/img/bev-m-h2h.webp" width="840" height="1760"
-                 alt="The head-to-head result on a phone, with one manager's card and stats filling the screen">
-          </button>
-        </div>
-      </div>
+    <section class="bev-scene bev-scene--ammunition">
       <div class="bev-scene__copy" data-reveal>
         <h2>Ammunition</h2>
         <p>
@@ -276,6 +262,20 @@
           It was also the first and least sophisticated thing I built.
           Unsurprisingly, I built it to settle an argument.
         </p>
+        <div class="bev-pair bev-ammunition-shots" data-reveal>
+          <button type="button" class="bev-shot bev-shot--trigger" aria-label="View full size"
+                  data-lightbox-caption="Head to head. Two faces picked from a grid produce an all-time record, the closest game the two have played, and the player who has done the most damage.">
+            <img src="../../assets/img/bev-h2h-wide.webp" width="2000" height="1125"
+                 alt="A head-to-head comparison showing two managers' portraits either side of a 4-2 all-time record, with total points, biggest blowout and a Certified Hater stat beneath each">
+          </button>
+          <div class="bev-pair__phone">
+            <button type="button" class="bev-shot bev-shot--trigger" aria-label="View full size"
+                    data-lightbox-caption="The same matchup on a phone. This is the screen that ends up in the group chat.">
+              <img src="../../assets/img/bev-m-h2h.webp" width="840" height="1760"
+                   alt="The head-to-head result on a phone, with one manager's card and stats filling the screen">
+            </button>
+          </div>
+        </div>
         <p>
           You pick two faces from a grid. No dropdowns, no names to type. That
           choice does more work than it looks like it does: selecting someone by
@@ -290,8 +290,8 @@
           prove that Ja'Marr Chase has a grudge against me personally.
         </p>
         <p class="bev-scene__proof">
-          None of it helps anyone win a game. All of it gets pasted into the
-          group chat, which was <b>the entire point</b>.
+          Now you can ensure pre-game trash talk is backed by verified data,
+          which makes it all the more delicious.
         </p>
       </div>
     </section>
@@ -308,12 +308,19 @@
 
     <!-- AP Poll -->
     <section class="bev-scene bev-scene--flip bev-scene--poll">
-      <div class="bev-scene__media" data-reveal>
+      <div class="bev-scene__media bev-poll-media" data-reveal>
         <button type="button" class="bev-shot bev-shot--trigger" aria-label="View full size"
                 data-lightbox-caption="The ballot. Drag to rank all fourteen teams, with the roster of whichever team you are weighing open beside it.">
           <img src="../../assets/img/bev-ballot.webp" width="2000" height="1125"
                alt="A drag-to-rank ballot listing fourteen teams in order, beside a Team Snapshot panel showing the selected team's top five projected players">
         </button>
+        <figure class="bev-note-shot">
+          <button type="button" class="bev-shot bev-shot--trigger" aria-label="View full size"
+                  data-lightbox-caption="Early feedback on the first build. Both points went in.">
+            <img src="../../assets/img/bev-chat-poll.webp" width="820" height="723"
+                 alt="A chat thread reviewing the poll: too much going on in the screenshot, and a suggestion to publish only a top seven the way college football does">
+          </button>
+        </figure>
       </div>
       <div class="bev-scene__copy" data-reveal>
         <h2 class="bar-white">Manufacturing an event</h2>
@@ -345,14 +352,6 @@
           I put the build in front of a handful of the die-hards, the people who
           would use it every week, and let them pull it apart.
         </p>
-
-        <figure class="bev-note-shot">
-          <button type="button" class="bev-shot bev-shot--trigger" aria-label="View full size"
-                  data-lightbox-caption="Early feedback on the first build. Both points went in.">
-            <img src="../../assets/img/bev-chat-poll.webp" width="820" height="723"
-                 alt="A chat thread reviewing the poll: too much going on in the screenshot, and a suggestion to publish only a top seven the way college football does">
-          </button>
-        </figure>
 
         <p>
           Too much on screen at once, came back one reply, and why not publish a
@@ -417,37 +416,6 @@
       </div>
     </section>
 
-    <h2 class="bar-white">How it evolved</h2>
-
-    <p>
-      Before Bev Fantasy, we had other fantasy leagues but no dedicated site. I
-      started the keeper league in 2021 and built the admittedly terrible Wix
-      site that same year. In 2023, I built the first version of Bev Fantasy and
-      have been iterating on it ever since.
-    </p>
-
-    <figure class="bev-evolution" data-reveal>
-      <button type="button" class="bev-shot bev-shot--trigger" aria-label="View full size"
-              data-lightbox-caption="The 2021 Wix site. Mostly a blog, rarely visited, and very much the first version.">
-        <img src="../../assets/img/bev-old-site.webp" width="1593" height="1076"
-             alt="The original 2021 Bev Keeper fantasy football Wix site, showing a simple blog post layout">
-      </button>
-      <figcaption>The 2021 Wix site. Mostly a blog, rarely visited, and very much the first version.</figcaption>
-    </figure>
-
-    <p>
-      The site now refreshes from Sleeper's API every night, so its history and
-      transaction log stay current without anyone maintaining them. Three
-      leagues share one codebase, and adding a fourth takes one config file.
-    </p>
-
-    <p>
-      The blogs were fun to write, but the time and energy to write them
-      evaporated as I got older. Automated stat tracking, convenient tooling,
-      and visually interesting and useful graphs have done a much better job of
-      keeping engagement high without giving me arthritis.
-    </p>
-
     <h2>The mark</h2>
 
     <p>
@@ -491,6 +459,37 @@
       has stopped talking about since. The screens on this page show real league
       data. The chat screenshots are cropped to the conversation and surnames
       are blurred.
+    </p>
+
+    <h2 class="bar-white">How it evolved</h2>
+
+    <p>
+      Before Bev Fantasy, we had other fantasy leagues but no dedicated site. I
+      started the keeper league in 2021 and built the admittedly terrible Wix
+      site that same year. In 2023, I built the first version of Bev Fantasy and
+      have been iterating on it ever since.
+    </p>
+
+    <figure class="bev-evolution" data-reveal>
+      <button type="button" class="bev-shot bev-shot--trigger" aria-label="View full size"
+              data-lightbox-caption="The 2021 Wix site. Mostly a blog, rarely visited, and very much the first version.">
+        <img src="../../assets/img/bev-old-site.webp" width="1593" height="1076"
+             alt="The original 2021 Bev Keeper fantasy football Wix site, showing a simple blog post layout">
+      </button>
+      <figcaption>The 2021 Wix site. Mostly a blog, rarely visited, and very much the first version.</figcaption>
+    </figure>
+
+    <p>
+      The site now refreshes from Sleeper's API every night, so its history and
+      transaction log stay current without anyone maintaining them. Three
+      leagues share one codebase, and adding a fourth takes one config file.
+    </p>
+
+    <p>
+      The blogs were fun to write, but the time and energy to write them
+      evaporated as I got older. Automated stat tracking, convenient tooling,
+      and visually interesting and useful graphs have done a much better job of
+      keeping engagement high without giving me arthritis.
     </p>
 
   </main>

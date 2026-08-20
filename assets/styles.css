@@ -3793,26 +3793,46 @@ button.ygr-shot { cursor: zoom-in; }
   line-height: 1.45;
 }
 
-/* Trades are intentionally phone-first: the mobile filter UI and the resulting
-   conversation stack together in the dedicated right-hand media column. */
+/* Trades keep the filter and the proof visible together, so the archive reads
+   as a searchable tool rather than a list of screens. */
 .bev-scene--trades {
-  grid-template-columns: minmax(0, 1.5fr) minmax(13rem, 22rem);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
   align-items: start;
 }
 .bev-scene--trades .bev-scene__media { order: 2; }
 .bev-trade-phones {
   display: grid;
-  gap: clamp(.9rem, 2vw, 1.4rem);
-  justify-items: center;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: clamp(.75rem, 1.7vw, 1.25rem);
 }
 .bev-trade-phones__phone,
-.bev-trade-phones__chat { width: min(74%, 15rem); margin: 0; }
-.bev-trade-phones__chat { justify-self: end; }
+.bev-trade-phones__chat { width: 100%; margin: 0; }
 .bev-trade-phones .bev-shot { border-radius: clamp(10px, 1.6vw, 18px); }
 
-/* Keep the ballot as the right-column focal point instead of diluting it with
-   a smaller second device capture. */
-.bev-scene--poll .bev-scene__media { width: 100%; }
+/* Head-to-head needs the screenshots to interrupt the argument itself. Giving
+   the scene one track lets the desktop result and phone capture use the page
+   width without making the surrounding copy feel stretched. */
+.bev-scene--ammunition {
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+}
+.bev-ammunition-shots {
+  grid-template-columns: minmax(0, 1fr) minmax(12rem, 20rem);
+  margin: clamp(1.25rem, 3vw, 2rem) 0;
+}
+
+/* The ballot and the feedback that changed it share the media column. The
+   smaller receipt uses otherwise-empty space below the landscape capture. */
+.bev-poll-media {
+  display: grid;
+  gap: clamp(1rem, 2.25vw, 1.5rem);
+  align-content: start;
+}
+.bev-poll-media .bev-note-shot {
+  width: min(66%, 18rem);
+  margin: 0;
+}
 
 /* Crop to the useful keeper controls rather than showing the entire desktop
    page at a reduced scale. */
@@ -4126,10 +4146,6 @@ button.bev-shot { cursor: zoom-in; }
   .bev-pair { grid-template-columns: minmax(0, 1fr); }
   .bev-pair__phone { width: 46%; justify-self: end; }
   .bev-money-media__chats { grid-template-columns: minmax(0, 1fr) minmax(0, .65fr); }
-  .bev-trade-phones {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    align-items: start;
-  }
-  .bev-trade-phones__phone,
-  .bev-trade-phones__chat { width: min(100%, 15rem); }
+  .bev-trade-phones { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .bev-poll-media .bev-note-shot { width: min(76%, 20rem); }
 }
