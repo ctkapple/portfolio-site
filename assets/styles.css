@@ -1908,7 +1908,6 @@ img { max-width: 100%; display: block; }
   display: block;
   width: 100%;
   height: auto;
-  filter: drop-shadow(0 0 28px color-mix(in srgb, var(--ygr) 30%, transparent));
 }
 
 .case-wrap {
@@ -2120,7 +2119,32 @@ img { max-width: 100%; display: block; }
 }
 
 /* About page — resume depth, kept inside the case-study visual language. */
-.about-page .case-sub { max-width: 42rem; }
+.about-photo {
+  width: clamp(120px, 20vw, 168px);
+  height: clamp(120px, 20vw, 168px);
+  margin: 0 auto 1.5rem;
+}
+
+.about-photo img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid color-mix(in srgb, var(--violet-glow) 55%, transparent);
+  box-shadow: 0 0 22px -2px color-mix(in srgb, var(--violet-core) 75%, transparent);
+}
+
+.about-page .case-eyebrow { text-align: center; }
+
+.about-page .case-sub {
+  max-width: none;
+  text-align: center;
+}
+
+.about-page .case-facts {
+  justify-content: center;
+  text-align: center;
+}
 
 .about-page .case-facts a,
 .about-entry a { text-underline-offset: .18em; }
@@ -2133,6 +2157,53 @@ img { max-width: 100%; display: block; }
 .about-page .about-title--blue::before {
   background: var(--about-blue);
   box-shadow: 0 0 14px -3px var(--about-blue);
+}
+
+.about-page .about-title--dk { color: var(--ygr); }
+.about-page .about-title--dk::before {
+  background: var(--ygr);
+  box-shadow: 0 0 14px -3px var(--ygr);
+}
+
+/* Independent projects / Experience break out of the narrow text measure so
+   their entries can sit as columns instead of one long stack. */
+.about-section--wide { grid-column: full; }
+
+.about-entries {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 3rem;
+}
+
+.about-entries .about-entry {
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.about-experience-grid {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 0 3rem;
+}
+
+.about-experience-grid__side {
+  display: flex;
+  flex-direction: column;
+}
+
+.about-experience-grid > .about-entry,
+.about-experience-grid__side .about-entry {
+  border-top: 1px solid var(--line);
+}
+
+.about-experience-grid > .about-entry:first-child,
+.about-experience-grid__side .about-entry:last-child {
+  border-bottom: 1px solid var(--line);
+}
+
+@media (max-width: 780px) {
+  .about-entries,
+  .about-experience-grid { grid-template-columns: 1fr; }
 }
 
 .about-page .about-fact-link--bev,
@@ -2273,6 +2344,40 @@ img { max-width: 100%; display: block; }
   .about-entry__head { display: block; }
   .about-entry__meta { margin-top: .45rem; max-width: none; text-align: left; }
   .about-section--split { grid-template-columns: 1fr; }
+}
+
+.about-foot__logos {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: clamp(2rem, 6vw, 4rem);
+  padding-top: clamp(2.5rem, 6vw, 4rem);
+  border-top: 1px solid var(--line);
+}
+
+.about-foot__logos a {
+  display: block;
+  height: clamp(2.75rem, 6vw, 3.5rem);
+  opacity: .78;
+  transition: opacity 220ms var(--ease), transform 220ms var(--ease-out);
+}
+
+.about-foot__logos img {
+  display: block;
+  width: auto;
+  height: 100%;
+}
+
+.about-foot__logos a:hover,
+.about-foot__logos a:focus-visible {
+  opacity: 1;
+  transform: translateY(-3px);
+}
+
+.about-foot__logos a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
 }
 
 /* Scaffolding markers — delete these along with the placeholder content.

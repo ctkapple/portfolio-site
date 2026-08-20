@@ -41,9 +41,14 @@
   </nav>
 
   <header class="case-head">
+    <div class="about-photo">
+      <img src="../assets/img/Me and Gatsby.jpg"
+           alt="William Dooling with his poodle Gatsby." width="360" height="360">
+    </div>
+
     <p class="case-sub">
-      I’m a product-minded risk specialist who builds practical systems for
-      complicated problems. I run BevFantasy and am solo-developing and
+      I’m a product-minded project manager who builds practical systems to
+      solve complex issues. I run BevFantasy and am solo-developing and
       launching <em>Into the Storm</em>.
     </p>
 
@@ -58,9 +63,10 @@
 
   <main class="case-body">
 
-    <section class="about-section" aria-labelledby="independent-projects">
+    <section class="about-section about-section--wide" aria-labelledby="independent-projects">
       <h2 class="about-title" id="independent-projects">Independent design projects</h2>
 
+      <div class="about-entries">
       <article class="about-entry">
         <div class="about-entry__head">
           <div>
@@ -98,57 +104,62 @@
           <li>Ran structured blind playtests and translated observed friction and confusion into 200+ concrete iterations across the core gameplay loop and interface.</li>
         </ul>
       </article>
+      </div>
     </section>
 
-    <section class="about-section about-section--experience" aria-labelledby="experience">
-      <h2 class="about-title about-title--blue" id="experience">Experience</h2>
+    <section class="about-section about-section--experience about-section--wide" aria-labelledby="experience">
+      <h2 class="about-title about-title--dk" id="experience">Experience</h2>
 
-      <article class="about-entry">
-        <div class="about-entry__head">
-          <div>
-            <h3><span class="about-draftkings">DraftKings</span></h3>
-            <p class="about-entry__role">Risk Enablement Specialist</p>
-            <p class="about-entry__role about-entry__role--previous">Previously Senior Risk Withdrawals Associate</p>
+      <div class="about-experience-grid">
+        <article class="about-entry">
+          <div class="about-entry__head">
+            <div>
+              <h3><span class="about-draftkings">DraftKings</span></h3>
+              <p class="about-entry__role">Risk Enablement Specialist</p>
+              <p class="about-entry__role about-entry__role--previous">Previously Senior Risk Withdrawals Associate</p>
+            </div>
+            <p class="about-entry__meta">Remote · June 2025—Present<br>August 2023—June 2025</p>
           </div>
-          <p class="about-entry__meta">Remote · June 2025—Present<br>August 2023—June 2025</p>
-        </div>
-        <ul>
-          <li>Lead a six-person team as PM on the Risk Case Reduction Strategy, a top 2026 organizational priority targeting a 20% reduction in case volume through automation, AI, and process redesign.</li>
-          <li>Designed and built an internal anomaly-detection tool for Risk Operations work queues, iterating from manager feedback to add a three-way tagging system that surfaced real upstream data-quality issues.</li>
-          <li>Appointed Head of the Fraud Mitigation Taskforce, with regulatory oversight across all regulated U.S. states, Canada, and additional international jurisdictions; built and centralized DraftKings’ Regulatory Library and lead recurring leadership forums on emerging risk exposure.</li>
-          <li>Led cross-functional workflow automation initiatives generating approximately $1.5 million in annual impact; promoted after a competitive internal Project Management internship.</li>
-          <li>Designed and shipped <a href="../work/yggdrasil/">Yggdrasil</a>, an internal org explorer that brought three fragmented systems into one live view for 250+ people, from concept to rollout in two weeks.</li>
-        </ul>
-      </article>
+          <ul>
+            <li>Lead a six-person team as PM on the Risk Case Reduction Strategy, a top 2026 organizational priority targeting a 20% reduction in case volume through automation, AI, and process redesign.</li>
+            <li>Designed and built an internal anomaly-detection tool for Risk Operations work queues, iterating from manager feedback to add a three-way tagging system that surfaced real upstream data-quality issues.</li>
+            <li>Appointed Head of the Fraud Mitigation Taskforce, with regulatory oversight across all regulated U.S. states, Canada, and additional international jurisdictions; built and centralized DraftKings’ Regulatory Library and lead recurring leadership forums on emerging risk exposure.</li>
+            <li>Led cross-functional workflow automation initiatives generating approximately $1.5 million in annual impact; promoted after a competitive internal Project Management internship.</li>
+            <li>Designed and shipped <a href="../work/yggdrasil/">Yggdrasil</a>, an internal org explorer that brought three fragmented systems into one live view for 250+ people, from concept to rollout in two weeks.</li>
+          </ul>
+        </article>
 
-      <article class="about-entry">
-        <div class="about-entry__head">
-          <div>
-            <h3>Digital Gaming Corporation (Betway)</h3>
-            <p class="about-entry__role">Risk Analyst</p>
-          </div>
-          <p class="about-entry__meta">Arlington, Virginia · January 2022—August 2023</p>
-        </div>
-        <ul>
-          <li>Built an automated Excel and Python process that increased Venmo withdrawal-processing speed by 40%.</li>
-          <li>Performed thousands of fraud and anti-money-laundering reviews on customer accounts and withdrawals and represented hundreds of payment disputes and chargebacks.</li>
-        </ul>
-      </article>
+        <div class="about-experience-grid__side">
+          <article class="about-entry">
+            <div class="about-entry__head">
+              <div>
+                <h3>Digital Gaming Corporation (Betway)</h3>
+                <p class="about-entry__role">Risk Analyst</p>
+              </div>
+              <p class="about-entry__meta">Arlington, Virginia · January 2022—August 2023</p>
+            </div>
+            <ul>
+              <li>Built an automated Excel and Python process that increased Venmo withdrawal-processing speed by 40%.</li>
+              <li>Performed thousands of fraud and anti-money-laundering reviews on customer accounts and withdrawals and represented hundreds of payment disputes and chargebacks.</li>
+            </ul>
+          </article>
 
-      <article class="about-entry">
-        <div class="about-entry__head">
-          <div>
-            <h3>Congressional &amp; legislative internships</h3>
-            <p class="about-entry__role">Early career</p>
-          </div>
-          <p class="about-entry__meta">2019—2020</p>
+          <article class="about-entry">
+            <div class="about-entry__head">
+              <div>
+                <h3>Congressional &amp; legislative internships</h3>
+                <p class="about-entry__role">Early career</p>
+              </div>
+              <p class="about-entry__meta">2019—2020</p>
+            </div>
+            <p>
+              Supported constituent casework, legislative research, and district-based
+              issue resolution in the offices of U.S. Representative Lori Trahan and
+              Massachusetts State Representative Jerald A. Parisella.
+            </p>
+          </article>
         </div>
-        <p>
-          Supported constituent casework, legislative research, and district-based
-          issue resolution in the offices of U.S. Representative Lori Trahan and
-          Massachusetts State Representative Jerald A. Parisella.
-        </p>
-      </article>
+      </div>
     </section>
 
     <div class="about-section about-section--split">
@@ -187,7 +198,7 @@
       <h2 class="about-title about-title--blue" id="get-in-touch">Get in touch</h2>
       <p>Want to talk product, systems, games, or a project of your own?</p>
       <div class="about-contact__links">
-        <a class="about-contact__link" href="mailto:william.dooling@outlook.com">
+        <a class="about-contact__link" href="mailto:me@williamdooling.com">
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M3 5h18v14H3V5Zm2 2v.5l7 5.25 7-5.25V7H5Zm14 10V10l-7 5.25L5 10v7h14Z"/>
           </svg>
@@ -204,6 +215,20 @@
 
   </main>
 </div>
+
+<footer class="case-foot about-foot">
+  <nav class="about-foot__logos" aria-label="Case studies">
+    <a href="../work/yggdrasil/" data-prefetch aria-label="Yggdrasil case study">
+      <img src="../assets/img/yggdrasil-logo.webp" alt="" width="520" height="520" loading="lazy" decoding="async">
+    </a>
+    <a href="../work/bevfantasy/" data-prefetch aria-label="BevFantasy case study">
+      <img src="../assets/img/bev-fantasy-logo.webp" alt="" width="360" height="345" loading="lazy" decoding="async">
+    </a>
+    <a href="../work/into-the-storm/" data-prefetch aria-label="Into the Storm case study">
+      <img src="../assets/img/into-the-storm-logo.webp" alt="" width="900" height="491" loading="lazy" decoding="async">
+    </a>
+  </nav>
+</footer>
 
 <script src="../assets/main.js?v=a21"></script>
 </body>
