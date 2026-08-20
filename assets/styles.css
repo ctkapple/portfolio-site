@@ -1871,6 +1871,46 @@ img { max-width: 100%; display: block; }
 .case.theme-storm { --accent: var(--storm); }
 .case.theme-ygr   { --accent: var(--ygr); }
 
+/* Centering treatment carried over from the Bev Fantasy / Into the Storm
+   headers, so all three case studies open the same way. */
+.case.theme-ygr .case-head__index { display: none; }
+.case.theme-ygr .case-eyebrow { text-align: center; }
+
+.case.theme-ygr .case-sub {
+  max-width: none;
+  text-align: center;
+}
+
+.case.theme-ygr .case-facts {
+  justify-content: center;
+  text-align: center;
+}
+
+.ygr-title {
+  width: clamp(12rem, 24vw, 16rem);
+  margin: 0 auto;
+  line-height: 0;
+}
+
+.ygr-title__text {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.ygr-title__logo {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 0 28px color-mix(in srgb, var(--ygr) 30%, transparent));
+}
+
 .case-wrap {
   max-width: 64rem;
   margin: 0 auto;
@@ -2980,6 +3020,10 @@ img { max-width: 100%; display: block; }
 }
 
 .its-feedback-top figure { margin: 0; }
+
+/* The feedback-form shot is shorter than the Discord capture beside it;
+   center it in the row instead of leaving it stranded at the top. */
+.its-feedback-top figure:first-child { align-self: center; }
 
 .its-feedback-top figcaption,
 .its-feedback-clarity figcaption,
@@ -4465,6 +4509,30 @@ button.bev-shot { cursor: zoom-in; }
 .bev-history-row__copy { max-width: var(--measure); }
 .bev-history-row__copy h2 { margin-top: 0; }
 .bev-history-row__copy > :last-child { margin-bottom: 0; }
+
+/* Closing section reads as a centered statement, the same grammar as the
+   "finished identity" close on the Into the Storm vision tab. */
+.bev-next {
+  grid-column: text;
+  max-width: var(--measure);
+  margin: clamp(4rem, 10vw, 7rem) auto 0;
+  padding-top: clamp(1.5rem, 4vw, 2.5rem);
+  border-top: 1px solid var(--line);
+  text-align: center;
+}
+
+.bev-next h2 { margin-top: 0; }
+
+.bev-next h2::before {
+  left: 50%;
+  bottom: -.6rem;
+  top: auto;
+  height: 2px;
+  width: 2.75rem;
+  transform: translateX(-50%);
+}
+
+.bev-next > :last-child { margin-bottom: 0; }
 
 /* ---- Credits -------------------------------------------------------------- */
 

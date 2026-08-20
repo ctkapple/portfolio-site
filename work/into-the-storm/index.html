@@ -325,10 +325,6 @@
             <em>Into the Storm</em> so bugs, confusion, ideas, and general
             notes could be captured without leaving the game.
           </p>
-        </div>
-
-        <div class="its-feedback-intro__col">
-          <h2 class="marker-gold">Transparent Iteration</h2>
           <p>
             Submitting a report immediately captures a screenshot of the
             current game state, logs the surrounding session data, and writes
@@ -337,6 +333,10 @@
             <em>Into the Storm</em> Discord server, which every playtester has
             access to.
           </p>
+        </div>
+
+        <div class="its-feedback-intro__col">
+          <h2 class="marker-gold">Transparent Iteration</h2>
           <p>
             The triage system is simple: a ☑️ when a bug is fixed, a
             😵‍💫 when I have no idea what the issue is, and a 👀 when an
@@ -393,7 +393,7 @@
           </figure>
         </div>
         <div class="its-feedback-scene__copy" data-reveal>
-          <h2 class="marker-teal">When color-coded was not clear enough</h2>
+          <h2 class="marker-teal">Whose turn is it anyway?</h2>
           <p>
             One recurring point of confusion was card ownership: whose card is
             this, exactly? Each character's cards already used a distinct
@@ -406,8 +406,7 @@
           <p>
             I ran with that immediately: character-colored glow and a clear
             highlight on the card's associated hero. Every blind playtest
-            since has confirmed it worked. The specific complaint hasn't come
-            back once.
+            since has confirmed it worked.
           </p>
         </div>
       </section>
@@ -438,27 +437,29 @@
             difficult, players were dying too fast, not dealing enough damage,
             not seeing good cards. It was valuable to hear, but as a solo
             developer, tuning damage values, health totals, and card costs was
-            all guesswork. None of it was grounded in real data.
+            mostly guesswork. None of it was grounded in real data.
           </p>
           <p>
             I didn't know exactly how to fix that until I found
             <a class="its-link" href="https://www.youtube.com/watch?v=7rqfbvnO_H0&t=551s" target="_blank" rel="noopener noreferrer">this talk</a>
-            from a Slay the Spire developer on their metrics-driven design and
-            balance approach. Given the scope and encounter diversity I'd
-            already planned for my first game, it was immediately obvious this
-            was the way forward.
+            from one of the Slay the Spire devs on their metrics-driven design
+            and balance approach. Given the scope and encounter diversity I
+            already had planned, it was immediately obvious that I needed to
+            borrow that same strategy and let analytics guide me towards a
+            balanced game.
           </p>
           <p>
             Feedback is only as useful as the context around it, so I built a
             custom analytics integration: every report is tied to a tester,
             session, run, app version, platform, build type, act, and floor,
-            among other fields. A comment about an encounter, card, or economy
-            decision can now be read alongside what actually happened in that
-            run, rather than sitting on its own.
+            among a plethora of other datapoints. A comment about an
+            encounter, card, or economy decision can now be read alongside
+            what actually happened in that run.
           </p>
           <p>
-            Without that shift, I'd still be tuning numbers by feel instead of
-            letting the data tell me what's actually happening.
+            Without this shift, I'd still be blindly tuning numbers by
+            instinct instead of letting the data drive balancing decisions,
+            and let the game design instinct be guided by the analytics.
           </p>
         </div>
       </section>
