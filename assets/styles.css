@@ -3000,12 +3000,7 @@ img { max-width: 100%; display: block; }
 }
 
 .its-art-finale__copy h2::before {
-  top: auto;
-  bottom: -.6rem;
-  left: 50%;
-  height: 2px;
-  width: 2.75rem;
-  transform: translateX(-50%);
+  display: none;
 }
 
 .its-art-finale__copy p { margin: 0; }
