@@ -2081,6 +2081,15 @@ img { max-width: 100%; display: block; }
 .case-body ul { margin: 0 0 1.2rem; padding-left: 1.15rem; }
 .case-body li { margin-bottom: .55rem; }
 
+.case-body code {
+  padding: .15em .4em;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--surface-lo);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: .88em;
+}
+
 .case-figure {
   grid-column: full;
   margin: 2.5rem 0;
@@ -2547,6 +2556,9 @@ img { max-width: 100%; display: block; }
   font-size: .85rem;
   letter-spacing: .02em;
 }
+
+.its-tech-lead { grid-column: text; }
+.its-tech-lead h2 { margin-top: 0; }
 
 /* --------------------------------------------------------------------------
    8c. Art Design tab — before/after slider

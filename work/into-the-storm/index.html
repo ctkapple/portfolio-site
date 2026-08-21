@@ -30,7 +30,7 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin
       href="../../assets/fonts/inter-latin.woff2">
 
-<link rel="stylesheet" href="../../assets/styles.css?v=a31">
+<link rel="stylesheet" href="../../assets/styles.css?v=a32">
 
 <script>document.documentElement.classList.add('js');</script>
 </head>
@@ -264,26 +264,135 @@
 
     </div>
 
-    <!-- ================= Gameplay (stub) ================= -->
+    <!-- ================= Tech ================= -->
     <div class="case-panel" id="panel-gameplay" role="tabpanel" aria-labelledby="tab-gameplay" hidden>
-      <figure class="case-figure case-figure--empty">
-        <figcaption>
-          Tech — coming soon. This is where the playtest → friction → iterate
-          loop goes (§5): pick two or three specific frictions, what players did,
-          what changed, whether it worked.
-        </figcaption>
-      </figure>
-      <!-- Scaffolding preserved from the pre-tab draft, for whenever this tab
-           gets built out:
 
-      <h3>Playtest friction: [the specific problem]</h3>
-      <p class="todo">
-        What players did vs. what you expected. The tell that something was wrong.
-      </p>
-      <figure class="case-figure case-figure--empty">
-        <figcaption>[Before / after of the change]</figcaption>
-      </figure>
-      -->
+      <div class="its-tech-lead" data-reveal>
+        <h2 class="marker-teal">The Foundation</h2>
+        <p>
+          At the time I'd taken a few computer science courses in college and
+          tinkered with programming and modding growing up, but nothing close
+          to the scale of an actual game. Opening that repo and seeing a
+          working combat loop, a card system, an action pipeline, all of it
+          readable and modifiable, was the thing that convinced me this
+          wasn't as far out of reach as I'd always assumed. I could poke at a
+          value, see what changed, and start to understand why.
+        </p>
+        <p>
+          That template is still in the project's history, but it's not
+          really in the project anymore. Over the past year I've rewritten
+          nearly every system it gave me: the card and action architecture,
+          the enemy behavior model, status effects, saving, the UI that reads
+          all of it. What's left of the original scaffolding is mostly the
+          idea that this was possible at all.
+        </p>
+      </div>
+
+      <section class="its-art-scene">
+        <div class="its-art-scene__media its-art-pair" data-reveal>
+          <figure class="its-art-frame">
+            <button type="button" class="its-art-shot its-art-shot--trigger" aria-label="View minion enemy code full size"
+                    data-lightbox-caption="Raw GDScript defining a minion enemy: hardcoded stats and a nested dictionary of attack states.">
+              <img src="../../assets/img/its-tech-enemy-code.webp" width="793" height="1024"
+                   alt="Raw GDScript defining a minion enemy: hardcoded stats and a nested dictionary of attack states">
+            </button>
+            <figcaption>What defining a single minion enemy looked like before.</figcaption>
+          </figure>
+          <figure class="its-art-frame">
+            <button type="button" class="its-art-shot its-art-shot--trigger" aria-label="View card code full size"
+                    data-lightbox-caption="Raw GDScript defining a card: hardcoded strings and nested dictionaries for upgrade tiers and actions.">
+              <img src="../../assets/img/its-tech-card-code.webp" width="1656" height="1300"
+                   alt="Raw GDScript defining a card: hardcoded strings and nested dictionaries for upgrade tiers and actions">
+            </button>
+            <figcaption>The same problem, for cards. Every upgrade tier and action had to be hand-typed into the dictionary correctly, or the card silently failed.</figcaption>
+          </figure>
+        </div>
+        <div class="its-art-scene__copy" data-reveal>
+          <h2 class="marker-gold">The part that should have been fun</h2>
+          <p>
+            Enemy design and card design are supposed to be the most creative
+            part of building a game like this. Tuning a boss's attack
+            pattern, deciding what a new card says and does, that's the
+            actual game design. Instead, for most of the first several
+            months, it was the work I found myself avoiding.
+          </p>
+          <p>
+            Every card and enemy lived as a block of raw GDScript: hardcoded
+            strings, nested dictionaries, action definitions spelled out by
+            hand. Changing one number meant finding it inside a wall of code
+            that looked like this.
+          </p>
+          <p>
+            Nothing here was unreasonable on the framework's part. It's
+            flexible by design and it got me moving fast in the beginning.
+            But a year in, with dozens of enemies and a growing card pool,
+            this format was actively working against the part of development
+            I cared about most. I'd sit down to balance a fight and spend the
+            first twenty minutes just finding the right bracket.
+          </p>
+        </div>
+      </section>
+
+      <section class="its-art-scene its-art-scene--flip">
+        <div class="its-art-scene__media" data-reveal>
+          <figure class="its-art-frame">
+            <button type="button" class="its-art-shot its-art-shot--trigger" aria-label="View the Card Editor full size"
+                    data-lightbox-caption="The Card Editor. A live preview renders on the left as I edit values on the right, so I always know exactly what a change will look like on the actual card.">
+              <img src="../../assets/img/its-tech-card-editor.webp" width="1260" height="980"
+                   alt="The Card Editor: a live card preview on the left next to editable fields for color, type, rarity, cost, description, and on-play actions on the right">
+            </button>
+            <figcaption>The Card Editor. A live preview renders on the left as I edit values on the right, so I always know exactly what a change will look like on the actual card.</figcaption>
+          </figure>
+        </div>
+        <div class="its-art-scene__copy" data-reveal>
+          <h2 class="marker-teal">Building the tool instead of avoiding the work</h2>
+          <p>
+            Once I understood why I was avoiding it, the fix became obvious:
+            I didn't need a better framework, I needed a better interface
+            between me and my own data.
+          </p>
+          <p>
+            I converted every card, enemy, and artifact into Godot's native
+            <code>.tres</code> resource format, which let me define exactly
+            the fields I actually needed instead of the ones the template
+            shipped with. Then I built custom in-editor tools on top of that:
+            a Card Editor and an Enemy Editor, each shaped around how I
+            actually work rather than how a general purpose framework has to
+            work for everyone.
+          </p>
+        </div>
+      </section>
+
+      <section class="its-art-scene">
+        <div class="its-art-scene__media its-art-pair" data-reveal>
+          <figure class="its-art-frame">
+            <button type="button" class="its-art-shot its-art-shot--trigger" aria-label="View enemy attack state machine full size"
+                    data-lightbox-caption="The Enemy Editor's attack-state machine, listing each state's damage, debuffs, and possible follow-up attacks.">
+              <img src="../../assets/img/its-tech-enemy-editor.webp" width="1127" height="1637"
+                   alt="The Enemy Editor's attack-state machine, listing each state's damage, debuffs, and possible follow-up attacks">
+            </button>
+            <figcaption>Enemy attack patterns as an editable state machine. Each state's damage, debuffs, and possible follow-up attacks are visible and adjustable in one place, instead of buried in a dictionary.</figcaption>
+          </figure>
+          <figure class="its-art-frame">
+            <button type="button" class="its-art-shot its-art-shot--trigger" aria-label="View boss stats and metadata full size"
+                    data-lightbox-caption="Boss-level stats and metadata, editable without touching a script.">
+              <img src="../../assets/img/its-tech-boss-stats.webp" width="1139" height="435"
+                   alt="Boss overview fields for health, damage type, enemy type, and tags in the Enemy Editor">
+            </button>
+            <figcaption>Boss-level stats and metadata, editable without touching a script.</figcaption>
+          </figure>
+        </div>
+        <div class="its-art-scene__copy" data-reveal>
+          <p>
+            Balancing a fight now takes minutes instead of a
+            search-and-replace expedition. Adding a card variant means
+            filling out fields, not writing correct GDScript syntax from
+            memory. More importantly, the part of the job I'd been avoiding
+            became the part I look forward to again.
+          </p>
+        </div>
+      </section>
+
       <button type="button" class="case-panel-next" data-next-tab="tab-feedback">
         <span class="micro">Next section</span>
         <span>User Feedback</span>
