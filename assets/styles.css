@@ -2257,17 +2257,18 @@ img { max-width: 100%; display: block; }
 
 .about-entry h3 a { color: inherit; }
 
-.about-entry__role,
-.about-entry__meta {
+.about-page .about-entry__role,
+.about-page .about-entry__meta {
   margin: 0;
   color: var(--accent);
   font-size: .82rem;
   line-height: 1.45;
 }
 
-.about-entry__role--previous {
+.about-page .about-section--experience .about-entry__role--previous {
   margin-top: .15rem;
-  color: var(--text-dim);
+  color: #9b6dd6;
+  font-style: italic;
 }
 
 .about-entry__meta {
