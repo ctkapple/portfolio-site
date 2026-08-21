@@ -3046,9 +3046,6 @@ img { max-width: 100%; display: block; }
   -webkit-user-drag: none;
 }
 
-.its-compare__img--sketch {
-  transform: translate(4.3%, -6.4%);
-}
 
 .its-compare__handle {
   position: absolute;
