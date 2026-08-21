@@ -3038,7 +3038,6 @@ img { max-width: 100%; display: block; }
 
 .its-compare__img--after {
   clip-path: inset(0 calc(100% - var(--pos, 50%)) 0 0);
-  object-position: 50% 100%;
 }
 
 .its-compare__handle {
@@ -3099,15 +3098,6 @@ img { max-width: 100%; display: block; }
 .its-compare__range:focus-visible + .its-compare__handle .its-compare__grip {
   outline: 2px solid var(--storm-gold);
   outline-offset: 3px;
-}
-
-.its-compare__labels {
-  display: flex;
-  justify-content: space-between;
-  margin: .75rem 0 0;
-  color: var(--text-dim);
-  font-size: .82rem;
-  line-height: 1.5;
 }
 
 @media (max-width: 60rem) {
