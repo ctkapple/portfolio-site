@@ -83,10 +83,17 @@
   object-position: 50% center;
 }
 
+.cinematic-project__art--storm {
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 18%, #000 100%);
+  mask-image: linear-gradient(to right, transparent 0%, #000 18%, #000 100%);
+}
+
 .cinematic-project__art--bev {
   background:
     radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--cinematic-bev) 22%, transparent), transparent 48%),
     linear-gradient(145deg, #17100D, #09090B 72%);
+  -webkit-mask-image: linear-gradient(to right, #000 0%, #000 82%, transparent 100%);
+  mask-image: linear-gradient(to right, #000 0%, #000 82%, transparent 100%);
 }
 
 .cinematic-project__art--bev::before {
@@ -361,6 +368,16 @@
     min-height: 0;
     border: 0;
     border-radius: 0;
+  }
+
+  .cinematic-project__art--bev {
+    -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 82%, transparent 100%);
+    mask-image: linear-gradient(to bottom, #000 0%, #000 82%, transparent 100%);
+  }
+
+  .cinematic-project__art--storm {
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 18%, #000 100%);
+    mask-image: linear-gradient(to bottom, transparent 0%, #000 18%, #000 100%);
   }
 
   .cinematic-project__art--bev .deck { inset: 0; }
