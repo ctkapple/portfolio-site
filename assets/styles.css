@@ -3037,7 +3037,8 @@ img { max-width: 100%; display: block; }
 }
 
 .its-compare__img--after {
-  clip-path: inset(0 calc(100% - var(--pos, 50%)) 0 0);
+  clip-path: inset(0 calc(100% - var(--pos, 58%)) 0 0);
+  transform: translate(5%, -7%);
 }
 
 .its-compare__handle {
