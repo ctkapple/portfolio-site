@@ -3038,6 +3038,7 @@ img { max-width: 100%; display: block; }
 
 .its-compare__img--after {
   clip-path: inset(0 calc(100% - var(--pos, 50%)) 0 0);
+  object-position: 50% 100%;
 }
 
 .its-compare__handle {
