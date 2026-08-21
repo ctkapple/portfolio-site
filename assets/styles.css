@@ -3920,6 +3920,14 @@ button.ygr-shot { cursor: zoom-in; }
   border-bottom: 1px solid var(--line);
 }
 
+@media (min-width: 780px) {
+  .ygr-stats {
+    grid-column: full;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    text-align: center;
+  }
+}
+
 .ygr-stat dt {
   margin: 0 0 .3rem;
   font-family: var(--display);
