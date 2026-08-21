@@ -267,26 +267,35 @@
     <!-- ================= Tech ================= -->
     <div class="case-panel" id="panel-gameplay" role="tabpanel" aria-labelledby="tab-gameplay" hidden>
 
-      <div class="its-tech-lead" data-reveal>
-        <h2 class="marker-teal">The Foundation</h2>
-        <p>
-          Earlier this year I stumbled upon Slay The Robot, an open source
-          framework someone had built and released for free, meant to give
-          new developers a template for a roguelike deckbuilder in Godot. I'd
-          taken a few computer science courses in college and tinkered with
-          programming and modding growing up, but nothing close to the scale
-          of a full video game. Opening that repo and seeing a working combat
-          loop, a card system, an action pipeline, all of it readable and
-          modifiable, was the thing that convinced me that game development
-          wasn't as far out of reach as I'd always assumed.
-        </p>
-        <p>
-          Over the past year I've rewritten nearly every system: the card and
-          action architecture, the enemy behavior model, status effects,
-          saving, the UI that reads all of it. What's left of the original
-          scaffolding is mostly the idea that this was possible at all.
-        </p>
-      </div>
+      <section class="its-tech-hero">
+        <div class="its-tech-hero__copy" data-reveal>
+          <h2 class="marker-teal">The Foundation</h2>
+          <p>
+            Earlier this year I stumbled upon Slay The Robot, an open source
+            framework someone had built and released for free, meant to give
+            new developers a template for a roguelike deckbuilder in Godot. I'd
+            taken a few computer science courses in college and tinkered with
+            programming and modding growing up, but nothing close to the scale
+            of a full video game. Opening that repo and seeing a working combat
+            loop, a card system, an action pipeline, all of it readable and
+            modifiable, was the thing that convinced me that game development
+            wasn't as far out of reach as I'd always assumed.
+          </p>
+          <p>
+            Over the past year I've rewritten nearly every system: the card and
+            action architecture, the enemy behavior model, status effects,
+            saving, the UI that reads all of it. What's left of the original
+            scaffolding is mostly the idea that this was possible at all.
+          </p>
+        </div>
+        <figure class="its-tech-hero__media its-art-frame" data-reveal>
+          <button type="button" class="its-art-shot its-art-shot--trigger" aria-label="View early gameplay screenshot full size"
+                  data-lightbox-caption="An early build of Into the Storm, not long after the first commit.">
+            <img src="../../assets/img/ITS Feedback/1st game screenshot.png" width="500" height="680"
+                 alt="An early screenshot of Into the Storm from the game's first build">
+          </button>
+        </figure>
+      </section>
 
       <section class="its-art-scene">
         <div class="its-art-scene__media its-art-pair" data-reveal>
@@ -363,8 +372,8 @@
         </div>
       </section>
 
-      <section class="its-art-scene">
-        <div class="its-art-scene__media its-art-pair" data-reveal>
+      <section class="its-art-scene its-art-scene--tight">
+        <div class="its-art-scene__media" data-reveal>
           <figure class="its-art-frame">
             <button type="button" class="its-art-shot its-art-shot--trigger" aria-label="View enemy attack state machine full size"
                     data-lightbox-caption="The Enemy Editor's attack-state machine, listing each state's damage, debuffs, and possible follow-up attacks.">
@@ -372,14 +381,6 @@
                    alt="The Enemy Editor's attack-state machine, listing each state's damage, debuffs, and possible follow-up attacks">
             </button>
             <figcaption>Enemy attack patterns as an editable state machine. Each state's damage, debuffs, and possible follow-up attacks are visible and adjustable in one place, instead of buried in a dictionary.</figcaption>
-          </figure>
-          <figure class="its-art-frame">
-            <button type="button" class="its-art-shot its-art-shot--trigger" aria-label="View boss stats and metadata full size"
-                    data-lightbox-caption="Boss-level stats and metadata, editable without touching a script.">
-              <img src="../../assets/img/its-tech-boss-stats.webp" width="1139" height="435"
-                   alt="Boss overview fields for health, damage type, enemy type, and tags in the Enemy Editor">
-            </button>
-            <figcaption>Boss-level stats and metadata, editable without touching a script.</figcaption>
           </figure>
         </div>
         <div class="its-art-scene__copy" data-reveal>
@@ -390,13 +391,12 @@
             memory. More importantly, the part of the job I'd been avoiding
             became the part I look forward to again.
           </p>
+          <p class="its-tech-proof">
+            Ten minutes instead of an afternoon adds up. It's a big part of
+            why Act 1 is finally close.
+          </p>
         </div>
       </section>
-
-      <p class="case-note">
-        Ten minutes instead of an afternoon adds up. It's a big part of why
-        Act 1 is finally close.
-      </p>
 
       <button type="button" class="case-panel-next" data-next-tab="tab-feedback">
         <span class="micro">Next section</span>
