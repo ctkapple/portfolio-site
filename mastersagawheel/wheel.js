@@ -3,6 +3,7 @@
 
   var SVG_NS = "http://www.w3.org/2000/svg";
   var STORAGE_KEY = "selection-wheel:v1";
+  var AUDIO_PREFERENCE_KEY = "selection-wheel:audio:v1";
   var STORAGE_VERSION = 5;
   var DEFAULT_SEED_VERSION = 2;
   var MAX_ENTRIES = 60;
@@ -131,7 +132,8 @@
     simpleExpression: document.getElementById("simple-expression"),
     composerAdvanced: document.getElementById("composer-advanced"),
     wheelIdentityIcon: document.getElementById("wheel-identity-icon"),
-    wheelIdentityName: document.getElementById("wheel-identity-name")
+    wheelIdentityName: document.getElementById("wheel-identity-name"),
+    soundToggle: document.getElementById("sound-toggle")
   };
 
   var soundEvents = new EventTarget();
@@ -149,6 +151,7 @@
     winnerIndex: -1,
     spinMotion: null,
     storageEnabled: storageIsAvailable(),
+    soundEnabled: true,
     composer: { always: [], options: [] },
     simpleComposer: { tokens: [], relations: [null, null] },
     editingEntryId: null,
@@ -159,6 +162,21 @@
   var statusTimer = 0;
   var initialNotice = "";
   var heldCinematicKeys = new Set();
+  var SOUND_ASSETS = {
+    arm: "sounds/forceField_002.ogg",
+    launch: "sounds/laserRetro_003.ogg",
+    ticks: [
+      "sounds/laserSmall_000.ogg",
+      "sounds/laserSmall_001.ogg",
+      "sounds/laserSmall_002.ogg",
+      "sounds/laserSmall_003.ogg",
+      "sounds/laserSmall_004.ogg"
+    ],
+    landImpact: "sounds/lowFrequency_explosion_001.ogg",
+    landChime: "sounds/laserLarge_002.ogg",
+    music: "sounds/Finish.mp3"
+  };
+  var audioController = new SoundController();
 
   function createId(prefix) {
     if (window.crypto && typeof window.crypto.randomUUID === "function") {
@@ -176,6 +194,241 @@
     } catch (error) {
       return false;
     }
+  }
+
+  // Audio is deliberately isolated from wheel state: browser audio unlocks only after a
+  // wheel interaction, while mute preference lives under its own storage key.
+  function SoundController() {
+    this.context = null;
+    this.masterGain = null;
+    this.buffers = {};
+    this.loading = {};
+    this.activeSources = [];
+    this.music = null;
+    this.musicToken = 0;
+    this.generation = 0;
+    this.lastTickAt = 0;
+    this.tickCount = 0;
+  }
+
+  SoundController.prototype.ensureContext = function () {
+    if (this.context) return this.context;
+    var AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return null;
+    this.context = new AudioContextClass();
+    this.masterGain = this.context.createGain();
+    this.masterGain.gain.value = state.soundEnabled ? 0.72 : 0;
+    this.masterGain.connect(this.context.destination);
+    return this.context;
+  };
+
+  SoundController.prototype.unlock = function () {
+    if (!state.soundEnabled) return;
+    var context = this.ensureContext();
+    if (!context) return;
+    if (context.state === "suspended") {
+      var resume = context.resume();
+      if (resume && typeof resume.catch === "function") resume.catch(function () {});
+    }
+    this.warm();
+  };
+
+  SoundController.prototype.warm = function () {
+    var self = this;
+    if (!this.ensureContext()) return;
+    [SOUND_ASSETS.arm, SOUND_ASSETS.launch, SOUND_ASSETS.landImpact, SOUND_ASSETS.landChime, SOUND_ASSETS.music]
+      .concat(SOUND_ASSETS.ticks)
+      .forEach(function (url) { self.load(url).catch(function () {}); });
+  };
+
+  SoundController.prototype.load = function (url) {
+    var self = this;
+    if (this.buffers[url]) return Promise.resolve(this.buffers[url]);
+    if (this.loading[url]) return this.loading[url];
+    var context = this.ensureContext();
+    if (!context) return Promise.reject(new Error("Web Audio is unavailable."));
+    this.loading[url] = window.fetch(url)
+      .then(function (response) {
+        if (!response.ok) throw new Error("Could not load sound: " + url);
+        return response.arrayBuffer();
+      })
+      .then(function (data) { return context.decodeAudioData(data); })
+      .then(function (buffer) {
+        self.buffers[url] = buffer;
+        delete self.loading[url];
+        return buffer;
+      })
+      .catch(function (error) {
+        delete self.loading[url];
+        throw error;
+      });
+    return this.loading[url];
+  };
+
+  SoundController.prototype.trackSource = function (source) {
+    var self = this;
+    this.activeSources.push(source);
+    source.addEventListener("ended", function () {
+      self.activeSources = self.activeSources.filter(function (candidate) { return candidate !== source; });
+    });
+  };
+
+  SoundController.prototype.play = function (url, options) {
+    if (!state.soundEnabled) return;
+    var context = this.ensureContext();
+    if (!context) return;
+    var self = this;
+    var generation = this.generation;
+    var settings = options || {};
+    this.load(url).then(function (buffer) {
+      if (!state.soundEnabled || generation !== self.generation || !self.context) return;
+      var source = self.context.createBufferSource();
+      var gain = self.context.createGain();
+      source.buffer = buffer;
+      source.playbackRate.value = settings.rate || 1;
+      gain.gain.value = settings.gain || 0.16;
+      source.connect(gain);
+      gain.connect(self.masterGain);
+      self.trackSource(source);
+      source.start(self.context.currentTime + (settings.delay || 0));
+    }).catch(function () {});
+  };
+
+  SoundController.prototype.playTick = function (velocity, initialVelocity) {
+    if (!state.soundEnabled) return;
+    var ratio = initialVelocity ? Math.max(0, Math.min(1, velocity / initialVelocity)) : 0;
+    var cadence = ratio > 0.62 ? 3 : (ratio > 0.22 ? 2 : 1);
+    var now = performance.now();
+    this.tickCount += 1;
+    if (this.tickCount % cadence || now - this.lastTickAt < 42) return;
+    this.lastTickAt = now;
+    var index = this.tickCount % SOUND_ASSETS.ticks.length;
+    this.play(SOUND_ASSETS.ticks[index], {
+      gain: 0.075 + (1 - ratio) * 0.075,
+      rate: 0.9 + (1 - ratio) * 0.16
+    });
+  };
+
+  SoundController.prototype.playMusic = function (delay) {
+    if (!state.soundEnabled) return;
+    var context = this.ensureContext();
+    if (!context) return;
+    this.stopMusic(0);
+    var self = this;
+    var token = ++this.musicToken;
+    var generation = this.generation;
+    this.load(SOUND_ASSETS.music).then(function (buffer) {
+      if (!state.soundEnabled || token !== self.musicToken || generation !== self.generation || !self.context) return;
+      var source = self.context.createBufferSource();
+      var gain = self.context.createGain();
+      var startAt = self.context.currentTime + (delay || 0);
+      // Keep the win cue present, then clear it before the next setup interaction.
+      var fadeStart = Math.max(1, buffer.duration - 8);
+      var finishAt = Math.max(fadeStart + 0.2, buffer.duration - 0.15);
+      source.buffer = buffer;
+      source.connect(gain);
+      gain.connect(self.masterGain);
+      gain.gain.setValueAtTime(0.0001, startAt);
+      gain.gain.linearRampToValueAtTime(0.36, startAt + 0.16);
+      gain.gain.setValueAtTime(0.36, startAt + fadeStart);
+      gain.gain.linearRampToValueAtTime(0.0001, startAt + finishAt);
+      self.music = { source: source, gain: gain };
+      source.addEventListener("ended", function () {
+        if (self.music && self.music.source === source) self.music = null;
+      });
+      source.start(startAt);
+      source.stop(startAt + finishAt);
+    }).catch(function () {});
+  };
+
+  SoundController.prototype.stopMusic = function (fadeDuration) {
+    this.musicToken += 1;
+    if (!this.music || !this.context) return;
+    var music = this.music;
+    this.music = null;
+    var now = this.context.currentTime;
+    var duration = Math.max(0, fadeDuration || 0);
+    try {
+      music.gain.gain.cancelScheduledValues(now);
+      music.gain.gain.setValueAtTime(Math.max(0.0001, music.gain.gain.value), now);
+      music.gain.gain.linearRampToValueAtTime(0.0001, now + duration);
+      music.source.stop(now + duration + 0.02);
+    } catch (error) {}
+  };
+
+  SoundController.prototype.stopAll = function (fadeDuration) {
+    var self = this;
+    var duration = Math.max(0, fadeDuration || 0);
+    this.generation += 1;
+    this.stopMusic(duration);
+    this.activeSources.slice().forEach(function (source) {
+      try { source.stop(self.context.currentTime + duration); } catch (error) {}
+    });
+  };
+
+  SoundController.prototype.setEnabled = function (enabled) {
+    if (enabled) {
+      this.unlock();
+      if (this.masterGain && this.context) {
+        this.masterGain.gain.cancelScheduledValues(this.context.currentTime);
+        this.masterGain.gain.setValueAtTime(0.72, this.context.currentTime);
+      }
+      return;
+    }
+    if (!this.masterGain || !this.context) return;
+    var now = this.context.currentTime;
+    this.masterGain.gain.cancelScheduledValues(now);
+    this.masterGain.gain.setValueAtTime(Math.max(0.0001, this.masterGain.gain.value), now);
+    this.masterGain.gain.linearRampToValueAtTime(0.0001, now + 0.12);
+    this.stopAll(0.12);
+  };
+
+  function hydrateSoundPreference() {
+    if (!state.storageEnabled) return;
+    try {
+      state.soundEnabled = window.localStorage.getItem(AUDIO_PREFERENCE_KEY) !== "muted";
+    } catch (error) {}
+  }
+
+  function persistSoundPreference() {
+    if (!state.storageEnabled) return;
+    try {
+      window.localStorage.setItem(AUDIO_PREFERENCE_KEY, state.soundEnabled ? "enabled" : "muted");
+    } catch (error) {}
+  }
+
+  function syncSoundToggle() {
+    dom.soundToggle.textContent = state.soundEnabled ? "Sound on" : "Muted";
+    dom.soundToggle.setAttribute("aria-pressed", String(state.soundEnabled));
+    dom.soundToggle.setAttribute("aria-label", state.soundEnabled ? "Mute sound" : "Enable sound");
+  }
+
+  function isUtilityControl(target) {
+    return Boolean(target && typeof target.closest === "function" && target.closest(".utility-chips"));
+  }
+
+  function bindSoundEvents() {
+    soundEvents.addEventListener("spinArm", function () {
+      audioController.play(SOUND_ASSETS.arm, { gain: 0.15 });
+    });
+    soundEvents.addEventListener("spinStart", function () {
+      audioController.play(SOUND_ASSETS.launch, { gain: 0.18, rate: 0.92 });
+    });
+    soundEvents.addEventListener("spinBoost", function () {
+      audioController.play(SOUND_ASSETS.launch, { gain: 0.16, rate: 1.12 });
+    });
+    soundEvents.addEventListener("pointerTick", function (event) {
+      var detail = event.detail || {};
+      audioController.playTick(detail.velocity, detail.initialVelocity);
+    });
+    soundEvents.addEventListener("winnerLand", function () {
+      audioController.play(SOUND_ASSETS.landImpact, { gain: 0.28 });
+      audioController.play(SOUND_ASSETS.landChime, { gain: 0.2, delay: 0.04, rate: 1.06 });
+      audioController.playMusic(0.18);
+    });
+    soundEvents.addEventListener("exitResult", function () {
+      audioController.stopAll(0.12);
+    });
   }
 
   function cleanText(value, maximum) {
@@ -1717,7 +1970,11 @@
         if (currentTick !== motion.lastTick) {
           motion.lastTick = currentTick;
           tickPointer();
-          emitSoundEvent("pointerTick", { rotation: state.rotation });
+          emitSoundEvent("pointerTick", {
+            rotation: state.rotation,
+            velocity: motion.velocity,
+            initialVelocity: SPIN_VELOCITY
+          });
         }
 
         window.requestAnimationFrame(frame);
@@ -1865,10 +2122,12 @@
 
   function armSpin() {
     if (state.phase !== "setup" || !state.entries.length) return;
+    audioController.unlock();
     state.phase = "armed";
     setCinematic(true);
     dom.spinButton.setAttribute("aria-label", "Start the spin");
     dom.spinButton.focus();
+    emitSoundEvent("spinArm");
   }
 
   function cancelArmed() {
@@ -1882,6 +2141,7 @@
   async function startSpin() {
     if (state.phase !== "armed" || !state.entries.length) return;
 
+    audioController.unlock();
     var snapshot = cloneEntries(state.entries, false);
     var forcedIndex = state.riggedEnabled
       ? snapshot.findIndex(function (entry) { return entry.id === state.riggedTargetId; })
@@ -2450,9 +2710,16 @@
     if (state.phase === "armed") startSpin();
     else if (state.phase === "setup") armSpin();
   });
+  dom.soundToggle.addEventListener("click", function () {
+    state.soundEnabled = !state.soundEnabled;
+    persistSoundPreference();
+    audioController.setEnabled(state.soundEnabled);
+    syncSoundToggle();
+  });
   dom.confirmDialog.addEventListener("close", handleDialogClose);
 
   window.addEventListener("click", function (event) {
+    if (isUtilityControl(event.target)) return;
     if (state.phase === "result") {
       // Consume the dismissal click before setup returns so it cannot click through into a newly visible control.
       event.preventDefault();
@@ -2469,6 +2736,7 @@
 
   window.addEventListener("keydown", function (event) {
     var keyId = event.code || event.key;
+    if (isUtilityControl(event.target)) return;
     if (state.phase === "armed") {
       if (event.key === "Escape") {
         event.preventDefault();
@@ -2501,6 +2769,9 @@
   }, true);
 
   hydrateState();
+  hydrateSoundPreference();
+  syncSoundToggle();
+  bindSoundEvents();
   renderAll();
   if (initialNotice) setStatus(initialNotice, "warning", 0);
 }());

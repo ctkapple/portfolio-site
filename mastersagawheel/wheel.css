@@ -1109,11 +1109,18 @@ summary:focus-visible {
   outline-offset: 3px;
 }
 
-.feedback-chip {
+.utility-chips {
   position: fixed;
   z-index: 20;
   right: 22px;
   bottom: 18px;
+  display: flex;
+  gap: 8px;
+}
+
+.feedback-chip,
+.sound-chip {
+  appearance: none;
   padding: 8px 13px;
   border: 1px solid rgba(190, 213, 255, 0.22);
   border-radius: 999px;
@@ -1124,12 +1131,20 @@ summary:focus-visible {
   font-weight: 650;
   text-decoration: none;
   backdrop-filter: blur(12px);
+  cursor: pointer;
 }
 
 .feedback-chip:hover,
-.feedback-chip:focus-visible {
+.feedback-chip:focus-visible,
+.sound-chip:hover,
+.sound-chip:focus-visible {
   border-color: rgba(61, 229, 255, 0.5);
   color: var(--ink);
+}
+
+.sound-chip[aria-pressed="false"] {
+  border-color: rgba(255, 175, 101, 0.3);
+  color: #ffc88e;
 }
 
 .editor-status[data-tone="warning"] {
@@ -1190,10 +1205,6 @@ summary:focus-visible {
 
 .is-cinematic .empty-wheel {
   display: none !important;
-}
-
-.is-cinematic .feedback-chip {
-  display: none;
 }
 
 /* The wheel keeps its exact normal-layout position and size in cinematic mode — only the
