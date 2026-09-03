@@ -3,7 +3,8 @@
 
   var SVG_NS = "http://www.w3.org/2000/svg";
   var STORAGE_KEY = "selection-wheel:v1";
-  var STORAGE_VERSION = 1;
+  var STORAGE_VERSION = 2;
+  var DEFAULT_SEED_VERSION = 1;
   var MAX_ENTRIES = 60;
   var MAX_LABEL_LENGTH = 48;
   var BASE_COAST_DURATION = 4300;
@@ -14,10 +15,16 @@
   var BOOST_RESERVE_COST = 0.45;
   var BOOST_EXTENSION_MS = 1500;
 
-  var TIER_COLORS = {
-    ur: "#b97818",
-    sr: "#087fae",
-    r: "#8c32aa"
+  var REWARDS = {
+    ur: { label: "UR", singular: "UR", plural: "UR", image: "UR_Craft_Asset.png", color: "#bd4fe2", precedence: 90 },
+    gems: { label: "Gems", singular: "Gem", plural: "Gems", image: "Master_Duel_Gem.png", color: "#766cff", precedence: 85 },
+    packs: { label: "Secret Packs", singular: "Secret Pack", plural: "Secret Packs", shortSingular: "Pack", shortPlural: "Packs", image: "The_Masters_Saga-Pack-Master_Duel.png", color: "#dfa735", precedence: 80, crop: "pack" },
+    bans: { label: "Bans", singular: "Ban", plural: "Bans", image: "pot-of-greed-2.avif", color: "#4fc27a", precedence: 70, crop: "pot" },
+    sr: { label: "SR", singular: "SR", plural: "SR", image: "SR_Craft_asset.png", color: "#e6bc3f", precedence: 60 },
+    r: { label: "R", singular: "R", plural: "R", image: "R_Craft_asset.png", color: "#31bde8", precedence: 50 },
+    n: { label: "N", singular: "N", plural: "N", image: "N_Craft_asset.png", color: "#aeb8c5", precedence: 40 },
+    nr: { label: "N/R", singular: "N/R", plural: "N/R", image: "N_R_Craft_asset.png", color: "#6da8c4", precedence: 30 },
+    custom: { label: "Custom text", singular: "", plural: "", image: null, color: "#a5afc0", precedence: 0 }
   };
   var CUSTOM_COLORS = ["#235fac", "#7440b5", "#0a8e87", "#b44770", "#4e68c4", "#9a5a2d"];
 
@@ -47,7 +54,25 @@
     confirmTitle: document.getElementById("confirm-title"),
     confirmMessage: document.getElementById("confirm-message"),
     confirmAction: document.getElementById("confirm-action"),
-    resultAnnouncement: document.getElementById("result-announcement")
+    resultAnnouncement: document.getElementById("result-announcement"),
+    resultCard: document.getElementById("result-card"),
+    resultPrimary: document.getElementById("result-primary"),
+    resultAlternatives: document.getElementById("result-alternatives"),
+    composerToggle: document.getElementById("composer-toggle"),
+    composer: document.getElementById("entry-composer"),
+    composerClose: document.getElementById("composer-close"),
+    componentType: document.getElementById("component-type"),
+    componentTarget: document.getElementById("component-target"),
+    componentCustomField: document.getElementById("component-custom-field"),
+    componentCustomText: document.getElementById("component-custom-text"),
+    componentAdd: document.getElementById("component-add"),
+    alwaysComponents: document.getElementById("always-components"),
+    alternativeList: document.getElementById("alternative-list"),
+    addAlternative: document.getElementById("add-alternative"),
+    composerPreview: document.getElementById("composer-preview"),
+    composerValidation: document.getElementById("composer-validation"),
+    composerReset: document.getElementById("composer-reset"),
+    composerSubmit: document.getElementById("composer-submit")
   };
 
   var soundEvents = new EventTarget();
@@ -64,7 +89,9 @@
     spinSnapshot: null,
     winnerIndex: -1,
     spinMotion: null,
-    storageEnabled: storageIsAvailable()
+    storageEnabled: storageIsAvailable(),
+    composer: { always: [], options: [] },
+    editingEntryId: null
   };
 
   var pendingConfirmation = null;
@@ -95,36 +122,57 @@
     return value.trim().slice(0, maximum);
   }
 
+  function deepClone(value) {
+    return JSON.parse(JSON.stringify(value));
+  }
+
   function cloneEntries(entries, useFreshIds) {
     return entries.map(function (entry) {
-      return {
-        id: useFreshIds ? createId("entry") : entry.id,
-        label: entry.label,
-        presetKind: entry.presetKind
-      };
+      var copy = deepClone(entry);
+      if (useFreshIds) copy.id = createId("entry");
+      return copy;
     });
+  }
+
+  function sanitizeComponent(raw) {
+    if (!raw || typeof raw !== "object") return null;
+    var type = typeof raw.type === "string" ? raw.type.toLowerCase() : "";
+    if (!REWARDS[type]) return null;
+    var amount = Number(raw.amount);
+    if (!Number.isInteger(amount) || amount < 1 || amount > 999) return null;
+    if (type === "custom") {
+      var text = cleanText(raw.text, MAX_LABEL_LENGTH);
+      return text ? { type: "custom", amount: amount, text: text } : null;
+    }
+    return { type: type, amount: amount };
+  }
+
+  function sanitizeReward(raw) {
+    if (!raw || typeof raw !== "object") return null;
+    var always = Array.isArray(raw.always) ? raw.always.map(sanitizeComponent).filter(Boolean).slice(0, 12) : [];
+    var options = Array.isArray(raw.options) ? raw.options.map(function (branch) {
+      return Array.isArray(branch) ? branch.map(sanitizeComponent).filter(Boolean).slice(0, 12) : [];
+    }).filter(function (branch) { return branch.length; }).slice(0, 12) : [];
+    return always.length || options.length ? { schema: 1, always: always, options: options } : null;
   }
 
   function sanitizeEntries(candidate) {
     if (!Array.isArray(candidate)) return [];
     var seenIds = new Set();
-    var validKinds = new Set(["ur", "sr", "r"]);
     var entries = [];
 
     candidate.slice(0, MAX_ENTRIES).forEach(function (rawEntry) {
       if (!rawEntry || typeof rawEntry !== "object") return;
-      var label = cleanText(rawEntry.label, MAX_LABEL_LENGTH);
+      var reward = rawEntry.kind === "structured" ? sanitizeReward(rawEntry.reward) : null;
+      var label = reward ? rewardDescription(reward) : cleanText(rawEntry.label, MAX_LABEL_LENGTH);
       if (!label) return;
 
       var id = typeof rawEntry.id === "string" && rawEntry.id ? rawEntry.id : createId("entry");
       if (seenIds.has(id)) id = createId("entry");
       seenIds.add(id);
 
-      entries.push({
-        id: id,
-        label: label,
-        presetKind: validKinds.has(rawEntry.presetKind) ? rawEntry.presetKind : null
-      });
+      if (reward) entries.push({ id: id, kind: "structured", reward: reward });
+      else entries.push({ id: id, kind: "custom", label: label, presetKind: typeof rawEntry.presetKind === "string" ? rawEntry.presetKind : null });
     });
 
     return entries;
@@ -133,14 +181,20 @@
   function hydrateState() {
     if (!state.storageEnabled) {
       initialNotice = "Browser storage is unavailable. Changes will last for this session only.";
+      seedDefaultPresets(0);
       return;
     }
 
     try {
       var raw = window.localStorage.getItem(STORAGE_KEY);
-      if (!raw) return;
+      if (!raw) {
+        seedDefaultPresets(0);
+        persistState();
+        return;
+      }
       var envelope = JSON.parse(raw);
-      if (!envelope || envelope.version !== STORAGE_VERSION) {
+      if (!envelope || (envelope.version !== 1 && envelope.version !== STORAGE_VERSION)) {
+        seedDefaultPresets(0);
         initialNotice = "Saved wheel data could not be restored. A blank wheel was opened safely.";
         return;
       }
@@ -172,9 +226,12 @@
           return presets;
         }, []);
       }
+      seedDefaultPresets(Number(envelope.defaultSeedVersion) || 0);
+      persistState();
     } catch (error) {
       state.entries = [];
       state.presets = [];
+      seedDefaultPresets(0);
       initialNotice = "Saved wheel data was unreadable. A blank wheel was opened safely.";
     }
   }
@@ -184,6 +241,7 @@
     // Keep one versioned envelope so future releases can migrate draft and preset data together.
     var envelope = {
       version: STORAGE_VERSION,
+      defaultSeedVersion: DEFAULT_SEED_VERSION,
       draft: {
         entries: cloneEntries(state.entries, false),
         quantity: state.quantity
@@ -204,6 +262,106 @@
       state.storageEnabled = false;
       setStatus("Browser storage became unavailable. Current changes remain usable for this session.", "warning", 0);
     }
+  }
+
+  function component(type, amount, text) {
+    var value = { type: type, amount: amount };
+    if (type === "custom") value.text = text;
+    return value;
+  }
+
+  function structuredEntry(always, options) {
+    return { id: createId("entry"), kind: "structured", reward: { schema: 1, always: always || [], options: options || [] } };
+  }
+
+  function componentWords(item, short) {
+    if (item.type === "custom") return (item.amount > 1 ? item.amount + " × " : "") + item.text;
+    var definition = REWARDS[item.type];
+    var singular = short && definition.shortSingular ? definition.shortSingular : definition.singular;
+    var plural = short && definition.shortPlural ? definition.shortPlural : definition.plural;
+    return item.amount + " " + (item.amount === 1 ? singular : plural);
+  }
+
+  function branchDescription(branch, short) {
+    return branch.map(function (item) { return componentWords(item, short); }).join(" + ");
+  }
+
+  function rewardDescription(reward) {
+    var always = branchDescription(reward.always || [], false);
+    var options = (reward.options || []).map(function (branch) { return branchDescription(branch, false); });
+    if (!options.length) return always;
+    var choice = options.join(" or ");
+    return always ? always + " + (" + choice + ")" : choice;
+  }
+
+  function entryLabel(entry) {
+    return entry.kind === "structured" ? rewardDescription(entry.reward) : entry.label;
+  }
+
+  function componentPrecedence(item) {
+    return REWARDS[item.type] ? REWARDS[item.type].precedence : 0;
+  }
+
+  function sortedComponents(items) {
+    return items.map(function (item, index) { return { item: item, index: index }; })
+      .sort(function (a, b) { return componentPrecedence(b.item) - componentPrecedence(a.item) || a.index - b.index; })
+      .map(function (pair) { return pair.item; });
+  }
+
+  function branchPrecedence(branch) {
+    return branch.reduce(function (highest, item) { return Math.max(highest, componentPrecedence(item)); }, -1);
+  }
+
+  function primaryOptionIndex(reward) {
+    var bestIndex = -1;
+    var bestPrecedence = -1;
+    (reward.options || []).forEach(function (branch, index) {
+      var precedence = branchPrecedence(branch);
+      if (precedence > bestPrecedence) {
+        bestPrecedence = precedence;
+        bestIndex = index;
+      }
+    });
+    return bestIndex;
+  }
+
+  function primaryComponents(reward) {
+    var components = (reward.always || []).slice();
+    var primaryIndex = primaryOptionIndex(reward);
+    if (primaryIndex >= 0) components = components.concat(reward.options[primaryIndex]);
+    return sortedComponents(components);
+  }
+
+  function presetEntry(always, options) {
+    return structuredEntry(always, options);
+  }
+
+  function defaultPresets() {
+    var srNr = function (sr, nr) { return presetEntry([], [[component("sr", sr)], [component("nr", nr)]]); };
+    var urSrNr = function (ur, sr, nr) { return presetEntry([], [[component("ur", ur)], [component("sr", sr)], [component("nr", nr)]]); };
+    var farfaPack = function () { return presetEntry([component("packs", 5)], [[component("sr", 1)], [component("nr", 3)]]); };
+    return [
+      { name: "1-1 Wheel", entries: [srNr(1, 2), srNr(1, 3), srNr(2, 4), srNr(1, 2), srNr(1, 3), srNr(2, 4)] },
+      { name: "Winner's Wheel", entries: [srNr(1, 3), urSrNr(1, 1, 3), srNr(1, 3), srNr(2, 3), srNr(1, 3), urSrNr(1, 1, 3)] },
+      { name: "Farfa Wheel", entries: [
+        farfaPack(),
+        presetEntry([component("bans", 2)], []),
+        srNr(3, 3),
+        farfaPack(),
+        urSrNr(1, 2, 4),
+        presetEntry([component("sr", 2), component("nr", 4)], [])
+      ] }
+    ];
+  }
+
+  function seedDefaultPresets(previousVersion) {
+    if (previousVersion >= DEFAULT_SEED_VERSION) return;
+    defaultPresets().forEach(function (approved) {
+      var existing = findPresetByName(approved.name);
+      var seeded = { id: existing ? existing.id : createId("preset"), name: approved.name, entries: approved.entries, updatedAt: Date.now() };
+      if (existing) state.presets[state.presets.indexOf(existing)] = seeded;
+      else state.presets.push(seeded);
+    });
   }
 
   function normalizeName(name) {
@@ -277,7 +435,10 @@
   }
 
   function colorFor(entry) {
-    if (entry.presetKind && TIER_COLORS[entry.presetKind]) return TIER_COLORS[entry.presetKind];
+    if (entry.kind === "structured") {
+      var primary = primaryComponents(entry.reward);
+      if (primary.length && REWARDS[primary[0].type]) return REWARDS[primary[0].type].color;
+    }
     return CUSTOM_COLORS[hashString(entry.id) % CUSTOM_COLORS.length];
   }
 
@@ -298,40 +459,61 @@
     return 8.5;
   }
 
-  function renderWinnerCallout(entry, expansion) {
-    dom.winnerCallout.replaceChildren();
-    if (!entry || expansion < 0.12) return;
+  function appendSvgShorthand(group, entry, position, rotation, count, expansion) {
+    if (entry.kind !== "structured") {
+      var legacy = svgElement("text", {
+        class: "wheel-slice__label", x: "0", y: "0",
+        "font-size": String(labelFontSize(count) + 2 * expansion),
+        "text-anchor": "middle", "dominant-baseline": "middle"
+      });
+      legacy.textContent = abbreviatedLabel(entryLabel(entry), count);
+      var legacyGroup = svgElement("g", { transform: "translate(" + position.x + " " + position.y + ") rotate(" + rotation + ")" });
+      legacyGroup.appendChild(legacy);
+      group.appendChild(legacyGroup);
+      return;
+    }
 
-    var color = colorFor(entry);
-    var plate = svgElement("rect", {
-      class: "winner-callout__plate",
-      x: "62",
-      y: "48",
-      width: "476",
-      height: "92",
-      rx: "18",
-      stroke: color
+    var items = primaryComponents(entry.reward);
+    var iconSize = count <= 8 ? 38 : count <= 18 ? 30 : count <= 36 ? 23 : 18;
+    var fontSize = count <= 8 ? 17 : count <= 18 ? 14 : count <= 36 ? 11 : 9;
+    if (items.length === 3) {
+      iconSize *= 0.78;
+      fontSize *= 0.82;
+    }
+    var pairWidth = iconSize + fontSize * 1.8;
+    var plusWidth = items.length > 1 ? fontSize * 1.45 : 0;
+    var totalWidth = items.length * pairWidth + (items.length - 1) * plusWidth;
+    var shorthand = svgElement("g", {
+      class: "wheel-slice__shorthand wheel-slice__shorthand--" + items.length,
+      transform: "translate(" + position.x + " " + position.y + ") rotate(" + rotation + ") translate(" + (-totalWidth / 2) + " 0)"
     });
-    var kicker = svgElement("text", {
-      class: "winner-callout__kicker",
-      x: "300",
-      y: "77",
-      "text-anchor": "middle"
+    var cursor = 0;
+    items.forEach(function (item, index) {
+      if (index) {
+        var plus = svgElement("text", { class: "wheel-slice__plus", x: String(cursor + plusWidth / 2), y: "1", "font-size": String(fontSize), "text-anchor": "middle", "dominant-baseline": "middle" });
+        plus.textContent = "+";
+        shorthand.appendChild(plus);
+        cursor += plusWidth;
+      }
+      var amount = svgElement("text", { class: "wheel-slice__amount", x: String(cursor + fontSize * 0.72), y: "1", "font-size": String(fontSize), "text-anchor": "middle", "dominant-baseline": "middle" });
+      amount.textContent = String(item.amount);
+      shorthand.appendChild(amount);
+      if (item.type === "custom") {
+        var custom = svgElement("text", { class: "wheel-slice__custom", x: String(cursor + fontSize * 1.6), y: "1", "font-size": String(fontSize * 0.76), "dominant-baseline": "middle" });
+        custom.textContent = abbreviatedLabel(item.text, count);
+        shorthand.appendChild(custom);
+      } else {
+        var definition = REWARDS[item.type];
+        shorthand.appendChild(svgElement("image", {
+          class: "wheel-slice__icon wheel-slice__icon--" + (definition.crop || item.type),
+          href: definition.image,
+          x: String(cursor + fontSize * 1.45), y: String(-iconSize / 2), width: String(iconSize), height: String(iconSize),
+          preserveAspectRatio: "xMidYMid slice"
+        }));
+      }
+      cursor += pairWidth;
     });
-    kicker.textContent = "SELECTED";
-
-    var fontSize = entry.label.length <= 18 ? 29 : entry.label.length <= 32 ? 22 : 17;
-    var label = svgElement("text", {
-      class: "winner-callout__text",
-      x: "300",
-      y: "115",
-      "font-size": String(fontSize),
-      "text-anchor": "middle"
-    });
-    label.textContent = entry.label;
-
-    dom.winnerCallout.append(plate, kicker, label);
-    dom.winnerCallout.classList.add("is-visible");
+    group.appendChild(shorthand);
   }
 
   function renderWheel(entries, winnerId, expansion) {
@@ -361,10 +543,10 @@
       var group = svgElement("g", {
         class: groupClass,
         role: "listitem",
-        "aria-label": entry.label
+        "aria-label": entryLabel(entry)
       });
       var title = svgElement("title");
-      title.textContent = entry.label;
+      title.textContent = entryLabel(entry);
       group.appendChild(title);
 
       if (count === 1) {
@@ -383,44 +565,23 @@
         }));
       }
 
-      var labelRadius = 238 + 10 * winnerExpansion;
+      var primaryCount = entry.kind === "structured" ? primaryComponents(entry.reward).length : 0;
+      var baseLabelRadius = primaryCount >= 3 ? 170 : primaryCount === 2 ? 180 : primaryCount === 1 ? 220 : 238;
+      var labelRadius = baseLabelRadius + 8 * winnerExpansion;
       var position = polar(labelRadius, centerAngle);
-      var normalizedCenter = normalizeAngle(centerAngle);
       var rotation = centerAngle;
-      var anchor = "end";
-      if (normalizedCenter > 90 && normalizedCenter < 270) {
+      if (normalizeAngle(centerAngle) > 90 && normalizeAngle(centerAngle) < 270) {
         rotation += 180;
-        anchor = "start";
       }
-
-      var text = svgElement("text", {
-        class: "wheel-slice__label",
-        x: String(position.x),
-        y: String(position.y),
-        "font-size": String(labelFontSize(count) + 2 * winnerExpansion),
-        "text-anchor": anchor,
-        "dominant-baseline": "middle",
-        transform: "rotate(" + rotation + " " + position.x + " " + position.y + ")"
-      });
-      text.textContent = abbreviatedLabel(entry.label, count);
-      group.appendChild(text);
+      appendSvgShorthand(group, entry, position, rotation, count, winnerExpansion);
       dom.rotor.appendChild(group);
     });
 
     dom.rotor.style.transform = "rotate(" + state.rotation + "deg)";
     var selected = winnerId && entries.find(function (entry) { return entry.id === winnerId; });
     dom.wheelDescription.textContent = selected
-      ? "The selected entry is " + selected.label + "."
+      ? "The selected entry is " + entryLabel(selected) + "."
       : "A wheel with " + count + (count === 1 ? " equal entry." : " equal entries.");
-
-    if (selected) renderWinnerCallout(selected, expansion || 0);
-  }
-
-  function tierName(kind) {
-    if (kind === "ur") return "UR";
-    if (kind === "sr") return "SR";
-    if (kind === "r") return "R";
-    return "";
   }
 
   function makeButton(className, text, label, action) {
@@ -455,7 +616,7 @@
     state.entries.forEach(function (entry, index) {
       var option = document.createElement("option");
       option.value = entry.id;
-      option.textContent = entry.label + " — entry " + (index + 1);
+      option.textContent = entryLabel(entry) + " — entry " + (index + 1);
       dom.riggedWinner.appendChild(option);
     });
 
@@ -488,21 +649,20 @@
 
       var identity = document.createElement("div");
       identity.className = "slice-label-wrap";
-      var input = document.createElement("input");
-      input.className = "slice-label-input";
-      input.type = "text";
-      input.maxLength = MAX_LABEL_LENGTH;
-      input.value = entry.label;
-      input.autocomplete = "off";
-      input.setAttribute("aria-label", "Rename entry " + (index + 1));
-      identity.appendChild(input);
-
-      if (entry.presetKind) {
-        var mark = document.createElement("span");
-        mark.className = "tier-mark tier-mark--" + entry.presetKind;
-        mark.textContent = tierName(entry.presetKind);
-        mark.setAttribute("aria-label", tierName(entry.presetKind) + " visual tier");
-        identity.appendChild(mark);
+      if (entry.kind === "structured") {
+        var description = document.createElement("span");
+        description.className = "slice-structured-label";
+        description.textContent = entryLabel(entry);
+        identity.appendChild(description);
+      } else {
+        var input = document.createElement("input");
+        input.className = "slice-label-input";
+        input.type = "text";
+        input.maxLength = MAX_LABEL_LENGTH;
+        input.value = entry.label;
+        input.autocomplete = "off";
+        input.setAttribute("aria-label", "Rename entry " + (index + 1));
+        identity.appendChild(input);
       }
 
       if (entry.id === state.riggedTargetId) {
@@ -514,9 +674,11 @@
 
       var actions = document.createElement("div");
       actions.className = "row-actions";
-      var up = makeButton("icon-button", "↑", "Move " + entry.label + " up", "up");
-      var down = makeButton("icon-button", "↓", "Move " + entry.label + " down", "down");
-      var remove = makeButton("icon-button icon-button--remove", "×", "Remove " + entry.label, "remove");
+      var label = entryLabel(entry);
+      var up = makeButton("icon-button", "↑", "Move " + label + " up", "up");
+      var down = makeButton("icon-button", "↓", "Move " + label + " down", "down");
+      if (entry.kind === "structured") actions.appendChild(makeButton("icon-button", "✎", "Edit " + label, "edit"));
+      var remove = makeButton("icon-button icon-button--remove", "×", "Remove " + label, "remove");
       up.disabled = index === 0;
       down.disabled = index === state.entries.length - 1;
       actions.append(up, down, remove);
@@ -590,14 +752,167 @@
     dom.emptyWheel.hidden = count !== 0;
     var quantity = state.quantity;
     dom.sharedQuantity.value = String(quantity);
-    document.querySelectorAll("[data-tier]").forEach(function (button) {
-      button.disabled = atLimit || count + quantity > MAX_ENTRIES;
-      button.querySelector("small").textContent = "Add ×" + quantity;
+    document.querySelectorAll("[data-reward]").forEach(function (button) {
+      var definition = REWARDS[button.dataset.reward];
+      var name = quantity === 1 ? (definition.shortSingular || definition.singular) : (definition.shortPlural || definition.plural);
+      button.disabled = atLimit;
+      button.querySelector("span").textContent = quantity + " " + name;
+      button.setAttribute("aria-label", "Add one " + quantity + " " + name + " wheel entry");
     });
     var customAddButton = dom.customForm.querySelector("button[type='submit']");
-    customAddButton.disabled = atLimit || count + quantity > MAX_ENTRIES;
-    customAddButton.textContent = "Add ×" + quantity;
+    customAddButton.disabled = atLimit;
+    dom.composerSubmit.disabled = atLimit && !state.editingEntryId;
     renderRiggedControls();
+  }
+
+  function composerReward() {
+    return { schema: 1, always: deepClone(state.composer.always), options: deepClone(state.composer.options) };
+  }
+
+  function composerValidationMessage() {
+    var reward = composerReward();
+    var components = reward.always.concat.apply(reward.always, reward.options);
+    if (!reward.always.length && !reward.options.length) return "Add at least one component.";
+    if (reward.options.length === 1) return "Choose one needs at least two alternatives, or remove that alternative.";
+    if (reward.options.some(function (branch) { return !branch.length; })) return "Every alternative needs at least one component.";
+    if (components.some(function (item) { return item.type === "custom" && !cleanText(item.text, MAX_LABEL_LENGTH); })) return "Custom components need readable text.";
+    if (primaryComponents(reward).length > 3) return "The primary wheel shorthand can show at most three components.";
+    if (!state.editingEntryId && state.entries.length >= MAX_ENTRIES) return "The wheel is limited to " + MAX_ENTRIES + " entries.";
+    return "";
+  }
+
+  function createComponentRow(item, zone, branchIndex, itemIndex) {
+    var row = document.createElement("div");
+    row.className = "component-row";
+    row.dataset.zone = zone;
+    row.dataset.branchIndex = String(branchIndex);
+    row.dataset.itemIndex = String(itemIndex);
+
+    var amount = document.createElement("input");
+    amount.type = "number";
+    amount.min = "1";
+    amount.max = "999";
+    amount.value = String(item.amount);
+    amount.className = "component-row__amount";
+    amount.dataset.field = "amount";
+    amount.setAttribute("aria-label", "Component amount");
+
+    var type = document.createElement("select");
+    type.className = "component-row__type";
+    type.dataset.field = "type";
+    type.setAttribute("aria-label", "Component type");
+    Object.keys(REWARDS).forEach(function (key) {
+      var option = document.createElement("option");
+      option.value = key;
+      option.textContent = REWARDS[key].label;
+      option.selected = key === item.type;
+      type.appendChild(option);
+    });
+
+    row.append(amount, type);
+    if (item.type === "custom") {
+      var text = document.createElement("input");
+      text.type = "text";
+      text.maxLength = MAX_LABEL_LENGTH;
+      text.value = item.text || "";
+      text.className = "component-row__text";
+      text.dataset.field = "text";
+      text.setAttribute("aria-label", "Custom component text");
+      row.appendChild(text);
+    }
+    var controls = document.createElement("span");
+    controls.className = "component-row__actions";
+    controls.append(
+      makeButton("mini-icon", "↑", "Move component up", "component-up"),
+      makeButton("mini-icon", "↓", "Move component down", "component-down"),
+      makeButton("mini-icon mini-icon--remove", "×", "Remove component", "component-remove")
+    );
+    controls.children[0].disabled = itemIndex === 0;
+    var source = zone === "always" ? state.composer.always : state.composer.options[branchIndex];
+    controls.children[1].disabled = itemIndex === source.length - 1;
+    row.appendChild(controls);
+    return row;
+  }
+
+  function renderComposer() {
+    dom.alwaysComponents.replaceChildren();
+    if (!state.composer.always.length) dom.alwaysComponents.appendChild(emptyComposerNote("No always-received components."));
+    state.composer.always.forEach(function (item, index) { dom.alwaysComponents.appendChild(createComponentRow(item, "always", -1, index)); });
+
+    dom.alternativeList.replaceChildren();
+    state.composer.options.forEach(function (branch, branchIndex) {
+      var card = document.createElement("section");
+      card.className = "alternative-card";
+      card.dataset.branchIndex = String(branchIndex);
+      var heading = document.createElement("div");
+      heading.className = "alternative-card__heading";
+      var label = document.createElement("b");
+      label.textContent = "Option " + (branchIndex + 1);
+      var actions = document.createElement("span");
+      actions.append(
+        makeButton("mini-icon", "↑", "Move option up", "branch-up"),
+        makeButton("mini-icon", "↓", "Move option down", "branch-down"),
+        makeButton("mini-icon mini-icon--remove", "×", "Remove option", "branch-remove")
+      );
+      actions.children[0].disabled = branchIndex === 0;
+      actions.children[1].disabled = branchIndex === state.composer.options.length - 1;
+      heading.append(label, actions);
+      card.appendChild(heading);
+      if (!branch.length) card.appendChild(emptyComposerNote("Add a component to this option."));
+      branch.forEach(function (item, itemIndex) { card.appendChild(createComponentRow(item, "option", branchIndex, itemIndex)); });
+      dom.alternativeList.appendChild(card);
+    });
+    if (!state.composer.options.length) dom.alternativeList.appendChild(emptyComposerNote("No alternatives. Add two or more to create an OR choice."));
+
+    dom.componentTarget.replaceChildren();
+    var alwaysOption = document.createElement("option");
+    alwaysOption.value = "always";
+    alwaysOption.textContent = "Always receive";
+    dom.componentTarget.appendChild(alwaysOption);
+    state.composer.options.forEach(function (_branch, index) {
+      var option = document.createElement("option");
+      option.value = "option:" + index;
+      option.textContent = "Option " + (index + 1);
+      dom.componentTarget.appendChild(option);
+    });
+
+    var reward = composerReward();
+    dom.composerPreview.textContent = reward.always.length || reward.options.length ? rewardDescription(reward) : "Add a component to begin.";
+    var validation = composerValidationMessage();
+    dom.composerValidation.textContent = validation;
+    dom.composerSubmit.disabled = Boolean(validation);
+    dom.composerSubmit.textContent = state.editingEntryId ? "Update wheel entry" : "Add entry to wheel";
+  }
+
+  function emptyComposerNote(text) {
+    var note = document.createElement("p");
+    note.className = "composer-empty";
+    note.textContent = text;
+    return note;
+  }
+
+  function resetComposer(close) {
+    state.composer = { always: [], options: [] };
+    state.editingEntryId = null;
+    dom.componentCustomText.value = "";
+    renderComposer();
+    if (close) {
+      dom.composer.hidden = true;
+      dom.composerToggle.setAttribute("aria-expanded", "false");
+    }
+  }
+
+  function openComposer(entry) {
+    if (entry) {
+      state.composer = deepClone(entry.reward);
+      state.editingEntryId = entry.id;
+    } else if (dom.composer.hidden) {
+      state.editingEntryId = null;
+    }
+    dom.composer.hidden = false;
+    dom.composerToggle.setAttribute("aria-expanded", "true");
+    renderComposer();
+    dom.componentType.focus();
   }
 
   function renderAll() {
@@ -605,6 +920,7 @@
     renderSliceList();
     renderPresetList();
     syncControls();
+    renderComposer();
   }
 
   function commitChange(message) {
@@ -613,21 +929,12 @@
     if (message) setStatus(message);
   }
 
-  function addEntry(label, presetKind) {
+  function addEntry(entry) {
     if (state.entries.length >= MAX_ENTRIES) {
       setStatus("The wheel is limited to " + MAX_ENTRIES + " entries.", "warning");
       return false;
     }
-    state.entries.push({ id: createId("entry"), label: label, presetKind: presetKind || null });
-    return true;
-  }
-
-  function addEntries(label, presetKind) {
-    if (state.entries.length + state.quantity > MAX_ENTRIES) {
-      setStatus("Only " + (MAX_ENTRIES - state.entries.length) + " wheel slots remain. Nothing was added.", "warning");
-      return false;
-    }
-    for (var index = 0; index < state.quantity; index += 1) addEntry(label, presetKind);
+    state.entries.push(entry);
     return true;
   }
 
@@ -843,6 +1150,75 @@
     return "rgba(" + red + ", " + green + ", " + blue + ", " + alpha + ")";
   }
 
+  function htmlComponent(item, size) {
+    var wrapper = document.createElement("span");
+    wrapper.className = "reward-token reward-token--" + (size || "result");
+    var amount = document.createElement("b");
+    amount.textContent = String(item.amount);
+    wrapper.appendChild(amount);
+    if (item.type === "custom") {
+      var custom = document.createElement("span");
+      custom.textContent = item.text;
+      wrapper.appendChild(custom);
+    } else {
+      var definition = REWARDS[item.type];
+      var image = document.createElement("img");
+      image.src = definition.image;
+      image.alt = "";
+      image.className = "reward-token__image reward-token__image--" + (definition.crop || item.type);
+      var words = document.createElement("span");
+      words.textContent = item.amount === 1 ? definition.singular : definition.plural;
+      wrapper.append(image, words);
+    }
+    wrapper.setAttribute("aria-label", componentWords(item, false));
+    return wrapper;
+  }
+
+  function appendHtmlBranch(container, branch, size) {
+    sortedComponents(branch).forEach(function (item, index) {
+      if (index) {
+        var plus = document.createElement("span");
+        plus.className = "reward-plus";
+        plus.textContent = "+";
+        container.appendChild(plus);
+      }
+      container.appendChild(htmlComponent(item, size));
+    });
+  }
+
+  function renderResultCard(entry) {
+    dom.resultPrimary.replaceChildren();
+    dom.resultAlternatives.replaceChildren();
+    dom.resultCard.setAttribute("aria-label", "Selected: " + entryLabel(entry));
+    if (entry.kind !== "structured") {
+      var legacy = document.createElement("strong");
+      legacy.className = "result-card__legacy";
+      legacy.textContent = entry.label;
+      dom.resultPrimary.appendChild(legacy);
+    } else {
+      appendHtmlBranch(dom.resultPrimary, primaryComponents(entry.reward), "result");
+      var primaryIndex = primaryOptionIndex(entry.reward);
+      (entry.reward.options || []).forEach(function (branch, index) {
+        if (index === primaryIndex) return;
+        var line = document.createElement("p");
+        line.className = "result-alternative";
+        var prefix = document.createElement("span");
+        prefix.textContent = "Alternative: Craft ";
+        line.appendChild(prefix);
+        appendHtmlBranch(line, branch, "alternative");
+        if (primaryIndex >= 0) {
+          var instead = document.createElement("span");
+          instead.textContent = " instead of ";
+          line.appendChild(instead);
+          appendHtmlBranch(line, entry.reward.options[primaryIndex], "alternative");
+        }
+        line.appendChild(document.createTextNode("."));
+        dom.resultAlternatives.appendChild(line);
+      });
+    }
+    dom.resultCard.setAttribute("aria-hidden", "false");
+  }
+
   async function startSpin() {
     if (state.phase !== "setup" || !state.entries.length) return;
 
@@ -908,11 +1284,12 @@
     );
 
     renderWheel(snapshot, winner.id, 1);
+    renderResultCard(winner);
     clearRigging();
     state.phase = "result";
     document.body.classList.add("is-result");
     dom.spinButton.setAttribute("aria-label", "Dismiss result");
-    dom.resultAnnouncement.textContent = "Selected: " + winner.label + ". Click anywhere or press any key to return to setup.";
+    dom.resultAnnouncement.textContent = "Selected: " + entryLabel(winner) + ". Click anywhere or press any key to return to setup.";
   }
 
   function exitResult() {
@@ -930,15 +1307,29 @@
     syncControls();
     dom.spinButton.setAttribute("aria-label", "Spin the wheel");
     dom.resultAnnouncement.textContent = "";
+    dom.resultCard.setAttribute("aria-hidden", "true");
     emitSoundEvent("exitResult", { entry: winner ? cloneEntries([winner], false)[0] : null });
     setStatus("Returned to setup. Your wheel is unchanged.");
     window.requestAnimationFrame(function () { dom.spinButton.focus(); });
   }
 
-  document.querySelectorAll("[data-tier]").forEach(function (button) {
+  Object.keys(REWARDS).filter(function (key) { return key !== "custom"; }).forEach(function (key) {
+    var option = document.createElement("option");
+    option.value = key;
+    option.textContent = REWARDS[key].label;
+    dom.componentType.appendChild(option);
+  });
+  var customTypeOption = document.createElement("option");
+  customTypeOption.value = "custom";
+  customTypeOption.textContent = REWARDS.custom.label;
+  dom.componentType.appendChild(customTypeOption);
+
+  document.querySelectorAll("[data-reward]").forEach(function (button) {
     button.addEventListener("click", function () {
-      if (addEntries(button.dataset.label, button.dataset.tier)) {
-        commitChange(state.quantity + " × " + button.dataset.label + " added.");
+      var type = button.dataset.reward;
+      var entry = structuredEntry([component(type, state.quantity)], []);
+      if (addEntry(entry)) {
+        commitChange(entryLabel(entry) + " added as one wheel entry.");
       }
     });
   });
@@ -970,10 +1361,126 @@
       dom.customLabel.focus();
       return;
     }
-    if (!addEntries(label, null)) return;
+    if (!addEntry({ id: createId("entry"), kind: "custom", label: label, presetKind: null })) return;
     dom.customLabel.value = "";
-    commitChange(state.quantity + " " + (state.quantity === 1 ? "entry" : "entries") + " added.");
+    commitChange(label + " added as one wheel entry.");
     dom.customLabel.focus();
+  });
+
+  dom.composerToggle.addEventListener("click", function () {
+    if (dom.composer.hidden) openComposer(null);
+    else resetComposer(true);
+  });
+  dom.composerClose.addEventListener("click", function () { resetComposer(true); });
+  dom.composerReset.addEventListener("click", function () { resetComposer(false); });
+  dom.componentType.addEventListener("change", function () {
+    dom.componentCustomField.hidden = dom.componentType.value !== "custom";
+    if (!dom.componentCustomField.hidden) dom.componentCustomText.focus();
+  });
+  dom.addAlternative.addEventListener("click", function () {
+    state.composer.options.push([]);
+    renderComposer();
+    dom.componentTarget.value = "option:" + (state.composer.options.length - 1);
+  });
+  dom.componentAdd.addEventListener("click", function () {
+    var type = dom.componentType.value;
+    var text = type === "custom" ? cleanText(dom.componentCustomText.value, MAX_LABEL_LENGTH) : "";
+    if (type === "custom" && !text) {
+      setStatus("Enter custom component text first.", "warning");
+      dom.componentCustomText.focus();
+      return;
+    }
+    var item = component(type, state.quantity, text);
+    if (dom.componentTarget.value === "always") state.composer.always.push(item);
+    else {
+      var branchIndex = Number(dom.componentTarget.value.split(":")[1]);
+      if (state.composer.options[branchIndex]) state.composer.options[branchIndex].push(item);
+    }
+    if (type === "custom") dom.componentCustomText.value = "";
+    renderComposer();
+  });
+
+  dom.composer.addEventListener("input", function (event) {
+    var row = event.target.closest(".component-row");
+    if (!row || !event.target.dataset.field) return;
+    var source = row.dataset.zone === "always" ? state.composer.always : state.composer.options[Number(row.dataset.branchIndex)];
+    var item = source && source[Number(row.dataset.itemIndex)];
+    if (!item) return;
+    if (event.target.dataset.field === "amount") {
+      var amount = Number(event.target.value);
+      if (Number.isInteger(amount) && amount >= 1 && amount <= 999) item.amount = amount;
+    } else if (event.target.dataset.field === "text") {
+      item.text = cleanText(event.target.value, MAX_LABEL_LENGTH);
+    }
+    var reward = composerReward();
+    dom.composerPreview.textContent = rewardDescription(reward) || "Add a component to begin.";
+    var validation = composerValidationMessage();
+    dom.composerValidation.textContent = validation;
+    dom.composerSubmit.disabled = Boolean(validation);
+  });
+
+  dom.composer.addEventListener("change", function (event) {
+    var row = event.target.closest(".component-row");
+    if (!row || event.target.dataset.field !== "type") return;
+    var source = row.dataset.zone === "always" ? state.composer.always : state.composer.options[Number(row.dataset.branchIndex)];
+    var item = source && source[Number(row.dataset.itemIndex)];
+    if (!item) return;
+    item.type = event.target.value;
+    if (item.type === "custom" && !item.text) item.text = "Custom reward";
+    else if (item.type !== "custom") delete item.text;
+    renderComposer();
+  });
+
+  dom.composer.addEventListener("click", function (event) {
+    var button = event.target.closest("[data-action]");
+    if (!button) return;
+    var action = button.dataset.action;
+    var branchCard = button.closest(".alternative-card");
+    if (action.indexOf("branch-") === 0 && branchCard) {
+      var branchIndex = Number(branchCard.dataset.branchIndex);
+      if (action === "branch-remove") state.composer.options.splice(branchIndex, 1);
+      else {
+        var branchTarget = action === "branch-up" ? branchIndex - 1 : branchIndex + 1;
+        if (branchTarget >= 0 && branchTarget < state.composer.options.length) {
+          var branch = state.composer.options.splice(branchIndex, 1)[0];
+          state.composer.options.splice(branchTarget, 0, branch);
+        }
+      }
+      renderComposer();
+      return;
+    }
+    var row = button.closest(".component-row");
+    if (!row || action.indexOf("component-") !== 0) return;
+    var source = row.dataset.zone === "always" ? state.composer.always : state.composer.options[Number(row.dataset.branchIndex)];
+    var index = Number(row.dataset.itemIndex);
+    if (action === "component-remove") source.splice(index, 1);
+    else {
+      var target = action === "component-up" ? index - 1 : index + 1;
+      if (target >= 0 && target < source.length) {
+        var item = source.splice(index, 1)[0];
+        source.splice(target, 0, item);
+      }
+    }
+    renderComposer();
+  });
+
+  dom.composerSubmit.addEventListener("click", function () {
+    var validation = composerValidationMessage();
+    if (validation) {
+      dom.composerValidation.textContent = validation;
+      return;
+    }
+    var reward = composerReward();
+    if (state.editingEntryId) {
+      var index = state.entries.findIndex(function (entry) { return entry.id === state.editingEntryId; });
+      if (index >= 0) state.entries[index] = { id: state.editingEntryId, kind: "structured", reward: reward };
+      commitChange("Structured entry updated.");
+    } else {
+      var entry = structuredEntry(reward.always, reward.options);
+      if (!addEntry(entry)) return;
+      commitChange(entryLabel(entry) + " added as one wheel entry.");
+    }
+    resetComposer(true);
   });
 
   dom.riggedWinner.addEventListener("change", function () {
@@ -1020,10 +1527,15 @@
     var entry = state.entries[index];
     var action = button.dataset.action;
 
+    if (action === "edit" && entry.kind === "structured") {
+      openComposer(entry);
+      return;
+    }
+
     if (action === "remove") {
       state.entries.splice(index, 1);
       if (entry.id === state.riggedTargetId) clearRigging();
-      commitChange(entry.label + " removed.");
+      commitChange(entryLabel(entry) + " removed.");
       var next = state.entries[Math.min(index, state.entries.length - 1)];
       if (next) focusRowAction(next.id, "remove");
       else dom.customLabel.focus();
@@ -1034,7 +1546,7 @@
     if (targetIndex < 0 || targetIndex >= state.entries.length) return;
     state.entries.splice(index, 1);
     state.entries.splice(targetIndex, 0, entry);
-    commitChange(entry.label + " moved " + action + ".");
+    commitChange(entryLabel(entry) + " moved " + action + ".");
     focusRowAction(entry.id, action);
   });
 

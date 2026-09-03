@@ -31,16 +31,15 @@
           <input id="shared-quantity" name="quantity" type="number" min="1" max="60" step="1" value="1" inputmode="numeric" required>
         </label>
 
-        <div class="tier-chips" aria-label="Preset entries">
-          <button class="tier-chip tier-chip--ur" type="button" data-tier="ur" data-label="1 UR">
-            <span>1 UR</span><small>Add ×1</small>
-          </button>
-          <button class="tier-chip tier-chip--sr" type="button" data-tier="sr" data-label="2 SR">
-            <span>2 SR</span><small>Add ×1</small>
-          </button>
-          <button class="tier-chip tier-chip--r" type="button" data-tier="r" data-label="3 R">
-            <span>3 R</span><small>Add ×1</small>
-          </button>
+        <div class="tier-chips" aria-label="Quick reward entries">
+          <button class="tier-chip tier-chip--ur" type="button" data-reward="ur"><img src="UR_Craft_Asset.png" alt=""><span>1 UR</span></button>
+          <button class="tier-chip tier-chip--packs" type="button" data-reward="packs"><img src="The_Masters_Saga-Pack-Master_Duel.png" alt=""><span>1 Pack</span></button>
+          <button class="tier-chip tier-chip--bans" type="button" data-reward="bans"><img src="pot-of-greed-2.avif" alt=""><span>1 Ban</span></button>
+          <button class="tier-chip tier-chip--sr" type="button" data-reward="sr"><img src="SR_Craft_asset.png" alt=""><span>1 SR</span></button>
+          <button class="tier-chip tier-chip--r" type="button" data-reward="r"><img src="R_Craft_asset.png" alt=""><span>1 R</span></button>
+          <button class="tier-chip tier-chip--n" type="button" data-reward="n"><img src="N_Craft_asset.png" alt=""><span>1 N</span></button>
+          <button class="tier-chip tier-chip--nr" type="button" data-reward="nr"><img src="N_R_Craft_asset.png" alt=""><span>1 N/R</span></button>
+          <button class="tier-chip tier-chip--gems" type="button" data-reward="gems"><img src="Master_Duel_Gem.png" alt=""><span>1 Gem</span></button>
         </div>
 
         <form class="custom-entry" id="custom-entry-form">
@@ -48,8 +47,39 @@
             <span>Custom label</span>
             <input id="custom-label" name="label" type="text" maxlength="48" autocomplete="off" placeholder="Redemption" required>
           </label>
-          <button class="add-button" type="submit">Add ×1</button>
+          <button class="add-button" type="submit">Add entry</button>
         </form>
+
+        <button class="composer-toggle" id="composer-toggle" type="button" aria-expanded="false" aria-controls="entry-composer">Build a combined entry</button>
+        <section class="entry-composer" id="entry-composer" aria-labelledby="composer-heading" hidden>
+          <div class="composer-heading">
+            <div><p class="composer-kicker">Structured reward</p><h3 id="composer-heading">Build one wheel entry</h3></div>
+            <button class="composer-close" id="composer-close" type="button" aria-label="Close combined entry builder">×</button>
+          </div>
+
+          <div class="component-adder">
+            <label class="field"><span>Component</span><select id="component-type"></select></label>
+            <label class="field component-custom-field" id="component-custom-field" hidden><span>Custom text</span><input id="component-custom-text" type="text" maxlength="48" autocomplete="off" placeholder="Redemption"></label>
+            <label class="field"><span>Add to</span><select id="component-target"><option value="always">Always receive</option></select></label>
+            <button class="small-button component-add" id="component-add" type="button">Add component</button>
+          </div>
+
+          <div class="composer-zone">
+            <p class="composer-zone__label">Always receive</p>
+            <div class="component-list" id="always-components"></div>
+          </div>
+          <div class="composer-zone composer-zone--options">
+            <div class="composer-zone__heading"><p class="composer-zone__label">Choose one</p><button class="small-button" id="add-alternative" type="button">Add alternative</button></div>
+            <div class="alternative-list" id="alternative-list"></div>
+          </div>
+
+          <div class="composer-preview"><span>Preview</span><output id="composer-preview">Add a component to begin.</output></div>
+          <p class="composer-validation" id="composer-validation" role="alert"></p>
+          <div class="composer-actions">
+            <button class="small-button" id="composer-reset" type="button">Reset</button>
+            <button class="add-button" id="composer-submit" type="button">Add entry to wheel</button>
+          </div>
+        </section>
       </section>
 
       <details class="editor-section editor-section--presets saved-wheels" id="saved-wheels">
@@ -61,7 +91,7 @@
           <form class="save-preset" id="save-preset-form">
             <label class="field">
               <span>Preset name</span>
-              <input id="preset-name" name="presetName" type="text" maxlength="48" autocomplete="off" placeholder="Friday draw" required>
+              <input id="preset-name" name="presetName" type="text" maxlength="48" autocomplete="off" placeholder="Custom Wheel" required>
             </label>
             <button class="save-button" type="submit">Save wheel</button>
           </form>
@@ -105,6 +135,13 @@
           </g>
           <g class="winner-callout" id="winner-callout" aria-hidden="true"></g>
         </svg>
+
+        <article class="result-card" id="result-card" aria-hidden="true">
+          <p class="result-card__kicker">Selected</p>
+          <div class="result-card__primary" id="result-primary"></div>
+          <div class="result-card__alternatives" id="result-alternatives"></div>
+          <p class="result-card__dismiss">Click anywhere or press any key to continue</p>
+        </article>
 
         <button class="spin-button" id="spin-button" type="button" aria-label="Spin the wheel" disabled>
           <span class="spheal-rotator" id="spheal-rotator">
