@@ -96,6 +96,7 @@
     sliceList: document.getElementById("slice-list"),
     savePresetForm: document.getElementById("save-preset-form"),
     presetName: document.getElementById("preset-name"),
+    newWheelButton: document.getElementById("new-wheel-button"),
     presetList: document.getElementById("preset-list"),
     riggedToggle: document.getElementById("rigged-toggle"),
     riggedWinner: document.getElementById("rigged-winner"),
@@ -543,6 +544,21 @@
     return candidate;
   }
 
+  function isDraftDirty() {
+    if (!state.draftIdentity.presetId) return state.entries.length > 0;
+    var preset = state.presets.find(function (candidate) { return candidate.id === state.draftIdentity.presetId; });
+    if (!preset) return state.entries.length > 0;
+    return JSON.stringify(state.entries) !== JSON.stringify(preset.entries);
+  }
+
+  var newWheelCounter = 0;
+
+  function nextNewWheelName() {
+    var name = newWheelCounter === 0 ? "Custom Wheel" : "Custom Wheel " + newWheelCounter;
+    newWheelCounter += 1;
+    return name;
+  }
+
   function setStatus(message, tone, duration) {
     window.clearTimeout(statusTimer);
     dom.editorStatus.textContent = message;
@@ -781,7 +797,9 @@
     var fontSize = (count <= 8 ? 17 : count <= 18 ? 14 : count <= 36 ? 11 : 9) * scale;
 
     function tokenWidths(iconSize, fontSize) {
-      return { pair: iconSize + fontSize * 1.5, iconOnly: iconSize * 1.15, and: fontSize * 1.25, or: fontSize * 1.7 };
+      // Zen Dots renders noticeably wider than the legacy sans stack (~1.5x on digits), so the
+      // amount-digit-before-icon gap needs extra headroom or the two visually collide.
+      return { pair: iconSize + fontSize * 2.1, iconOnly: iconSize * 1.15, and: fontSize * 1.25, or: fontSize * 1.7 };
     }
     // A quantity-1 icon has no amount digit next to it, so it only needs its own width, not the full pair width.
     function tokenWidth(token, w) {
@@ -835,12 +853,12 @@
         shorthand.appendChild(amount);
       }
       if (item.type === "custom") {
-        var custom = svgElement("text", { class: "wheel-slice__custom", x: String(cursor + (showAmount ? fontSize * 1.35 : fontSize * 0.3)), y: "1", "font-size": String(fontSize * 0.76), "dominant-baseline": "middle" });
+        var custom = svgElement("text", { class: "wheel-slice__custom", x: String(cursor + (showAmount ? fontSize * 2.0 : fontSize * 0.3)), y: "1", "font-size": String(fontSize * 0.76), "dominant-baseline": "middle" });
         custom.textContent = abbreviatedLabel(item.text, count);
         shorthand.appendChild(custom);
       } else {
         var definition = REWARDS[item.type];
-        var iconX = showAmount ? cursor + fontSize * 1.2 : cursor + (width - iconSize) / 2;
+        var iconX = showAmount ? cursor + fontSize * 1.8 : cursor + (width - iconSize) / 2;
         shorthand.appendChild(svgElement("image", {
           class: "wheel-slice__icon wheel-slice__icon--" + (definition.crop || item.type),
           href: definition.image,
@@ -968,14 +986,23 @@
     placeholder.textContent = state.entries.length ? "Choose an entry" : "Add entries first";
     dom.riggedWinner.appendChild(placeholder);
 
-    state.entries.forEach(function (entry, index) {
+    // Identical entries collapse into one option, keyed by the first entry with that
+    // label. The actual rigged target may be a different (identical) entry — see the
+    // change handler, which rolls a random match — so the select's displayed value is
+    // resolved back through this map rather than compared directly to riggedTargetId.
+    var representativeByLabel = {};
+    state.entries.forEach(function (entry) {
+      var label = entryLabel(entry);
+      if (Object.prototype.hasOwnProperty.call(representativeByLabel, label)) return;
+      representativeByLabel[label] = entry.id;
       var option = document.createElement("option");
       option.value = entry.id;
-      option.textContent = entryLabel(entry) + " — entry " + (index + 1);
+      option.textContent = label;
       dom.riggedWinner.appendChild(option);
     });
 
-    dom.riggedWinner.value = state.riggedTargetId || "";
+    var riggedEntry = state.entries.find(function (entry) { return entry.id === state.riggedTargetId; });
+    dom.riggedWinner.value = riggedEntry ? representativeByLabel[entryLabel(riggedEntry)] : "";
     dom.riggedWinner.disabled = !state.entries.length;
     dom.riggedToggle.checked = state.riggedEnabled;
     dom.riggedToggle.disabled = !targetExists;
@@ -2192,7 +2219,15 @@
   });
 
   dom.riggedWinner.addEventListener("change", function () {
-    state.riggedTargetId = dom.riggedWinner.value || null;
+    var chosenId = dom.riggedWinner.value || null;
+    var chosenEntry = chosenId && state.entries.find(function (entry) { return entry.id === chosenId; });
+    if (chosenEntry) {
+      var label = entryLabel(chosenEntry);
+      var matches = state.entries.filter(function (entry) { return entryLabel(entry) === label; });
+      state.riggedTargetId = matches[randomIndex(matches.length)].id;
+    } else {
+      state.riggedTargetId = null;
+    }
     if (!state.riggedTargetId) state.riggedEnabled = false;
     renderSliceList();
     syncControls();
@@ -2298,6 +2333,23 @@
     dom.presetName.value = "";
   });
 
+  dom.newWheelButton.addEventListener("click", async function (event) {
+    // Lives inside <summary>; stop the click from also toggling the details disclosure.
+    event.preventDefault();
+    event.stopPropagation();
+    var canReplace = !isDraftDirty() || await requestConfirmation({
+      title: "Start a new wheel?",
+      message: "Starting a new wheel will replace the entries currently on the wheel.",
+      confirmLabel: "New wheel"
+    });
+    if (!canReplace) return;
+    var name = cleanText(dom.presetName.value, MAX_LABEL_LENGTH) || nextNewWheelName();
+    state.entries = [];
+    state.draftIdentity = { presetId: null, name: name, iconKey: "genex" };
+    clearRigging();
+    commitChange(name + " ready to build.");
+  });
+
   dom.presetList.addEventListener("keydown", function (event) {
     if (event.key === "Enter" && event.target.classList.contains("preset-name-input")) {
       event.preventDefault();
@@ -2324,7 +2376,7 @@
     }
 
     if (action === "load") {
-      var canLoad = !state.entries.length || await requestConfirmation({
+      var canLoad = !isDraftDirty() || await requestConfirmation({
         title: "Replace current wheel?",
         message: "Loading “" + preset.name + "” will replace the entries currently on the wheel.",
         confirmLabel: "Load preset"
@@ -2378,7 +2430,7 @@
         setStatus("Pinned wheels cannot be deleted.", "warning");
         return;
       }
-      var shouldDelete = await requestConfirmation({
+      var shouldDelete = !preset.entries.length || await requestConfirmation({
         title: "Delete saved wheel?",
         message: "Delete “" + preset.name + "”? This cannot be undone.",
         confirmLabel: "Delete"
