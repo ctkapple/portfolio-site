@@ -7,13 +7,19 @@
   var DEFAULT_SEED_VERSION = 2;
   var MAX_ENTRIES = 60;
   var MAX_LABEL_LENGTH = 48;
-  var BASE_COAST_DURATION = 4300;
-  var MAX_COAST_DURATION = 9300;
-  var SETTLE_DURATION = 700;
   var REVEAL_DURATION = 620;
+  // The spin is one continuous exponential decay from SPIN_VELOCITY to a stop, aimed at an
+  // exact target angle from the first frame — see runSpinMotion. It always arrives already
+  // slow, so there is never a separate "settle" tween that could snap or speed up at the end.
+  var SPIN_VELOCITY = 5.6;       // deg/ms initial angular speed for a fresh, unboosted spin
+  var SPIN_STOP_RATIO = 0.0006;  // motion is considered landed once velocity decays to this fraction of its start
+  var BASE_EXTRA_TURNS = 8;      // full extra rotations for an unboosted spin (~4s to land)
+  var MAX_SPIN_MS = 30000;       // hard ceiling on total spin time, however much boosting occurs
+  var BOOST_TAPER_MS = 5000;     // boosts fade out over this final stretch of the time budget, so even
+                                  // sustained rapid-clicking always decays into a smooth stop, not a cutoff
+  var BOOST_TURNS = 3.5;         // full extra rotations added per full-strength boost click
   var BOOST_RECOVERY_MS = 1500;
   var BOOST_RESERVE_COST = 0.45;
-  var BOOST_EXTENSION_MS = 1500;
 
   var REWARDS = {
     ur: { label: "UR", singular: "UR", plural: "UR", image: "UR_Craft_Asset.png", color: "#bd4fe2", precedence: 90 },
@@ -1624,35 +1630,61 @@
     motion.reserve *= 1 - BOOST_RESERVE_COST;
     motion.lastBoostAt = now;
 
-    var available = Math.max(0, motion.maximumDeadline - motion.coastDeadline);
-    var fullWindow = MAX_COAST_DURATION - BASE_COAST_DURATION;
-    var ceilingScale = fullWindow ? available / fullWindow : 0;
-    var extension = BOOST_EXTENSION_MS * strength * ceilingScale;
-    motion.coastDeadline = Math.min(motion.maximumDeadline, motion.coastDeadline + extension);
-    motion.velocity = Math.min(1.85, motion.velocity + 0.5 * strength);
+    // Boosting only ever adds distance (whole extra turns), never velocity: adding distance
+    // without touching velocity always raises tau (= remaining / velocity), so every boost is
+    // guaranteed to extend the remaining time, never shorten it. It fades out over the final
+    // BOOST_TAPER_MS of the time budget so even nonstop rapid-clicking decays into a smooth
+    // stop at MAX_SPIN_MS rather than being cut off mid-motion.
+    var budgetRemaining = Math.max(0, MAX_SPIN_MS - (now - motion.startedAt));
+    var taper = Math.min(1, budgetRemaining / BOOST_TAPER_MS);
+    var addedTurns = BOOST_TURNS * strength * taper;
+    if (addedTurns > 0) motion.target += addedTurns * 360;
+
     triggerSphealFeedback(strength);
-    emitSoundEvent("spinBoost", { strength: strength, addedDuration: extension });
+    emitSoundEvent("spinBoost", { strength: strength, addedTurns: addedTurns });
   }
 
-  function runMomentumCoast(sliceAngle) {
+  // A single continuous decay from SPIN_VELOCITY toward zero, aimed at the exact winning
+  // angle from the very first frame. Because the target and current position determine a
+  // consistent decay rate every frame (tau = remaining distance / current velocity), the
+  // motion always slows continuously into the landing with no separate re-align step that
+  // could snap or speed up. Boosting only ever adds distance (whole 360s, so the landing
+  // angle is unaffected), which the same per-frame math absorbs without any discontinuity.
+  function runSpinMotion(sliceAngle, targetRotation) {
     return new Promise(function (resolve) {
       var startedAt = performance.now();
       var motion = {
-        coastDeadline: startedAt + BASE_COAST_DURATION,
-        maximumDeadline: startedAt + MAX_COAST_DURATION,
+        target: targetRotation,
+        velocity: SPIN_VELOCITY,
+        startedAt: startedAt,
         lastFrameAt: startedAt,
         lastBoostAt: startedAt,
         reserve: 1,
-        velocity: 1.28,
         lastTick: Math.floor(state.rotation / sliceAngle)
       };
       state.spinMotion = motion;
+      var stopVelocity = SPIN_VELOCITY * SPIN_STOP_RATIO;
+
+      function finish() {
+        setRotation(motion.target);
+        state.spinMotion = null;
+        resolve();
+      }
 
       function frame(now) {
         var elapsed = Math.min(40, Math.max(0, now - motion.lastFrameAt));
         motion.lastFrameAt = now;
-        motion.velocity = Math.max(0.16, motion.velocity * Math.exp(-elapsed / 3200));
-        setRotation(state.rotation + motion.velocity * elapsed);
+
+        var remaining = motion.target - state.rotation;
+        if (remaining <= 0.05 || motion.velocity <= stopVelocity || now - startedAt >= MAX_SPIN_MS) {
+          finish();
+          return;
+        }
+
+        var tau = remaining / motion.velocity;
+        var decay = Math.exp(-elapsed / tau);
+        setRotation(state.rotation + remaining * (1 - decay));
+        motion.velocity *= decay;
 
         var currentTick = Math.floor(state.rotation / sliceAngle);
         if (currentTick !== motion.lastTick) {
@@ -1661,12 +1693,7 @@
           emitSoundEvent("pointerTick", { rotation: state.rotation });
         }
 
-        if (now < motion.coastDeadline) {
-          window.requestAnimationFrame(frame);
-        } else {
-          state.spinMotion = null;
-          resolve();
-        }
+        window.requestAnimationFrame(frame);
       }
 
       window.requestAnimationFrame(frame);
@@ -1809,8 +1836,24 @@
     dom.resultCard.setAttribute("aria-hidden", "false");
   }
 
-  async function startSpin() {
+  function armSpin() {
     if (state.phase !== "setup" || !state.entries.length) return;
+    state.phase = "armed";
+    setCinematic(true);
+    dom.spinButton.setAttribute("aria-label", "Start the spin");
+    dom.spinButton.focus();
+  }
+
+  function cancelArmed() {
+    if (state.phase !== "armed") return;
+    state.phase = "setup";
+    setCinematic(false);
+    dom.spinButton.setAttribute("aria-label", "Spin the wheel");
+    window.requestAnimationFrame(function () { dom.spinButton.focus(); });
+  }
+
+  async function startSpin() {
+    if (state.phase !== "armed" || !state.entries.length) return;
 
     var snapshot = cloneEntries(state.entries, false);
     var forcedIndex = state.riggedEnabled
@@ -1829,7 +1872,7 @@
     setCinematic(true);
     document.body.classList.add("is-spinning");
     dom.spinButton.disabled = false;
-    dom.spinButton.setAttribute("aria-label", "Boost the spinning wheel");
+    dom.spinButton.setAttribute("aria-label", "Wheel spinning");
     dom.spinButton.focus();
     renderWheel(snapshot, null, 0);
     emitSoundEvent("spinStart", { entryCount: snapshot.length, rigged: forcedIndex >= 0 });
@@ -1841,21 +1884,13 @@
       setRotation(finalRotation);
       await delay(130);
     } else {
-      await runMomentumCoast(sliceAngle);
+      var targetRotation = state.rotation + BASE_EXTRA_TURNS * 360
+        + normalizeAngle(desiredRotation - normalizeAngle(state.rotation));
+      await runSpinMotion(sliceAngle, targetRotation);
       state.phase = "landing";
       document.body.classList.remove("is-spinning");
       dom.spinButton.setAttribute("aria-label", "Wheel landing");
-      var currentNormalized = normalizeAngle(state.rotation);
-      var alignment = normalizeAngle(desiredRotation - currentNormalized);
-      finalRotation = state.rotation + alignment;
-      await animateValue(
-        state.rotation,
-        finalRotation,
-        SETTLE_DURATION,
-        easeOutCubic,
-        function (value) { setRotation(value); },
-        sliceAngle
-      );
+      finalRotation = state.rotation;
     }
 
     state.phase = "landing";
@@ -2358,25 +2393,45 @@
   });
 
   dom.spinButton.addEventListener("click", function () {
-    if (state.phase === "spinning") boostSpin();
-    else startSpin();
+    // Boosting is disabled for now: a spin always runs once, start to finish, with no
+    // rapid-click extension. Re-wire a "spinning" branch to boostSpin() to bring it back.
+    if (state.phase === "armed") startSpin();
+    else if (state.phase === "setup") armSpin();
   });
   dom.confirmDialog.addEventListener("close", handleDialogClose);
 
   window.addEventListener("click", function (event) {
-    if (state.phase !== "result") return;
-    // Consume the dismissal click before setup returns so it cannot click through into a newly visible control.
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    exitResult();
+    if (state.phase === "result") {
+      // Consume the dismissal click before setup returns so it cannot click through into a newly visible control.
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      exitResult();
+      return;
+    }
+    if (state.phase === "armed" && !dom.spinButton.contains(event.target)) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      cancelArmed();
+    }
   }, true);
 
   window.addEventListener("keydown", function (event) {
     var keyId = event.code || event.key;
-    if (state.phase === "spinning" || state.phase === "landing") {
-      if (state.phase === "spinning" && event.target === dom.spinButton && !event.repeat && (event.key === " " || event.key === "Enter")) {
-        boostSpin();
+    if (state.phase === "armed") {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        cancelArmed();
+        return;
       }
+      if (event.target === dom.spinButton && !event.repeat && (event.key === " " || event.key === "Enter")) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        startSpin();
+      }
+      return;
+    }
+    if (state.phase === "spinning" || state.phase === "landing") {
       heldCinematicKeys.add(keyId);
       event.preventDefault();
       event.stopImmediatePropagation();

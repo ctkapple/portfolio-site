@@ -440,6 +440,7 @@ summary:focus-visible {
     var(--panel);
   box-shadow: 0 28px 70px rgba(0, 0, 0, 0.36), inset 0 1px rgba(255, 255, 255, 0.035);
   backdrop-filter: blur(18px);
+  transition: transform 250ms cubic-bezier(.32, 0, .18, 1);
 }
 
 .side-rail--left { grid-column: 1; grid-row: 1; }
@@ -1000,17 +1001,41 @@ summary:focus-visible {
   padding: 0 24px 22px;
 }
 
-.rigged-card {
+.admin-card {
+  padding: 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 0;
   background: linear-gradient(145deg, rgba(17, 48, 65, 0.32), rgba(8, 13, 25, 0.18));
 }
 
-.rigged-card .section-heading {
+.admin-card summary {
+  display: flex;
   align-items: center;
-  margin-bottom: 14px;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 19px 24px;
+  cursor: pointer;
+  list-style: none;
+  font-size: 1rem;
+  font-weight: 680;
 }
 
-.rigged-card > .section-note {
-  margin-top: 9px;
+.admin-card summary::-webkit-details-marker { display: none; }
+
+.admin-card summary::after {
+  content: "+";
+  color: var(--cyan);
+  font-size: 1.2rem;
+  font-weight: 400;
+}
+
+.admin-card[open] summary::after { content: "−"; }
+
+.admin-card__content {
+  padding: 0 24px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
 .toggle-control {
@@ -1136,35 +1161,27 @@ summary:focus-visible {
   overflow: hidden;
 }
 
-.is-cinematic .setup-only {
+.is-cinematic .empty-wheel {
   display: none !important;
 }
 
-.is-cinematic .app-shell {
-  display: grid;
-  grid-template-columns: 1fr;
-  width: 100%;
-  min-width: 0;
-  max-width: none;
-  height: 100vh;
-  min-height: 0;
-  padding: 0;
+.is-cinematic .feedback-chip {
+  display: none;
 }
 
-.is-cinematic .wheel-stage {
-  grid-column: 1;
-  display: grid;
-  width: 100vw;
-  min-width: 0;
-  height: 100vh;
-  place-items: center;
+/* The wheel keeps its exact normal-layout position and size in cinematic mode — only the
+   two side rails leave, each sliding offscreen toward its own edge, so nothing about the
+   wheel stage ever reflows or jumps. */
+.is-cinematic .side-rail {
+  pointer-events: none;
 }
 
-.is-cinematic .wheel-shell {
-  width: min(86vmin, 920px);
-  min-width: 0;
-  max-width: none;
-  margin: 0;
+.is-cinematic .side-rail--left {
+  transform: translateX(-100vw);
+}
+
+.is-cinematic .side-rail--right {
+  transform: translateX(100vw);
 }
 
 .is-cinematic .spin-button {

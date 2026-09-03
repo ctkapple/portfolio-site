@@ -135,11 +135,28 @@
         </div>
       </details>
 
+      <details class="editor-section admin-card" id="admin-card">
+        <summary>Admin</summary>
+        <div class="admin-card__content">
+          <label class="toggle-control">
+            <input id="rigged-toggle" type="checkbox">
+            <span aria-hidden="true"></span>
+            <b>Enable</b>
+          </label>
+          <label class="field">
+            <span>Choose what the wheel lands on</span>
+            <select id="rigged-winner" disabled>
+              <option value="">Choose an entry</option>
+            </select>
+          </label>
+        </div>
+      </details>
+
       <p class="editor-status" id="editor-status" role="status" aria-live="polite"></p>
     </aside>
 
     <section class="wheel-stage" aria-label="Selection wheel">
-      <header class="wheel-identity setup-only" id="wheel-identity">
+      <header class="wheel-identity" id="wheel-identity">
         <img id="wheel-identity-icon" src="Genex_Controller-Icon-Master_Duel.png" alt="">
         <h1 id="wheel-identity-name">Custom Wheel</h1>
       </header>
@@ -197,28 +214,9 @@
     </section>
 
     <aside class="side-rail side-rail--right setup-only" aria-label="Wheel controls">
-      <section class="editor-section rigged-card" aria-labelledby="rigged-heading">
-        <div class="section-heading">
-          <h2 id="rigged-heading">Rigged</h2>
-          <label class="toggle-control">
-            <input id="rigged-toggle" type="checkbox">
-            <span aria-hidden="true"></span>
-            <b>Enable</b>
-          </label>
-        </div>
-        <label class="field">
-          <span>Forced winner</span>
-          <select id="rigged-winner" disabled aria-describedby="rigged-note">
-            <option value="">Choose an entry</option>
-          </select>
-        </label>
-        <p class="section-note" id="rigged-note">Targets one unique wheel entry.</p>
-      </section>
-
       <section class="editor-section editor-section--slices" aria-labelledby="slices-heading">
         <div class="section-heading">
           <h2 id="slices-heading">Wheel order</h2>
-          <p class="section-note">Order changes position, not odds.</p>
         </div>
         <ol class="slice-list" id="slice-list">
           <li class="empty-list">No entries yet.</li>
