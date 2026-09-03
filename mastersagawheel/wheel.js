@@ -6,9 +6,13 @@
   var STORAGE_VERSION = 1;
   var MAX_ENTRIES = 60;
   var MAX_LABEL_LENGTH = 48;
-  var SPIN_DURATION = 4800;
-  var SETTLE_DURATION = 260;
+  var BASE_COAST_DURATION = 4300;
+  var MAX_COAST_DURATION = 9300;
+  var SETTLE_DURATION = 700;
   var REVEAL_DURATION = 620;
+  var BOOST_RECOVERY_MS = 1500;
+  var BOOST_RESERVE_COST = 0.45;
+  var BOOST_EXTENSION_MS = 1500;
 
   var TIER_COLORS = {
     ur: "#b97818",
@@ -23,16 +27,21 @@
     winnerCallout: document.getElementById("winner-callout"),
     wheelPointer: document.getElementById("wheel-pointer"),
     spinButton: document.getElementById("spin-button"),
+    sphealRotator: document.getElementById("spheal-rotator"),
+    sphealReactor: document.getElementById("spheal-reactor"),
+    sphealPulse: document.getElementById("spheal-pulse"),
     spinCount: document.getElementById("spin-count"),
     entryTotal: document.getElementById("entry-total"),
     emptyWheel: document.getElementById("empty-wheel"),
     customForm: document.getElementById("custom-entry-form"),
     customLabel: document.getElementById("custom-label"),
-    customQuantity: document.getElementById("custom-quantity"),
+    sharedQuantity: document.getElementById("shared-quantity"),
     sliceList: document.getElementById("slice-list"),
     savePresetForm: document.getElementById("save-preset-form"),
     presetName: document.getElementById("preset-name"),
     presetList: document.getElementById("preset-list"),
+    riggedToggle: document.getElementById("rigged-toggle"),
+    riggedWinner: document.getElementById("rigged-winner"),
     editorStatus: document.getElementById("editor-status"),
     confirmDialog: document.getElementById("confirm-dialog"),
     confirmTitle: document.getElementById("confirm-title"),
@@ -47,10 +56,14 @@
   var state = {
     entries: [],
     presets: [],
+    quantity: 1,
+    riggedEnabled: false,
+    riggedTargetId: null,
     phase: "setup",
     rotation: 0,
     spinSnapshot: null,
     winnerIndex: -1,
+    spinMotion: null,
     storageEnabled: storageIsAvailable()
   };
 
@@ -133,6 +146,10 @@
       }
 
       state.entries = sanitizeEntries(envelope.draft && envelope.draft.entries);
+      var storedQuantity = Number(envelope.draft && envelope.draft.quantity);
+      state.quantity = Number.isInteger(storedQuantity) && storedQuantity >= 1 && storedQuantity <= MAX_ENTRIES
+        ? storedQuantity
+        : 1;
 
       var usedNames = new Set();
       var usedPresetIds = new Set();
@@ -167,7 +184,10 @@
     // Keep one versioned envelope so future releases can migrate draft and preset data together.
     var envelope = {
       version: STORAGE_VERSION,
-      draft: { entries: cloneEntries(state.entries, false) },
+      draft: {
+        entries: cloneEntries(state.entries, false),
+        quantity: state.quantity
+      },
       presets: state.presets.map(function (preset) {
         return {
           id: preset.id,
@@ -413,6 +433,38 @@
     return button;
   }
 
+  function clearRigging() {
+    state.riggedEnabled = false;
+    state.riggedTargetId = null;
+    dom.riggedToggle.checked = false;
+    dom.riggedWinner.value = "";
+  }
+
+  function renderRiggedControls() {
+    var targetExists = state.entries.some(function (entry) {
+      return entry.id === state.riggedTargetId;
+    });
+    if (!targetExists) clearRigging();
+
+    dom.riggedWinner.replaceChildren();
+    var placeholder = document.createElement("option");
+    placeholder.value = "";
+    placeholder.textContent = state.entries.length ? "Choose an entry" : "Add entries first";
+    dom.riggedWinner.appendChild(placeholder);
+
+    state.entries.forEach(function (entry, index) {
+      var option = document.createElement("option");
+      option.value = entry.id;
+      option.textContent = entry.label + " — entry " + (index + 1);
+      dom.riggedWinner.appendChild(option);
+    });
+
+    dom.riggedWinner.value = state.riggedTargetId || "";
+    dom.riggedWinner.disabled = !state.entries.length;
+    dom.riggedToggle.checked = state.riggedEnabled;
+    dom.riggedToggle.disabled = !targetExists;
+  }
+
   function renderSliceList() {
     dom.sliceList.replaceChildren();
     if (!state.entries.length) {
@@ -428,6 +480,7 @@
       var row = document.createElement("li");
       row.className = "slice-row";
       row.dataset.entryId = entry.id;
+      if (entry.id === state.riggedTargetId) row.classList.add("is-rigged-target");
 
       var number = document.createElement("span");
       number.className = "slice-index";
@@ -450,6 +503,13 @@
         mark.textContent = tierName(entry.presetKind);
         mark.setAttribute("aria-label", tierName(entry.presetKind) + " visual tier");
         identity.appendChild(mark);
+      }
+
+      if (entry.id === state.riggedTargetId) {
+        var targetMark = document.createElement("span");
+        targetMark.className = "rigged-target-mark";
+        targetMark.textContent = "Target";
+        identity.appendChild(targetMark);
       }
 
       var actions = document.createElement("div");
@@ -528,10 +588,16 @@
     dom.spinCount.textContent = count ? count + (count === 1 ? " entry" : " entries") : "No entries";
     dom.entryTotal.textContent = count + " / " + MAX_ENTRIES;
     dom.emptyWheel.hidden = count !== 0;
+    var quantity = state.quantity;
+    dom.sharedQuantity.value = String(quantity);
     document.querySelectorAll("[data-tier]").forEach(function (button) {
-      button.disabled = atLimit;
+      button.disabled = atLimit || count + quantity > MAX_ENTRIES;
+      button.querySelector("small").textContent = "Add ×" + quantity;
     });
-    dom.customForm.querySelector("button[type='submit']").disabled = atLimit;
+    var customAddButton = dom.customForm.querySelector("button[type='submit']");
+    customAddButton.disabled = atLimit || count + quantity > MAX_ENTRIES;
+    customAddButton.textContent = "Add ×" + quantity;
+    renderRiggedControls();
   }
 
   function renderAll() {
@@ -553,6 +619,15 @@
       return false;
     }
     state.entries.push({ id: createId("entry"), label: label, presetKind: presetKind || null });
+    return true;
+  }
+
+  function addEntries(label, presetKind) {
+    if (state.entries.length + state.quantity > MAX_ENTRIES) {
+      setStatus("Only " + (MAX_ENTRIES - state.entries.length) + " wheel slots remain. Nothing was added.", "warning");
+      return false;
+    }
+    for (var index = 0; index < state.quantity; index += 1) addEntry(label, presetKind);
     return true;
   }
 
@@ -619,6 +694,87 @@
   function setRotation(value) {
     state.rotation = value;
     dom.rotor.style.transform = "rotate(" + value + "deg)";
+    dom.sphealRotator.style.transform = "rotate(" + value + "deg)";
+  }
+
+  function triggerSphealFeedback(strength) {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    var visualStrength = Math.max(0.12, Math.min(1, strength));
+    if (typeof dom.sphealReactor.animate === "function") {
+      dom.sphealReactor.getAnimations().forEach(function (animation) { animation.cancel(); });
+      dom.sphealReactor.animate([
+        { transform: "scale(1, 1)" },
+        { transform: "scale(" + (1 + 0.16 * visualStrength) + ", " + (1 - 0.28 * visualStrength) + ")", offset: 0.34 },
+        { transform: "scale(" + (1 - 0.05 * visualStrength) + ", " + (1 + 0.1 * visualStrength) + ")", offset: 0.7 },
+        { transform: "scale(1, 1)" }
+      ], { duration: 270 + 150 * visualStrength, easing: "cubic-bezier(.2,.9,.3,1)" });
+    }
+    if (typeof dom.sphealPulse.animate === "function") {
+      dom.sphealPulse.getAnimations().forEach(function (animation) { animation.cancel(); });
+      dom.sphealPulse.animate([
+        { opacity: 0.25 + 0.65 * visualStrength, transform: "scale(.92)" },
+        { opacity: 0, transform: "scale(" + (1.12 + 0.38 * visualStrength) + ")" }
+      ], { duration: 300 + 260 * visualStrength, easing: "ease-out" });
+    }
+  }
+
+  function boostSpin() {
+    if (state.phase !== "spinning" || !state.spinMotion) return;
+    var motion = state.spinMotion;
+    var now = performance.now();
+    var quietTime = Math.max(0, now - motion.lastBoostAt);
+    motion.reserve = 1 - (1 - motion.reserve) * Math.exp(-quietTime / BOOST_RECOVERY_MS);
+    var strength = motion.reserve;
+    motion.reserve *= 1 - BOOST_RESERVE_COST;
+    motion.lastBoostAt = now;
+
+    var available = Math.max(0, motion.maximumDeadline - motion.coastDeadline);
+    var fullWindow = MAX_COAST_DURATION - BASE_COAST_DURATION;
+    var ceilingScale = fullWindow ? available / fullWindow : 0;
+    var extension = BOOST_EXTENSION_MS * strength * ceilingScale;
+    motion.coastDeadline = Math.min(motion.maximumDeadline, motion.coastDeadline + extension);
+    motion.velocity = Math.min(1.85, motion.velocity + 0.5 * strength);
+    triggerSphealFeedback(strength);
+    emitSoundEvent("spinBoost", { strength: strength, addedDuration: extension });
+  }
+
+  function runMomentumCoast(sliceAngle) {
+    return new Promise(function (resolve) {
+      var startedAt = performance.now();
+      var motion = {
+        coastDeadline: startedAt + BASE_COAST_DURATION,
+        maximumDeadline: startedAt + MAX_COAST_DURATION,
+        lastFrameAt: startedAt,
+        lastBoostAt: startedAt,
+        reserve: 1,
+        velocity: 1.28,
+        lastTick: Math.floor(state.rotation / sliceAngle)
+      };
+      state.spinMotion = motion;
+
+      function frame(now) {
+        var elapsed = Math.min(40, Math.max(0, now - motion.lastFrameAt));
+        motion.lastFrameAt = now;
+        motion.velocity = Math.max(0.16, motion.velocity * Math.exp(-elapsed / 3200));
+        setRotation(state.rotation + motion.velocity * elapsed);
+
+        var currentTick = Math.floor(state.rotation / sliceAngle);
+        if (currentTick !== motion.lastTick) {
+          motion.lastTick = currentTick;
+          tickPointer();
+          emitSoundEvent("pointerTick", { rotation: state.rotation });
+        }
+
+        if (now < motion.coastDeadline) {
+          window.requestAnimationFrame(frame);
+        } else {
+          state.spinMotion = null;
+          resolve();
+        }
+      }
+
+      window.requestAnimationFrame(frame);
+    });
   }
 
   function animateValue(from, to, duration, easing, onUpdate, tickAngle) {
@@ -650,10 +806,6 @@
 
       window.requestAnimationFrame(frame);
     });
-  }
-
-  function spinEase(progress) {
-    return progress * progress * progress * (progress * (progress * 6 - 15) + 10);
   }
 
   function easeOutCubic(progress) {
@@ -695,56 +847,53 @@
     if (state.phase !== "setup" || !state.entries.length) return;
 
     var snapshot = cloneEntries(state.entries, false);
-    var winnerIndex = randomIndex(snapshot.length);
+    var forcedIndex = state.riggedEnabled
+      ? snapshot.findIndex(function (entry) { return entry.id === state.riggedTargetId; })
+      : -1;
+    var winnerIndex = forcedIndex >= 0 ? forcedIndex : randomIndex(snapshot.length);
     var winner = snapshot[winnerIndex];
     var sliceAngle = 360 / snapshot.length;
     var winnerCenter = -90 + (winnerIndex + 0.5) * sliceAngle;
-    // Rotate the frozen winner's center to the fixed 12 o'clock pointer, then add full turns for weight.
     var desiredRotation = normalizeAngle(-90 - winnerCenter);
-    var currentNormalized = normalizeAngle(state.rotation);
-    var alignment = normalizeAngle(desiredRotation - currentNormalized);
     var reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     state.phase = "spinning";
     state.spinSnapshot = snapshot;
     state.winnerIndex = winnerIndex;
-    if (document.activeElement) document.activeElement.blur();
     setCinematic(true);
+    document.body.classList.add("is-spinning");
+    dom.spinButton.disabled = false;
+    dom.spinButton.setAttribute("aria-label", "Boost the spinning wheel");
+    dom.spinButton.focus();
     renderWheel(snapshot, null, 0);
-    emitSoundEvent("spinStart", { entryCount: snapshot.length });
+    emitSoundEvent("spinStart", { entryCount: snapshot.length, rigged: forcedIndex >= 0 });
 
     var finalRotation;
     if (reducedMotion) {
-      finalRotation = state.rotation + alignment;
+      finalRotation = state.rotation + normalizeAngle(desiredRotation - normalizeAngle(state.rotation));
       await delay(90);
       setRotation(finalRotation);
       await delay(130);
     } else {
-      var fullTurns = 6 + Math.min(2, Math.floor(snapshot.length / 24));
-      finalRotation = state.rotation + fullTurns * 360 + alignment;
-      var overshoot = Math.min(4, Math.max(1.2, sliceAngle * 0.08));
-      var overshootRotation = finalRotation + overshoot;
-
+      await runMomentumCoast(sliceAngle);
+      state.phase = "landing";
+      document.body.classList.remove("is-spinning");
+      dom.spinButton.setAttribute("aria-label", "Wheel landing");
+      var currentNormalized = normalizeAngle(state.rotation);
+      var alignment = normalizeAngle(desiredRotation - currentNormalized);
+      finalRotation = state.rotation + alignment;
       await animateValue(
         state.rotation,
-        overshootRotation,
-        SPIN_DURATION,
-        spinEase,
-        function (value) { setRotation(value); },
-        sliceAngle
-      );
-
-      state.phase = "landing";
-      await animateValue(
-        overshootRotation,
         finalRotation,
         SETTLE_DURATION,
         easeOutCubic,
-        function (value) { setRotation(value); }
+        function (value) { setRotation(value); },
+        sliceAngle
       );
     }
 
     state.phase = "landing";
+    document.body.classList.remove("is-spinning");
     setRotation(finalRotation);
     document.body.classList.add("has-winner");
     document.body.style.setProperty("--winner-glow", hexToRgba(colorFor(winner), 0.52));
@@ -759,8 +908,10 @@
     );
 
     renderWheel(snapshot, winner.id, 1);
+    clearRigging();
     state.phase = "result";
     document.body.classList.add("is-result");
+    dom.spinButton.setAttribute("aria-label", "Dismiss result");
     dom.resultAnnouncement.textContent = "Selected: " + winner.label + ". Click anywhere or press any key to return to setup.";
   }
 
@@ -771,11 +922,13 @@
     state.rotation = 0;
     state.spinSnapshot = null;
     state.winnerIndex = -1;
-    document.body.classList.remove("is-result", "has-winner");
+    state.spinMotion = null;
+    document.body.classList.remove("is-result", "has-winner", "is-spinning");
     document.body.style.removeProperty("--winner-glow");
     setCinematic(false);
     renderWheel(state.entries, null, 0);
     syncControls();
+    dom.spinButton.setAttribute("aria-label", "Spin the wheel");
     dom.resultAnnouncement.textContent = "";
     emitSoundEvent("exitResult", { entry: winner ? cloneEntries([winner], false)[0] : null });
     setStatus("Returned to setup. Your wheel is unchanged.");
@@ -784,37 +937,56 @@
 
   document.querySelectorAll("[data-tier]").forEach(function (button) {
     button.addEventListener("click", function () {
-      if (addEntry(button.dataset.label, button.dataset.tier)) {
-        commitChange(button.dataset.label + " added.");
+      if (addEntries(button.dataset.label, button.dataset.tier)) {
+        commitChange(state.quantity + " × " + button.dataset.label + " added.");
       }
     });
+  });
+
+  dom.sharedQuantity.addEventListener("input", function () {
+    var quantity = Number(dom.sharedQuantity.value);
+    if (Number.isInteger(quantity) && quantity >= 1 && quantity <= MAX_ENTRIES) {
+      state.quantity = quantity;
+      persistState();
+      syncControls();
+    }
+  });
+
+  dom.sharedQuantity.addEventListener("change", function () {
+    var quantity = Number(dom.sharedQuantity.value);
+    if (!Number.isInteger(quantity) || quantity < 1 || quantity > MAX_ENTRIES) {
+      state.quantity = 1;
+      setStatus("Quantity reset to 1. Use a whole number from 1 to " + MAX_ENTRIES + ".", "warning");
+      persistState();
+      syncControls();
+    }
   });
 
   dom.customForm.addEventListener("submit", function (event) {
     event.preventDefault();
     var label = cleanText(dom.customLabel.value, MAX_LABEL_LENGTH);
-    var quantity = Number(dom.customQuantity.value);
     if (!label) {
       setStatus("Enter a custom label first.", "warning");
       dom.customLabel.focus();
       return;
     }
-    if (!Number.isInteger(quantity) || quantity < 1 || quantity > MAX_ENTRIES) {
-      setStatus("Quantity must be a whole number from 1 to " + MAX_ENTRIES + ".", "warning");
-      dom.customQuantity.focus();
-      return;
-    }
-    if (state.entries.length + quantity > MAX_ENTRIES) {
-      setStatus("Only " + (MAX_ENTRIES - state.entries.length) + " wheel slots remain.", "warning");
-      dom.customQuantity.focus();
-      return;
-    }
-
-    for (var index = 0; index < quantity; index += 1) addEntry(label, null);
+    if (!addEntries(label, null)) return;
     dom.customLabel.value = "";
-    dom.customQuantity.value = "1";
-    commitChange(quantity + " " + (quantity === 1 ? "entry" : "entries") + " added.");
+    commitChange(state.quantity + " " + (state.quantity === 1 ? "entry" : "entries") + " added.");
     dom.customLabel.focus();
+  });
+
+  dom.riggedWinner.addEventListener("change", function () {
+    state.riggedTargetId = dom.riggedWinner.value || null;
+    if (!state.riggedTargetId) state.riggedEnabled = false;
+    renderSliceList();
+    syncControls();
+  });
+
+  dom.riggedToggle.addEventListener("change", function () {
+    state.riggedEnabled = dom.riggedToggle.checked && Boolean(state.riggedTargetId);
+    syncControls();
+    setStatus(state.riggedEnabled ? "Rigged target enabled for the next spin." : "Rigged mode disabled.");
   });
 
   dom.sliceList.addEventListener("keydown", function (event) {
@@ -850,6 +1022,7 @@
 
     if (action === "remove") {
       state.entries.splice(index, 1);
+      if (entry.id === state.riggedTargetId) clearRigging();
       commitChange(entry.label + " removed.");
       var next = state.entries[Math.min(index, state.entries.length - 1)];
       if (next) focusRowAction(next.id, "remove");
@@ -921,6 +1094,7 @@
       });
       if (!canLoad) return;
       state.entries = cloneEntries(preset.entries, false);
+      clearRigging();
       commitChange(preset.name + " loaded.");
       return;
     }
@@ -969,7 +1143,10 @@
     }
   });
 
-  dom.spinButton.addEventListener("click", startSpin);
+  dom.spinButton.addEventListener("click", function () {
+    if (state.phase === "spinning") boostSpin();
+    else startSpin();
+  });
   dom.confirmDialog.addEventListener("close", handleDialogClose);
 
   window.addEventListener("click", function (event) {
@@ -983,6 +1160,9 @@
   window.addEventListener("keydown", function (event) {
     var keyId = event.code || event.key;
     if (state.phase === "spinning" || state.phase === "landing") {
+      if (state.phase === "spinning" && event.target === dom.spinButton && !event.repeat && (event.key === " " || event.key === "Enter")) {
+        boostSpin();
+      }
       heldCinematicKeys.add(keyId);
       event.preventDefault();
       event.stopImmediatePropagation();
