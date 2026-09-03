@@ -3,8 +3,8 @@
 
   var SVG_NS = "http://www.w3.org/2000/svg";
   var STORAGE_KEY = "selection-wheel:v1";
-  var STORAGE_VERSION = 2;
-  var DEFAULT_SEED_VERSION = 1;
+  var STORAGE_VERSION = 5;
+  var DEFAULT_SEED_VERSION = 2;
   var MAX_ENTRIES = 60;
   var MAX_LABEL_LENGTH = 48;
   var BASE_COAST_DURATION = 4300;
@@ -19,14 +19,58 @@
     ur: { label: "UR", singular: "UR", plural: "UR", image: "UR_Craft_Asset.png", color: "#bd4fe2", precedence: 90 },
     gems: { label: "Gems", singular: "Gem", plural: "Gems", image: "Master_Duel_Gem.png", color: "#766cff", precedence: 85 },
     packs: { label: "Secret Packs", singular: "Secret Pack", plural: "Secret Packs", shortSingular: "Pack", shortPlural: "Packs", image: "The_Masters_Saga-Pack-Master_Duel.png", color: "#dfa735", precedence: 80, crop: "pack" },
-    bans: { label: "Bans", singular: "Ban", plural: "Bans", image: "pot-of-greed-2.avif", color: "#4fc27a", precedence: 70, crop: "pot" },
+    bans: { label: "Bans", singular: "Ban", plural: "Bans", image: "pot-of-greed-2.avif", color: "#dd453e", precedence: 70, crop: "pot" },
     sr: { label: "SR", singular: "SR", plural: "SR", image: "SR_Craft_asset.png", color: "#e6bc3f", precedence: 60 },
     r: { label: "R", singular: "R", plural: "R", image: "R_Craft_asset.png", color: "#31bde8", precedence: 50 },
     n: { label: "N", singular: "N", plural: "N", image: "N_Craft_asset.png", color: "#aeb8c5", precedence: 40 },
     nr: { label: "N/R", singular: "N/R", plural: "N/R", image: "N_R_Craft_asset.png", color: "#6da8c4", precedence: 30 },
     custom: { label: "Custom text", singular: "", plural: "", image: null, color: "#a5afc0", precedence: 0 }
   };
-  var CUSTOM_COLORS = ["#235fac", "#7440b5", "#0a8e87", "#b44770", "#4e68c4", "#9a5a2d"];
+  // Reward-tier color families: background comes from an entry's highest-tier reward,
+  // text from its next-highest. Packs and N/R are nudged off SR-gold and R-blue so two
+  // different reward types never read as the same slice color.
+  var COLOR_FAMILIES = {
+    ur: "#bd4fe2",
+    gems: "#766cff",
+    packs: "#d9781f",
+    bans: "#dd453e",
+    sr: "#e6bc3f",
+    r: "#31bde8",
+    n: "#aeb8c5",
+    nr: "#7a95a3",
+    custom: "#a5afc0"
+  };
+  var TEXT_ACCENTS = {
+    ur: "#e9a6ff",
+    gems: "#b3aeff",
+    packs: "#ffb15c",
+    bans: "#ff8f86",
+    sr: "#ffe27a",
+    r: "#7fe0ff",
+    n: "#d7dee8",
+    nr: "#a9c3cc",
+    custom: "#d8d2c9"
+  };
+  var SHADE_RAMP = [
+    { toward: "#000000", amount: .42 }, // deep
+    { toward: "#000000", amount: .15 }, // medium
+    { toward: "#ffffff", amount: .22 }, // light
+    { toward: "#6b7280", amount: .45 }  // muted
+  ];
+  var GENERIC_ICON_KEYS = ["condemned", "eldlich", "genex"];
+  var PRESET_THEMES = {
+    winner: { image: "Winner_Icon.png", primary: "#f3c758", secondary: "#d87538", deep: "#422716" },
+    oneOne: { image: "1-1 icon.png", primary: "#72dfff", secondary: "#5587c8", deep: "#132d43" },
+    farfa: { image: "Farfa_Icon.jpg", primary: "#bc54e6", secondary: "#e29a48", deep: "#3a174f" },
+    condemned: { image: "Condemned_Darklord-Icon-Master_Duel.png", primary: "#ee729a", secondary: "#b8324d", deep: "#3b1728" },
+    eldlich: { image: "Eldlich_the_Golden_Lord-Icon-Master_Duel.png", primary: "#edbd43", secondary: "#7442a8", deep: "#34230f" },
+    genex: { image: "Genex_Controller-Icon-Master_Duel.png", primary: "#64c996", secondary: "#66527e", deep: "#17201e" }
+  };
+  var BUILTIN_PRESETS = {
+    winner: { rank: 0, name: "Winner's Wheel", iconKey: "winner" },
+    oneOne: { rank: 1, name: "1-1 Wheel", iconKey: "oneOne" },
+    farfa: { rank: 2, name: "Farfa Wheel", iconKey: "farfa" }
+  };
 
   var dom = {
     rotor: document.getElementById("wheel-rotor"),
@@ -72,7 +116,15 @@
     composerPreview: document.getElementById("composer-preview"),
     composerValidation: document.getElementById("composer-validation"),
     composerReset: document.getElementById("composer-reset"),
-    composerSubmit: document.getElementById("composer-submit")
+    composerSubmit: document.getElementById("composer-submit"),
+    composerSimple: document.getElementById("composer-simple"),
+    composerSimpleCustom: document.getElementById("composer-simple-custom"),
+    composerSimpleCustomAdd: document.getElementById("composer-simple-custom-add"),
+    composerSimpleNote: document.getElementById("composer-simple-note"),
+    simpleExpression: document.getElementById("simple-expression"),
+    composerAdvanced: document.getElementById("composer-advanced"),
+    wheelIdentityIcon: document.getElementById("wheel-identity-icon"),
+    wheelIdentityName: document.getElementById("wheel-identity-name")
   };
 
   var soundEvents = new EventTarget();
@@ -91,7 +143,9 @@
     spinMotion: null,
     storageEnabled: storageIsAvailable(),
     composer: { always: [], options: [] },
-    editingEntryId: null
+    simpleComposer: { tokens: [], relations: [null, null] },
+    editingEntryId: null,
+    draftIdentity: { presetId: null, name: "Custom Wheel", iconKey: "genex" }
   };
 
   var pendingConfirmation = null;
@@ -171,17 +225,59 @@
       if (seenIds.has(id)) id = createId("entry");
       seenIds.add(id);
 
-      if (reward) entries.push({ id: id, kind: "structured", reward: reward });
-      else entries.push({ id: id, kind: "custom", label: label, presetKind: typeof rawEntry.presetKind === "string" ? rawEntry.presetKind : null });
+      var colorFamily = typeof rawEntry.colorFamily === "string" && COLOR_FAMILIES[rawEntry.colorFamily] ? rawEntry.colorFamily : null;
+      var colorShade = Number(rawEntry.colorShade);
+      var visualSignature = typeof rawEntry.visualSignature === "string" ? rawEntry.visualSignature : null;
+      var entry = reward
+        ? { id: id, kind: "structured", reward: reward }
+        : { id: id, kind: "custom", label: label, presetKind: typeof rawEntry.presetKind === "string" ? rawEntry.presetKind : null };
+      if (colorFamily) entry.colorFamily = colorFamily;
+      if (Number.isInteger(colorShade) && colorShade >= 0 && colorShade < 240) entry.colorShade = colorShade;
+      if (visualSignature) entry.visualSignature = visualSignature;
+      entries.push(entry);
     });
 
     return entries;
+  }
+
+  function validIconKey(value) {
+    return typeof value === "string" && Boolean(PRESET_THEMES[value]) ? value : null;
+  }
+
+  function builtinKeyForName(name) {
+    var normalized = normalizeName(name);
+    return Object.keys(BUILTIN_PRESETS).find(function (key) {
+      return normalizeName(BUILTIN_PRESETS[key].name) === normalized;
+    }) || null;
+  }
+
+  function genericIconForId(id) {
+    return GENERIC_ICON_KEYS[hashString(id || "custom") % GENERIC_ICON_KEYS.length];
+  }
+
+  function presetIconKey(preset) {
+    if (preset && preset.builtinKey && BUILTIN_PRESETS[preset.builtinKey]) return BUILTIN_PRESETS[preset.builtinKey].iconKey;
+    return validIconKey(preset && preset.iconKey) || genericIconForId(preset && preset.id);
+  }
+
+  function sanitizeDraftIdentity(raw, presets) {
+    var presetId = raw && typeof raw.presetId === "string" ? raw.presetId : null;
+    var matchingPreset = presetId && presets.find(function (preset) { return preset.id === presetId; });
+    if (matchingPreset) {
+      return { presetId: matchingPreset.id, name: matchingPreset.name, iconKey: presetIconKey(matchingPreset) };
+    }
+    return {
+      presetId: null,
+      name: cleanText(raw && raw.name, MAX_LABEL_LENGTH) || "Custom Wheel",
+      iconKey: validIconKey(raw && raw.iconKey) || "genex"
+    };
   }
 
   function hydrateState() {
     if (!state.storageEnabled) {
       initialNotice = "Browser storage is unavailable. Changes will last for this session only.";
       seedDefaultPresets(0);
+      ensureAllVisualAssignments();
       return;
     }
 
@@ -189,11 +285,12 @@
       var raw = window.localStorage.getItem(STORAGE_KEY);
       if (!raw) {
         seedDefaultPresets(0);
+        ensureAllVisualAssignments();
         persistState();
         return;
       }
       var envelope = JSON.parse(raw);
-      if (!envelope || (envelope.version !== 1 && envelope.version !== STORAGE_VERSION)) {
+      if (!envelope || [1, 2, 3, 4, STORAGE_VERSION].indexOf(envelope.version) < 0) {
         seedDefaultPresets(0);
         initialNotice = "Saved wheel data could not be restored. A blank wheel was opened safely.";
         return;
@@ -217,21 +314,29 @@
           var presetId = typeof rawPreset.id === "string" && rawPreset.id ? rawPreset.id : createId("preset");
           if (usedPresetIds.has(presetId)) presetId = createId("preset");
           usedPresetIds.add(presetId);
+          var builtinKey = typeof rawPreset.builtinKey === "string" && BUILTIN_PRESETS[rawPreset.builtinKey]
+            ? rawPreset.builtinKey
+            : builtinKeyForName(name);
           presets.push({
             id: presetId,
             name: name,
             entries: sanitizeEntries(rawPreset.entries),
-            updatedAt: typeof rawPreset.updatedAt === "number" ? rawPreset.updatedAt : Date.now()
+            updatedAt: typeof rawPreset.updatedAt === "number" ? rawPreset.updatedAt : Date.now(),
+            builtinKey: builtinKey,
+            iconKey: builtinKey ? BUILTIN_PRESETS[builtinKey].iconKey : (validIconKey(rawPreset.iconKey) || genericIconForId(presetId))
           });
           return presets;
         }, []);
       }
       seedDefaultPresets(Number(envelope.defaultSeedVersion) || 0);
+      state.draftIdentity = sanitizeDraftIdentity(envelope.draft && envelope.draft.identity, state.presets);
+      ensureAllVisualAssignments();
       persistState();
     } catch (error) {
       state.entries = [];
       state.presets = [];
       seedDefaultPresets(0);
+      ensureAllVisualAssignments();
       initialNotice = "Saved wheel data was unreadable. A blank wheel was opened safely.";
     }
   }
@@ -244,14 +349,17 @@
       defaultSeedVersion: DEFAULT_SEED_VERSION,
       draft: {
         entries: cloneEntries(state.entries, false),
-        quantity: state.quantity
+        quantity: state.quantity,
+        identity: deepClone(state.draftIdentity)
       },
       presets: state.presets.map(function (preset) {
         return {
           id: preset.id,
           name: preset.name,
           entries: cloneEntries(preset.entries, false),
-          updatedAt: preset.updatedAt
+          updatedAt: preset.updatedAt,
+          builtinKey: preset.builtinKey || null,
+          iconKey: presetIconKey(preset)
         };
       })
     };
@@ -332,6 +440,37 @@
     return sortedComponents(components);
   }
 
+  // Full display sequence for a reward: every always-component and every OR branch,
+  // in original order, with "and"/"or" separators marking how they combine. Used
+  // wherever the wheel must show the complete recipe instead of just the best outcome.
+  function entryDisplayTokens(reward) {
+    var tokens = [];
+    var always = sortedComponents(reward.always || []);
+    var options = (reward.options || []).map(sortedComponents);
+    always.forEach(function (item, index) {
+      if (index) tokens.push({ kind: "and" });
+      tokens.push({ kind: "item", item: item });
+    });
+    options.forEach(function (branch, branchIndex) {
+      if (branchIndex === 0) {
+        if (always.length) tokens.push({ kind: "and" });
+      } else {
+        tokens.push({ kind: "or" });
+      }
+      branch.forEach(function (item, itemIndex) {
+        if (itemIndex) tokens.push({ kind: "and" });
+        tokens.push({ kind: "item", item: item });
+      });
+    });
+    return tokens;
+  }
+
+  function entryDisplayItemCount(reward) {
+    var count = (reward.always || []).length;
+    (reward.options || []).forEach(function (branch) { count += branch.length; });
+    return count;
+  }
+
   function presetEntry(always, options) {
     return structuredEntry(always, options);
   }
@@ -341,9 +480,9 @@
     var urSrNr = function (ur, sr, nr) { return presetEntry([], [[component("ur", ur)], [component("sr", sr)], [component("nr", nr)]]); };
     var farfaPack = function () { return presetEntry([component("packs", 5)], [[component("sr", 1)], [component("nr", 3)]]); };
     return [
-      { name: "1-1 Wheel", entries: [srNr(1, 2), srNr(1, 3), srNr(2, 4), srNr(1, 2), srNr(1, 3), srNr(2, 4)] },
-      { name: "Winner's Wheel", entries: [srNr(1, 3), urSrNr(1, 1, 3), srNr(1, 3), srNr(2, 3), srNr(1, 3), urSrNr(1, 1, 3)] },
-      { name: "Farfa Wheel", entries: [
+      { builtinKey: "winner", name: "Winner's Wheel", entries: [srNr(1, 3), urSrNr(1, 1, 3), srNr(1, 3), srNr(2, 3), srNr(1, 3), urSrNr(1, 1, 3)] },
+      { builtinKey: "oneOne", name: "1-1 Wheel", entries: [srNr(1, 2), srNr(1, 3), srNr(2, 4), srNr(1, 2), srNr(1, 3), srNr(2, 4)] },
+      { builtinKey: "farfa", name: "Farfa Wheel", entries: [
         farfaPack(),
         presetEntry([component("bans", 2)], []),
         srNr(3, 3),
@@ -357,10 +496,21 @@
   function seedDefaultPresets(previousVersion) {
     if (previousVersion >= DEFAULT_SEED_VERSION) return;
     defaultPresets().forEach(function (approved) {
-      var existing = findPresetByName(approved.name);
-      var seeded = { id: existing ? existing.id : createId("preset"), name: approved.name, entries: approved.entries, updatedAt: Date.now() };
-      if (existing) state.presets[state.presets.indexOf(existing)] = seeded;
-      else state.presets.push(seeded);
+      var existing = state.presets.find(function (preset) { return preset.builtinKey === approved.builtinKey; }) || findPresetByName(approved.name);
+      if (existing) {
+        // Add stable identity metadata without replacing a user's edited built-in contents or name.
+        existing.builtinKey = approved.builtinKey;
+        existing.iconKey = BUILTIN_PRESETS[approved.builtinKey].iconKey;
+      } else {
+        state.presets.push({
+          id: createId("preset"),
+          name: approved.name,
+          entries: approved.entries,
+          updatedAt: Date.now(),
+          builtinKey: approved.builtinKey,
+          iconKey: BUILTIN_PRESETS[approved.builtinKey].iconKey
+        });
+      }
     });
   }
 
@@ -434,12 +584,157 @@
     return Math.abs(hash);
   }
 
-  function colorFor(entry) {
-    if (entry.kind === "structured") {
-      var primary = primaryComponents(entry.reward);
-      if (primary.length && REWARDS[primary[0].type]) return REWARDS[primary[0].type].color;
+  function componentSignature(item) {
+    return item.type + ":" + item.amount + (item.type === "custom" ? ":" + normalizeName(cleanText(item.text, MAX_LABEL_LENGTH)) : "");
+  }
+
+  function branchSignature(branch) {
+    return branch.map(componentSignature).sort().join("+");
+  }
+
+  function entrySignature(entry) {
+    if (entry.kind !== "structured") return "custom|" + normalizeName(cleanText(entry.label, MAX_LABEL_LENGTH));
+    var always = (entry.reward.always || []).map(componentSignature).sort().join("+");
+    var options = (entry.reward.options || []).map(branchSignature).sort().join("|");
+    return "structured|always:" + always + "|options:" + options;
+  }
+
+  function mixHex(first, second, amount) {
+    var left = parseInt(first.slice(1), 16);
+    var right = parseInt(second.slice(1), 16);
+    var channels = [16, 8, 0].map(function (shift) {
+      var value = Math.round(((left >> shift) & 255) * (1 - amount) + ((right >> shift) & 255) * amount);
+      return value.toString(16).padStart(2, "0");
+    });
+    return "#" + channels.join("");
+  }
+
+  function componentVisualColors(item) {
+    if (item.type === "nr") {
+      return [
+        { color: COLOR_FAMILIES.r, weight: 1 },
+        { color: COLOR_FAMILIES.n, weight: 1 }
+      ];
     }
-    return CUSTOM_COLORS[hashString(entry.id) % CUSTOM_COLORS.length];
+    return [{ color: COLOR_FAMILIES[item.type] || COLOR_FAMILIES.custom, weight: 1 }];
+  }
+
+  // The distinct reward types an entry displays, in the same highest-to-lowest precedence
+  // order as its icons (always + the best-precedence option branch), deduplicated.
+  function entryTopTypes(entry) {
+    if (entry.kind !== "structured") return [];
+    var seen = [];
+    primaryComponents(entry.reward).forEach(function (item) {
+      if (seen.indexOf(item.type) < 0) seen.push(item.type);
+    });
+    return seen;
+  }
+
+  function entryColorFamily(entry) {
+    var types = entryTopTypes(entry);
+    return types.length && COLOR_FAMILIES[types[0]] ? types[0] : "custom";
+  }
+
+  function entryTextFamily(entry) {
+    var types = entryTopTypes(entry);
+    return types.length > 1 && COLOR_FAMILIES[types[1]] ? types[1] : null;
+  }
+
+  function familyShadeColor(anchor, index) {
+    var cycle = ((index % SHADE_RAMP.length) + SHADE_RAMP.length) % SHADE_RAMP.length;
+    var lap = Math.floor(index / SHADE_RAMP.length);
+    var step = SHADE_RAMP[cycle];
+    var color = mixHex(anchor, step.toward, step.amount);
+    if (lap > 0) {
+      // Rare case: more unique recipes share a family than the ramp has steps.
+      // Nudge further along the same axis each extra lap so they stay distinguishable.
+      var counter = step.toward === "#ffffff" ? "#000000" : "#ffffff";
+      color = mixHex(color, counter, Math.min(.35, .09 * lap));
+    }
+    return color;
+  }
+
+  function ensureVisualAssignments(entries) {
+    var groups = [];
+    var bySignature = new Map();
+    entries.forEach(function (entry) {
+      var signature = entrySignature(entry);
+      if (!bySignature.has(signature)) {
+        var group = { signature: signature, family: entryColorFamily(entry), entries: [] };
+        bySignature.set(signature, group);
+        groups.push(group);
+      }
+      bySignature.get(signature).entries.push(entry);
+    });
+
+    var usedShadesByFamily = new Map();
+    groups.forEach(function (group) {
+      var used = usedShadesByFamily.get(group.family);
+      if (!used) {
+        used = new Set();
+        usedShadesByFamily.set(group.family, used);
+      }
+      var retained = group.entries.find(function (entry) {
+        return entry.visualSignature === group.signature && entry.colorFamily === group.family
+          && Number.isInteger(entry.colorShade) && entry.colorShade >= 0 && !used.has(entry.colorShade);
+      });
+      var shade = retained ? retained.colorShade : -1;
+      if (shade < 0) {
+        for (var candidate = 0; candidate < 240; candidate += 1) {
+          if (!used.has(candidate)) {
+            shade = candidate;
+            break;
+          }
+        }
+      }
+      if (shade < 0) shade = hashString(group.signature) % 240;
+      used.add(shade);
+      group.entries.forEach(function (entry) {
+        entry.colorFamily = group.family;
+        entry.colorShade = shade;
+        entry.visualSignature = group.signature;
+      });
+    });
+  }
+
+  function ensureAllVisualAssignments() {
+    var allEntries = state.entries.slice();
+    state.presets.forEach(function (preset) { allEntries = allEntries.concat(preset.entries); });
+    // One shared pass keeps identical content visually identical across the draft and every saved wheel.
+    ensureVisualAssignments(allEntries);
+  }
+
+  function entryVisual(entry) {
+    var signature = entrySignature(entry);
+    var retained = entry.visualSignature === signature && COLOR_FAMILIES[entry.colorFamily]
+      && Number.isInteger(entry.colorShade) && entry.colorShade >= 0;
+    var family = retained ? entry.colorFamily : entryColorFamily(entry);
+    var shade = retained ? entry.colorShade : hashString(signature) % SHADE_RAMP.length;
+    var anchor = COLOR_FAMILIES[family] || COLOR_FAMILIES.custom;
+    var base = familyShadeColor(anchor, shade);
+    var textFamily = entryTextFamily(entry);
+    var textColor = textFamily ? (TEXT_ACCENTS[textFamily] || "#ffffff") : "#ffffff";
+    var baseStops = [
+      { offset: 0, color: mixHex(base, "#ffffff", .06) },
+      { offset: 58, color: base },
+      { offset: 100, color: mixHex(base, "#000000", .12) }
+    ];
+    var baseCss = baseStops.map(function (stop) { return stop.color + " " + stop.offset + "%"; }).join(", ");
+    return {
+      signature: signature,
+      family: family,
+      shade: shade,
+      base: base,
+      textColor: textColor,
+      angle: 135,
+      stops: baseStops,
+      css: "linear-gradient(135deg, " + baseCss + ")",
+      accent: base
+    };
+  }
+
+  function colorFor(entry) {
+    return entryVisual(entry).base;
   }
 
   function normalizeAngle(angle) {
@@ -459,7 +754,7 @@
     return 8.5;
   }
 
-  function appendSvgShorthand(group, entry, position, rotation, count, expansion) {
+  function appendSvgShorthand(group, entry, position, rotation, count, expansion, sliceAngle, labelRadius) {
     if (entry.kind !== "structured") {
       var legacy = svgElement("text", {
         class: "wheel-slice__label", x: "0", y: "0",
@@ -473,45 +768,81 @@
       return;
     }
 
-    var items = primaryComponents(entry.reward);
-    var iconSize = count <= 8 ? 38 : count <= 18 ? 30 : count <= 36 ? 23 : 18;
-    var fontSize = count <= 8 ? 17 : count <= 18 ? 14 : count <= 36 ? 11 : 9;
-    if (items.length === 3) {
-      iconSize *= 0.78;
-      fontSize *= 0.82;
+    var tokens = entryDisplayTokens(entry.reward);
+    var itemCount = tokens.filter(function (token) { return token.kind === "item"; }).length;
+    var scale = itemCount <= 2 ? 1 : itemCount === 3 ? 0.95 : itemCount === 4 ? 0.8 : itemCount === 5 ? 0.68 : 0.58;
+    var iconSize = (count <= 8 ? 38 : count <= 18 ? 30 : count <= 36 ? 23 : 18) * scale;
+    var fontSize = (count <= 8 ? 17 : count <= 18 ? 14 : count <= 36 ? 11 : 9) * scale;
+
+    function tokenWidths(iconSize, fontSize) {
+      return { pair: iconSize + fontSize * 1.5, iconOnly: iconSize * 1.15, and: fontSize * 1.25, or: fontSize * 1.7 };
     }
-    var pairWidth = iconSize + fontSize * 1.8;
-    var plusWidth = items.length > 1 ? fontSize * 1.45 : 0;
-    var totalWidth = items.length * pairWidth + (items.length - 1) * plusWidth;
+    // A quantity-1 icon has no amount digit next to it, so it only needs its own width, not the full pair width.
+    function tokenWidth(token, w) {
+      if (token.kind === "and") return w.and;
+      if (token.kind === "or") return w.or;
+      return (token.item.amount === 1 && token.item.type !== "custom") ? w.iconOnly : w.pair;
+    }
+
+    var w = tokenWidths(iconSize, fontSize);
+    var totalWidth = tokens.reduce(function (sum, token) { return sum + tokenWidth(token, w); }, 0);
+
+    // Clamp the whole shorthand to the wedge's actual chord width at its label radius so it
+    // never bleeds into neighboring slices or past the rim, however many OR alternatives it lists.
+    if (sliceAngle && labelRadius) {
+      var wedgeChord = 2 * labelRadius * Math.sin((sliceAngle / 2) * Math.PI / 180) * 0.92;
+      if (totalWidth > wedgeChord) {
+        var fitScale = Math.max(0.45, wedgeChord / totalWidth);
+        iconSize *= fitScale;
+        fontSize *= fitScale;
+        w = tokenWidths(iconSize, fontSize);
+        totalWidth = tokens.reduce(function (sum, token) { return sum + tokenWidth(token, w); }, 0);
+      }
+    }
+
     var shorthand = svgElement("g", {
-      class: "wheel-slice__shorthand wheel-slice__shorthand--" + items.length,
+      class: "wheel-slice__shorthand wheel-slice__shorthand--" + itemCount,
       transform: "translate(" + position.x + " " + position.y + ") rotate(" + rotation + ") translate(" + (-totalWidth / 2) + " 0)"
     });
     var cursor = 0;
-    items.forEach(function (item, index) {
-      if (index) {
-        var plus = svgElement("text", { class: "wheel-slice__plus", x: String(cursor + plusWidth / 2), y: "1", "font-size": String(fontSize), "text-anchor": "middle", "dominant-baseline": "middle" });
+    tokens.forEach(function (token) {
+      var width = tokenWidth(token, w);
+      if (token.kind === "and") {
+        var plus = svgElement("text", { class: "wheel-slice__plus", x: String(cursor + width / 2), y: "1", "font-size": String(fontSize), "text-anchor": "middle", "dominant-baseline": "middle" });
         plus.textContent = "+";
         shorthand.appendChild(plus);
-        cursor += plusWidth;
+        cursor += width;
+        return;
       }
-      var amount = svgElement("text", { class: "wheel-slice__amount", x: String(cursor + fontSize * 0.72), y: "1", "font-size": String(fontSize), "text-anchor": "middle", "dominant-baseline": "middle" });
-      amount.textContent = String(item.amount);
-      shorthand.appendChild(amount);
+      if (token.kind === "or") {
+        var or = svgElement("text", { class: "wheel-slice__or", x: String(cursor + width / 2), y: "1", "font-size": String(fontSize * 0.72), "text-anchor": "middle", "dominant-baseline": "middle" });
+        or.textContent = "OR";
+        shorthand.appendChild(or);
+        cursor += width;
+        return;
+      }
+      var item = token.item;
+      var showAmount = item.amount !== 1;
+      if (showAmount) {
+        var amount = svgElement("text", { class: "wheel-slice__amount", x: String(cursor + fontSize * 0.62), y: "1", "font-size": String(fontSize), "text-anchor": "middle", "dominant-baseline": "middle" });
+        amount.textContent = String(item.amount);
+        shorthand.appendChild(amount);
+      }
       if (item.type === "custom") {
-        var custom = svgElement("text", { class: "wheel-slice__custom", x: String(cursor + fontSize * 1.6), y: "1", "font-size": String(fontSize * 0.76), "dominant-baseline": "middle" });
+        var custom = svgElement("text", { class: "wheel-slice__custom", x: String(cursor + (showAmount ? fontSize * 1.35 : fontSize * 0.3)), y: "1", "font-size": String(fontSize * 0.76), "dominant-baseline": "middle" });
         custom.textContent = abbreviatedLabel(item.text, count);
         shorthand.appendChild(custom);
       } else {
         var definition = REWARDS[item.type];
+        var iconX = showAmount ? cursor + fontSize * 1.2 : cursor + (width - iconSize) / 2;
         shorthand.appendChild(svgElement("image", {
           class: "wheel-slice__icon wheel-slice__icon--" + (definition.crop || item.type),
           href: definition.image,
-          x: String(cursor + fontSize * 1.45), y: String(-iconSize / 2), width: String(iconSize), height: String(iconSize),
+          x: String(iconX), y: String(-iconSize / 2), width: String(iconSize), height: String(iconSize),
           preserveAspectRatio: "xMidYMid slice"
         }));
       }
-      cursor += pairWidth;
+      cursor += width;
     });
     group.appendChild(shorthand);
   }
@@ -528,8 +859,24 @@
       return;
     }
 
+    var gradientDefinitions = svgElement("defs");
+    dom.rotor.appendChild(gradientDefinitions);
     var sliceAngle = 360 / count;
     entries.forEach(function (entry, index) {
+      var visual = entryVisual(entry);
+      var gradientId = "entry-gradient-" + index;
+      var gradient = svgElement("linearGradient", {
+        id: gradientId,
+        x1: "0%",
+        y1: "0%",
+        x2: "100%",
+        y2: "100%",
+        gradientTransform: "rotate(" + visual.angle + " .5 .5)"
+      });
+      visual.stops.forEach(function (stop) {
+        gradient.appendChild(svgElement("stop", { offset: stop.offset + "%", "stop-color": stop.color }));
+      });
+      gradientDefinitions.appendChild(gradient);
       var isWinner = entry.id === winnerId;
       var winnerExpansion = isWinner ? expansion || 0 : 0;
       var radius = 276 + 24 * winnerExpansion;
@@ -545,6 +892,7 @@
         role: "listitem",
         "aria-label": entryLabel(entry)
       });
+      group.style.setProperty("--slice-text", visual.textColor);
       var title = svgElement("title");
       title.textContent = entryLabel(entry);
       group.appendChild(title);
@@ -555,25 +903,26 @@
           cx: "300",
           cy: "300",
           r: String(radius),
-          fill: colorFor(entry)
+          fill: "url(#" + gradientId + ")"
         }));
       } else {
         group.appendChild(svgElement("path", {
           class: "wheel-slice__shape",
           d: wedgePath(startAngle, endAngle, radius),
-          fill: colorFor(entry)
+          fill: "url(#" + gradientId + ")"
         }));
       }
 
-      var primaryCount = entry.kind === "structured" ? primaryComponents(entry.reward).length : 0;
-      var baseLabelRadius = primaryCount >= 3 ? 170 : primaryCount === 2 ? 180 : primaryCount === 1 ? 220 : 238;
+      var displayItemCount = entry.kind === "structured" ? entryDisplayItemCount(entry.reward) : 0;
+      var baseLabelRadius = displayItemCount >= 5 ? 150 : displayItemCount === 4 ? 160 : displayItemCount === 3 ? 170
+        : displayItemCount === 2 ? 180 : displayItemCount === 1 ? 220 : 238;
       var labelRadius = baseLabelRadius + 8 * winnerExpansion;
       var position = polar(labelRadius, centerAngle);
       var rotation = centerAngle;
       if (normalizeAngle(centerAngle) > 90 && normalizeAngle(centerAngle) < 270) {
         rotation += 180;
       }
-      appendSvgShorthand(group, entry, position, rotation, count, winnerExpansion);
+      appendSvgShorthand(group, entry, position, rotation, count, winnerExpansion, sliceAngle, labelRadius);
       dom.rotor.appendChild(group);
     });
 
@@ -638,9 +987,12 @@
 
     var fragment = document.createDocumentFragment();
     state.entries.forEach(function (entry, index) {
+      var visual = entryVisual(entry);
       var row = document.createElement("li");
       row.className = "slice-row";
       row.dataset.entryId = entry.id;
+      row.style.setProperty("--entry-gradient", visual.css);
+      row.style.setProperty("--entry-trim", visual.textColor);
       if (entry.id === state.riggedTargetId) row.classList.add("is-rigged-target");
 
       var number = document.createElement("span");
@@ -650,10 +1002,12 @@
       var identity = document.createElement("div");
       identity.className = "slice-label-wrap";
       if (entry.kind === "structured") {
-        var description = document.createElement("span");
-        description.className = "slice-structured-label";
-        description.textContent = entryLabel(entry);
-        identity.appendChild(description);
+        var structuredVisual = document.createElement("span");
+        structuredVisual.className = "slice-structured-visual";
+        appendCompactReward(structuredVisual, entry.reward);
+        structuredVisual.setAttribute("aria-label", entryLabel(entry));
+        structuredVisual.title = entryLabel(entry);
+        identity.appendChild(structuredVisual);
       } else {
         var input = document.createElement("input");
         input.className = "slice-label-input";
@@ -699,6 +1053,51 @@
     return button;
   }
 
+  function appendCompactReward(container, reward) {
+    var always = sortedComponents(reward.always || []);
+    var options = (reward.options || []).map(sortedComponents);
+    appendHtmlBranch(container, always, "compact");
+    if (always.length && options.length) {
+      var and = document.createElement("span");
+      and.className = "reward-plus";
+      and.textContent = "+";
+      container.appendChild(and);
+    }
+    options.forEach(function (branch, index) {
+      if (index) {
+        var or = document.createElement("span");
+        or.className = "reward-or";
+        or.textContent = "OR";
+        container.appendChild(or);
+      }
+      appendHtmlBranch(container, branch, "compact");
+    });
+  }
+
+  function renderWheelIdentity() {
+    var theme = PRESET_THEMES[validIconKey(state.draftIdentity.iconKey) || "genex"];
+    dom.wheelIdentityName.textContent = state.draftIdentity.name || "Custom Wheel";
+    dom.wheelIdentityIcon.src = theme.image;
+    dom.wheelIdentityIcon.alt = "";
+    document.body.style.setProperty("--preset-primary", theme.primary);
+    document.body.style.setProperty("--preset-secondary", theme.secondary);
+    document.body.style.setProperty("--preset-deep", theme.deep);
+  }
+
+  function presetDisplayOrder() {
+    return state.presets.map(function (preset, index) { return { preset: preset, index: index }; })
+      .sort(function (left, right) {
+        var leftRank = left.preset.builtinKey && BUILTIN_PRESETS[left.preset.builtinKey]
+          ? BUILTIN_PRESETS[left.preset.builtinKey].rank
+          : 1000 + left.index;
+        var rightRank = right.preset.builtinKey && BUILTIN_PRESETS[right.preset.builtinKey]
+          ? BUILTIN_PRESETS[right.preset.builtinKey].rank
+          : 1000 + right.index;
+        return leftRank - rightRank;
+      })
+      .map(function (item) { return item.preset; });
+  }
+
   function renderPresetList() {
     dom.presetList.replaceChildren();
     if (!state.presets.length) {
@@ -710,13 +1109,20 @@
     }
 
     var fragment = document.createDocumentFragment();
-    state.presets.forEach(function (preset) {
+    presetDisplayOrder().forEach(function (preset) {
+      var theme = PRESET_THEMES[presetIconKey(preset)];
       var row = document.createElement("li");
       row.className = "preset-row";
       row.dataset.presetId = preset.id;
+      row.style.setProperty("--preset-card-primary", theme.primary);
+      row.style.setProperty("--preset-card-secondary", theme.secondary);
 
       var top = document.createElement("div");
       top.className = "preset-row__top";
+      var icon = document.createElement("img");
+      icon.className = "preset-row__icon";
+      icon.src = theme.image;
+      icon.alt = "";
       var input = document.createElement("input");
       input.className = "preset-name-input";
       input.type = "text";
@@ -727,17 +1133,46 @@
       var count = document.createElement("span");
       count.className = "preset-row__count";
       count.textContent = preset.entries.length + (preset.entries.length === 1 ? " entry" : " entries");
-      top.append(input, count);
+      top.append(icon, input, count);
 
       var actions = document.createElement("div");
       actions.className = "preset-row__actions";
+      var deleteButton = presetActionButton("Delete", "delete", preset.name, "small-button--delete");
+      if (preset.builtinKey) {
+        deleteButton.disabled = true;
+        deleteButton.title = "Pinned wheels cannot be deleted";
+      }
       actions.append(
         presetActionButton("Load", "load", preset.name),
         presetActionButton("Rename", "rename", preset.name),
         presetActionButton("Duplicate", "duplicate", preset.name),
-        presetActionButton("Delete", "delete", preset.name, "small-button--delete")
+        deleteButton
       );
-      row.append(top, actions);
+      row.append(top);
+      if (preset.builtinKey) {
+        var pin = document.createElement("span");
+        pin.className = "preset-row__pin";
+        pin.textContent = "Pinned";
+        row.appendChild(pin);
+      } else {
+        var iconOptions = document.createElement("div");
+        iconOptions.className = "preset-row__icon-options";
+        GENERIC_ICON_KEYS.forEach(function (iconKey) {
+          var choice = document.createElement("button");
+          choice.type = "button";
+          choice.className = "preset-row__icon-choice" + (presetIconKey(preset) === iconKey ? " is-selected" : "");
+          choice.dataset.action = "icon";
+          choice.dataset.iconKey = iconKey;
+          choice.setAttribute("aria-label", "Use " + iconKey + " icon for " + preset.name);
+          var choiceImage = document.createElement("img");
+          choiceImage.src = PRESET_THEMES[iconKey].image;
+          choiceImage.alt = "";
+          choice.appendChild(choiceImage);
+          iconOptions.appendChild(choice);
+        });
+        row.appendChild(iconOptions);
+      }
+      row.appendChild(actions);
       fragment.appendChild(row);
     });
     dom.presetList.appendChild(fragment);
@@ -759,10 +1194,156 @@
       button.querySelector("span").textContent = quantity + " " + name;
       button.setAttribute("aria-label", "Add one " + quantity + " " + name + " wheel entry");
     });
+    document.querySelectorAll("[data-composer-reward]").forEach(function (button) {
+      var definition = REWARDS[button.dataset.composerReward];
+      var name = quantity === 1 ? (definition.shortSingular || definition.singular) : (definition.shortPlural || definition.plural);
+      button.querySelector("span").textContent = quantity + " " + name;
+      button.setAttribute("aria-label", "Use " + quantity + " " + name + " in the combined entry");
+    });
     var customAddButton = dom.customForm.querySelector("button[type='submit']");
     customAddButton.disabled = atLimit;
     dom.composerSubmit.disabled = atLimit && !state.editingEntryId;
     renderRiggedControls();
+  }
+
+  function blankSimpleComposer() {
+    return { tokens: [], relations: [null, null] };
+  }
+
+  function rewardToSimple(reward) {
+    var always = deepClone(reward.always || []);
+    var options = deepClone(reward.options || []);
+    if (!options.length && always.length >= 1 && always.length <= 3) {
+      return { tokens: always, relations: always.slice(1).map(function () { return "and"; }).concat([null, null]).slice(0, 2) };
+    }
+    if (!always.length && options.length >= 2 && options.length <= 3 && options.every(function (branch) { return branch.length === 1; })) {
+      return { tokens: options.map(function (branch) { return branch[0]; }), relations: options.slice(1).map(function () { return "or"; }).concat([null, null]).slice(0, 2) };
+    }
+    if (always.length === 1 && options.length === 2 && options.every(function (branch) { return branch.length === 1; })) {
+      return { tokens: [always[0], options[0][0], options[1][0]], relations: ["and", "or"] };
+    }
+    return null;
+  }
+
+  function simpleToReward(simple) {
+    var tokens = deepClone(simple.tokens);
+    if (!tokens.length) return { schema: 1, always: [], options: [] };
+    if (tokens.length === 1) return { schema: 1, always: tokens, options: [] };
+    if (!simple.relations[0]) return null;
+    if (tokens.length === 2) {
+      return simple.relations[0] === "or"
+        ? { schema: 1, always: [], options: [[tokens[0]], [tokens[1]]] }
+        : { schema: 1, always: tokens, options: [] };
+    }
+    if (!simple.relations[1]) return null;
+    if (simple.relations[0] === "and" && simple.relations[1] === "and") return { schema: 1, always: tokens, options: [] };
+    if (simple.relations[0] === "or" && simple.relations[1] === "or") return { schema: 1, always: [], options: tokens.map(function (item) { return [item]; }) };
+    if (simple.relations[0] === "and" && simple.relations[1] === "or") return { schema: 1, always: [tokens[0]], options: [[tokens[1]], [tokens[2]]] };
+    return { schema: 1, always: [tokens[2]], options: [[tokens[0]], [tokens[1]]] };
+  }
+
+  function updateComposerFromSimple() {
+    var reward = state.simpleComposer && simpleToReward(state.simpleComposer);
+    if (reward) state.composer = reward;
+  }
+
+  function syncSimpleFromAdvanced() {
+    state.simpleComposer = rewardToSimple(composerReward());
+    if (!state.simpleComposer) dom.composerAdvanced.open = true;
+  }
+
+  function simpleRewardNode(item) {
+    var wrapper = document.createElement("span");
+    wrapper.className = "simple-slot__reward";
+    if (item.type !== "custom") {
+      var image = document.createElement("img");
+      image.src = REWARDS[item.type].image;
+      image.alt = "";
+      image.dataset.crop = REWARDS[item.type].crop || item.type;
+      wrapper.appendChild(image);
+    }
+    var label = document.createElement("b");
+    label.textContent = item.type === "custom" ? item.text : REWARDS[item.type].label;
+    wrapper.appendChild(label);
+    return wrapper;
+  }
+
+  function renderSimpleComposer() {
+    dom.simpleExpression.replaceChildren();
+    var simple = state.simpleComposer;
+    var compatible = Boolean(simple);
+    dom.composerSimple.classList.toggle("is-incompatible", !compatible);
+    document.querySelectorAll("[data-composer-reward]").forEach(function (button) {
+      button.disabled = !compatible || simple.tokens.length >= 3;
+    });
+    dom.composerSimpleCustom.disabled = !compatible || simple.tokens.length >= 3;
+    dom.composerSimpleCustomAdd.disabled = !compatible || simple.tokens.length >= 3;
+
+    if (!compatible) {
+      dom.composerSimpleNote.textContent = "This entry uses a more complex saved structure. Edit it under Advanced structure without losing any rewards.";
+    } else if (!simple.tokens.length) {
+      dom.composerSimpleNote.textContent = "Choose the first reward above.";
+    } else if (simple.tokens.length >= 3) {
+      dom.composerSimpleNote.textContent = "All three reward slots are filled.";
+    } else if (!simple.relations[simple.tokens.length - 1]) {
+      dom.composerSimpleNote.textContent = "Choose AND or OR before adding the next reward.";
+    } else {
+      dom.composerSimpleNote.textContent = "Choose the next reward above.";
+    }
+
+    for (let index = 0; index < 3; index += 1) {
+      var item = compatible ? simple.tokens[index] : null;
+      var slot = document.createElement("div");
+      slot.className = "simple-slot";
+      if (item) slot.classList.add("is-filled");
+      else if (compatible && (index === 0 || Boolean(simple.tokens[index - 1]))) slot.classList.add("is-active");
+      var number = document.createElement("span");
+      number.className = "simple-slot__number";
+      number.textContent = String(index + 1).padStart(2, "0");
+      slot.appendChild(number);
+      if (item) {
+        slot.style.setProperty("--token-color", componentVisualColors(item)[0].color);
+        slot.appendChild(simpleRewardNode(item));
+        var controls = document.createElement("span");
+        controls.className = "simple-slot__controls";
+        var amount = document.createElement("input");
+        amount.type = "number";
+        amount.min = "1";
+        amount.max = "999";
+        amount.value = String(item.amount);
+        amount.className = "simple-slot__amount";
+        amount.dataset.simpleAmount = String(index);
+        amount.setAttribute("aria-label", "Quantity for " + componentWords(item, false));
+        controls.append(amount, makeButton("mini-icon mini-icon--remove", "×", "Remove " + componentWords(item, false), "simple-remove"));
+        controls.lastChild.dataset.simpleIndex = String(index);
+        slot.appendChild(controls);
+      } else {
+        var empty = document.createElement("span");
+        empty.className = "simple-slot__empty";
+        empty.textContent = compatible && (index === 0 || simple.tokens[index - 1]) ? "Choose a reward" : "Next reward";
+        slot.appendChild(empty);
+      }
+      dom.simpleExpression.appendChild(slot);
+
+      if (index < 2) {
+        var relation = document.createElement("div");
+        relation.className = "simple-relation";
+        relation.hidden = !compatible || !simple.tokens[index];
+        var prompt = document.createElement("span");
+        prompt.textContent = "Combine with";
+        relation.appendChild(prompt);
+        ["and", "or"].forEach(function (kind) {
+          var button = document.createElement("button");
+          button.type = "button";
+          button.className = "relation-button" + (simple && simple.relations[index] === kind ? " is-selected" : "");
+          button.dataset.relationIndex = String(index);
+          button.dataset.relation = kind;
+          button.textContent = kind.toUpperCase();
+          relation.appendChild(button);
+        });
+        dom.simpleExpression.appendChild(relation);
+      }
+    }
   }
 
   function composerReward() {
@@ -835,6 +1416,7 @@
   }
 
   function renderComposer() {
+    renderSimpleComposer();
     dom.alwaysComponents.replaceChildren();
     if (!state.composer.always.length) dom.alwaysComponents.appendChild(emptyComposerNote("No always-received components."));
     state.composer.always.forEach(function (item, index) { dom.alwaysComponents.appendChild(createComponentRow(item, "always", -1, index)); });
@@ -893,6 +1475,7 @@
 
   function resetComposer(close) {
     state.composer = { always: [], options: [] };
+    state.simpleComposer = blankSimpleComposer();
     state.editingEntryId = null;
     dom.componentCustomText.value = "";
     renderComposer();
@@ -905,9 +1488,13 @@
   function openComposer(entry) {
     if (entry) {
       state.composer = deepClone(entry.reward);
+      state.simpleComposer = rewardToSimple(entry.reward);
       state.editingEntryId = entry.id;
+      dom.composerAdvanced.open = !state.simpleComposer;
     } else if (dom.composer.hidden) {
       state.editingEntryId = null;
+      state.simpleComposer = blankSimpleComposer();
+      dom.composerAdvanced.open = false;
     }
     dom.composer.hidden = false;
     dom.composerToggle.setAttribute("aria-expanded", "true");
@@ -917,6 +1504,7 @@
 
   function renderAll() {
     renderWheel(state.entries, null, 0);
+    renderWheelIdentity();
     renderSliceList();
     renderPresetList();
     syncControls();
@@ -924,6 +1512,7 @@
   }
 
   function commitChange(message) {
+    ensureAllVisualAssignments();
     persistState();
     renderAll();
     if (message) setStatus(message);
@@ -1168,7 +1757,8 @@
       image.className = "reward-token__image reward-token__image--" + (definition.crop || item.type);
       var words = document.createElement("span");
       words.textContent = item.amount === 1 ? definition.singular : definition.plural;
-      wrapper.append(image, words);
+      wrapper.appendChild(image);
+      if (size !== "compact") wrapper.appendChild(words);
     }
     wrapper.setAttribute("aria-label", componentWords(item, false));
     return wrapper;
@@ -1373,12 +1963,89 @@
   });
   dom.composerClose.addEventListener("click", function () { resetComposer(true); });
   dom.composerReset.addEventListener("click", function () { resetComposer(false); });
+  document.querySelectorAll("[data-composer-reward]").forEach(function (button) {
+    button.addEventListener("click", function () {
+      if (!state.simpleComposer || state.simpleComposer.tokens.length >= 3) return;
+      var nextIndex = state.simpleComposer.tokens.length;
+      if (nextIndex > 0 && !state.simpleComposer.relations[nextIndex - 1]) {
+        setStatus("Choose AND or OR before adding the next reward.", "warning");
+        return;
+      }
+      state.simpleComposer.tokens.push(component(button.dataset.composerReward, state.quantity));
+      updateComposerFromSimple();
+      renderComposer();
+    });
+  });
+  dom.composerSimpleCustomAdd.addEventListener("click", function () {
+    if (!state.simpleComposer || state.simpleComposer.tokens.length >= 3) return;
+    var text = cleanText(dom.composerSimpleCustom.value, MAX_LABEL_LENGTH);
+    if (!text) {
+      setStatus("Enter custom reward text first.", "warning");
+      dom.composerSimpleCustom.focus();
+      return;
+    }
+    var nextIndex = state.simpleComposer.tokens.length;
+    if (nextIndex > 0 && !state.simpleComposer.relations[nextIndex - 1]) {
+      setStatus("Choose AND or OR before adding the next reward.", "warning");
+      return;
+    }
+    state.simpleComposer.tokens.push(component("custom", state.quantity, text));
+    dom.composerSimpleCustom.value = "";
+    updateComposerFromSimple();
+    renderComposer();
+  });
+  dom.composerSimpleCustom.addEventListener("keydown", function (event) {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      dom.composerSimpleCustomAdd.click();
+    }
+  });
+  dom.simpleExpression.addEventListener("click", function (event) {
+    var relationButton = event.target.closest("[data-relation-index]");
+    if (relationButton && state.simpleComposer) {
+      state.simpleComposer.relations[Number(relationButton.dataset.relationIndex)] = relationButton.dataset.relation;
+      updateComposerFromSimple();
+      renderComposer();
+      return;
+    }
+    var removeButton = event.target.closest("[data-action='simple-remove']");
+    if (!removeButton || !state.simpleComposer) return;
+    var removeIndex = Number(removeButton.dataset.simpleIndex);
+    state.simpleComposer.tokens.splice(removeIndex, 1);
+    if (removeIndex === 0) state.simpleComposer.relations.shift();
+    else state.simpleComposer.relations.splice(removeIndex - 1, 1);
+    while (state.simpleComposer.relations.length < 2) state.simpleComposer.relations.push(null);
+    updateComposerFromSimple();
+    renderComposer();
+  });
+  dom.simpleExpression.addEventListener("input", function (event) {
+    if (!event.target.dataset.simpleAmount || !state.simpleComposer) return;
+    var item = state.simpleComposer.tokens[Number(event.target.dataset.simpleAmount)];
+    var amount = Number(event.target.value);
+    if (!item || !Number.isInteger(amount) || amount < 1 || amount > 999) return;
+    item.amount = amount;
+    updateComposerFromSimple();
+    var reward = composerReward();
+    dom.composerPreview.textContent = rewardDescription(reward) || "Add a component to begin.";
+    var validation = composerValidationMessage();
+    dom.composerValidation.textContent = validation;
+    dom.composerSubmit.disabled = Boolean(validation);
+  });
+  dom.simpleExpression.addEventListener("change", function (event) {
+    if (!event.target.dataset.simpleAmount || !state.simpleComposer) return;
+    var item = state.simpleComposer.tokens[Number(event.target.dataset.simpleAmount)];
+    var amount = Number(event.target.value);
+    if (item && Number.isInteger(amount) && amount >= 1 && amount <= 999) return;
+    if (item) event.target.value = String(item.amount);
+    setStatus("Combined reward quantities must be whole numbers from 1 to 999.", "warning");
+  });
   dom.componentType.addEventListener("change", function () {
     dom.componentCustomField.hidden = dom.componentType.value !== "custom";
     if (!dom.componentCustomField.hidden) dom.componentCustomText.focus();
   });
   dom.addAlternative.addEventListener("click", function () {
     state.composer.options.push([]);
+    syncSimpleFromAdvanced();
     renderComposer();
     dom.componentTarget.value = "option:" + (state.composer.options.length - 1);
   });
@@ -1397,6 +2064,7 @@
       if (state.composer.options[branchIndex]) state.composer.options[branchIndex].push(item);
     }
     if (type === "custom") dom.componentCustomText.value = "";
+    syncSimpleFromAdvanced();
     renderComposer();
   });
 
@@ -1412,6 +2080,8 @@
     } else if (event.target.dataset.field === "text") {
       item.text = cleanText(event.target.value, MAX_LABEL_LENGTH);
     }
+    syncSimpleFromAdvanced();
+    renderSimpleComposer();
     var reward = composerReward();
     dom.composerPreview.textContent = rewardDescription(reward) || "Add a component to begin.";
     var validation = composerValidationMessage();
@@ -1428,6 +2098,7 @@
     item.type = event.target.value;
     if (item.type === "custom" && !item.text) item.text = "Custom reward";
     else if (item.type !== "custom") delete item.text;
+    syncSimpleFromAdvanced();
     renderComposer();
   });
 
@@ -1446,6 +2117,7 @@
           state.composer.options.splice(branchTarget, 0, branch);
         }
       }
+      syncSimpleFromAdvanced();
       renderComposer();
       return;
     }
@@ -1461,6 +2133,7 @@
         source.splice(target, 0, item);
       }
     }
+    syncSimpleFromAdvanced();
     renderComposer();
   });
 
@@ -1560,6 +2233,7 @@
     }
 
     var existing = findPresetByName(name);
+    var selectedIcon = dom.savePresetForm.querySelector("input[name='presetIcon']:checked").value;
     if (existing) {
       var shouldOverwrite = await requestConfirmation({
         title: "Replace saved wheel?",
@@ -1568,15 +2242,22 @@
       });
       if (!shouldOverwrite) return;
       existing.entries = cloneEntries(state.entries, false);
+      if (!existing.builtinKey) existing.iconKey = selectedIcon;
       existing.updatedAt = Date.now();
+      state.draftIdentity = { presetId: existing.id, name: existing.name, iconKey: presetIconKey(existing) };
       commitChange(existing.name + " updated.");
     } else {
-      state.presets.push({
-        id: createId("preset"),
+      var presetId = createId("preset");
+      var created = {
+        id: presetId,
         name: name,
         entries: cloneEntries(state.entries, false),
-        updatedAt: Date.now()
-      });
+        updatedAt: Date.now(),
+        builtinKey: null,
+        iconKey: selectedIcon
+      };
+      state.presets.push(created);
+      state.draftIdentity = { presetId: presetId, name: name, iconKey: selectedIcon };
       commitChange(name + " saved.");
     }
     dom.presetName.value = "";
@@ -1598,6 +2279,15 @@
     if (!preset) return;
     var action = button.dataset.action;
 
+    if (action === "icon") {
+      if (preset.builtinKey) return;
+      preset.iconKey = validIconKey(button.dataset.iconKey) || preset.iconKey;
+      preset.updatedAt = Date.now();
+      if (state.draftIdentity.presetId === preset.id) state.draftIdentity.iconKey = preset.iconKey;
+      commitChange(preset.name + " icon updated.");
+      return;
+    }
+
     if (action === "load") {
       var canLoad = !state.entries.length || await requestConfirmation({
         title: "Replace current wheel?",
@@ -1606,6 +2296,7 @@
       });
       if (!canLoad) return;
       state.entries = cloneEntries(preset.entries, false);
+      state.draftIdentity = { presetId: preset.id, name: preset.name, iconKey: presetIconKey(preset) };
       clearRigging();
       commitChange(preset.name + " loaded.");
       return;
@@ -1627,23 +2318,31 @@
       }
       preset.name = nextName;
       preset.updatedAt = Date.now();
+      if (state.draftIdentity.presetId === preset.id) state.draftIdentity.name = nextName;
       commitChange("Preset renamed to " + nextName + ".");
       return;
     }
 
     if (action === "duplicate") {
       var copyName = makeUniquePresetName(preset.name);
+      var copyId = createId("preset");
       state.presets.push({
-        id: createId("preset"),
+        id: copyId,
         name: copyName,
         entries: cloneEntries(preset.entries, true),
-        updatedAt: Date.now()
+        updatedAt: Date.now(),
+        builtinKey: null,
+        iconKey: preset.builtinKey ? genericIconForId(copyId) : presetIconKey(preset)
       });
       commitChange(copyName + " created.");
       return;
     }
 
     if (action === "delete") {
+      if (preset.builtinKey) {
+        setStatus("Pinned wheels cannot be deleted.", "warning");
+        return;
+      }
       var shouldDelete = await requestConfirmation({
         title: "Delete saved wheel?",
         message: "Delete “" + preset.name + "”? This cannot be undone.",
@@ -1651,6 +2350,9 @@
       });
       if (!shouldDelete) return;
       state.presets = state.presets.filter(function (candidate) { return candidate.id !== preset.id; });
+      if (state.draftIdentity.presetId === preset.id) {
+        state.draftIdentity = { presetId: null, name: "Custom Wheel", iconKey: presetIconKey(preset) };
+      }
       commitChange(preset.name + " deleted.");
     }
   });
