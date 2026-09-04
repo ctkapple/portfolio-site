@@ -1998,15 +1998,65 @@ summary:focus-visible {
   filter: drop-shadow(0 0 26px color-mix(in srgb, var(--winner-accent, #3de5ff) 46%, transparent));
 }
 
-.hero-icon {
-  width: calc(clamp(70px, 8.4vw, 112px) * var(--result-fit, 1));
-  height: calc(clamp(70px, 8.4vw, 112px) * var(--result-fit, 1));
+.hero-icon-frame {
+  position: relative;
+  display: block;
+  width: calc(clamp(116px, 12vw, 168px) * var(--result-fit, 1));
+  height: calc(clamp(116px, 12vw, 168px) * var(--result-fit, 1));
+  overflow: hidden;
   border-radius: 16px;
+}
+
+.hero-icon {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
   object-fit: contain;
 }
 
 .hero-icon--pack { object-fit: cover; }
 .hero-icon--pack { object-position: 50% 30%; }
+
+/* The result state is the only place this plays. The asset mask keeps the repeating glint
+   on the reward art itself, echoing the Bev Fantasy logo rather than washing the whole card. */
+.hero-icon-frame::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(115deg, transparent 42%, rgb(255 255 255 / .9) 50%, transparent 58%);
+  background-size: 300% 100%;
+  background-position: -140% 0;
+  -webkit-mask-image: var(--hero-icon-mask);
+  mask-image: var(--hero-icon-mask);
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  opacity: 0;
+}
+
+.hero-icon-frame--pack::after {
+  -webkit-mask-size: cover;
+  mask-size: cover;
+  -webkit-mask-position: 50% 30%;
+  mask-position: 50% 30%;
+}
+
+.is-result .hero-icon-frame::after {
+  animation: winner-icon-sheen 3.8s cubic-bezier(.4, 0, .2, 1) infinite;
+}
+
+@keyframes winner-icon-sheen {
+  0%, 50%, 100% { opacity: 0; background-position: -140% 0; }
+  8% { opacity: 1; }
+  32% { opacity: 1; background-position: 240% 0; }
+  40% { opacity: 0; background-position: 240% 0; }
+}
 
 /* The wheel slice's own cluster shapes, at full size: two abreast, three as 2 + 1 centred,
    four as a square. */

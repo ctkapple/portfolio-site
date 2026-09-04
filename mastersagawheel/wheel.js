@@ -2375,11 +2375,18 @@
     wrapper.dataset.rewardType = item.type;
 
     function icon() {
+      var frame = document.createElement("span");
+      var crop = definition.crop || item.type;
+      frame.className = "hero-icon-frame hero-icon-frame--" + crop;
+      // Reuse the reward art as a CSS mask so the highlight follows the icon silhouette,
+      // rather than sweeping a rectangular glare across the winning reward panel.
+      frame.style.setProperty("--hero-icon-mask", "url(\"" + definition.image + "\")");
       var image = document.createElement("img");
       image.src = definition.image;
       image.alt = "";
-      image.className = "hero-icon hero-icon--" + (definition.crop || item.type);
-      return image;
+      image.className = "hero-icon hero-icon--" + crop;
+      frame.appendChild(image);
+      return frame;
     }
 
     if (item.amount > 4 || (item.type !== "custom" && item.amount > 1 && usesNumericRewardDisplay(item))) {

@@ -25,7 +25,7 @@
     <aside class="side-rail side-rail--left setup-only" aria-label="Wheel setup">
       <section class="editor-section editor-section--add" aria-labelledby="add-heading">
         <div class="section-heading">
-          <h2 id="add-heading">Add rewards</h2>
+          <h2 id="add-heading">Rewards</h2>
           <output class="entry-total" id="entry-total">0 / 60</output>
         </div>
 
@@ -50,12 +50,12 @@
         <form class="custom-entry" id="custom-entry-form">
           <label class="field field--label">
             <span>Custom Reward</span>
-            <input id="custom-label" name="label" type="text" maxlength="48" autocomplete="off" placeholder="Redemption" required>
+            <input id="custom-label" name="label" type="text" maxlength="48" autocomplete="off" placeholder="eg. legacy craft" required>
           </label>
           <button class="add-button add-button--gem" type="submit" aria-label="Add custom reward" title="Add custom reward"><img src="Master_Duel_Gem.png" alt=""></button>
         </form>
 
-        <button class="composer-toggle" id="composer-toggle" type="button" aria-expanded="false" aria-controls="entry-composer">Build a combined reward</button>
+        <button class="composer-toggle" id="composer-toggle" type="button" aria-expanded="false" aria-controls="entry-composer">Advanced Reward Builder</button>
       </section>
 
       <details class="editor-section admin-card" id="admin-card">
@@ -190,7 +190,7 @@
         <div class="composer-advanced__content">
           <div class="component-adder">
             <label class="field"><span>Component</span><select id="component-type"></select></label>
-            <label class="field component-custom-field" id="component-custom-field" hidden><span>Custom text</span><input id="component-custom-text" type="text" maxlength="48" autocomplete="off" placeholder="Redemption"></label>
+            <label class="field component-custom-field" id="component-custom-field" hidden><span>Custom text</span><input id="component-custom-text" type="text" maxlength="48" autocomplete="off" placeholder="eg. legacy craft"></label>
             <label class="field"><span>Add to</span><select id="component-target"><option value="always">Always receive</option></select></label>
             <button class="small-button component-add" id="component-add" type="button">Add component</button>
           </div>
