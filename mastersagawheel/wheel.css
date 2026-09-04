@@ -747,6 +747,18 @@ summary:focus-visible {
     linear-gradient(90deg, rgba(3, 6, 13, .83), rgba(3, 6, 13, .58)),
     var(--entry-gradient, rgba(3, 6, 13, .5));
   overflow: hidden;
+  transform-origin: left center;
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+}
+
+.slice-row:hover,
+.slice-row:focus-within {
+  transform: translateX(2px) scale(1.01);
+  border-color: color-mix(in srgb, var(--entry-trim, var(--cyan)) 52%, var(--line));
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--entry-trim, var(--cyan)) 15%, rgba(3, 6, 13, .78)), rgba(3, 6, 13, .48)),
+    var(--entry-gradient, rgba(3, 6, 13, .5));
+  box-shadow: 0 5px 14px color-mix(in srgb, var(--entry-trim, var(--cyan)) 14%, transparent);
 }
 
 .slice-row::before {
@@ -856,6 +868,21 @@ summary:focus-visible {
   color: #fff;
   background: linear-gradient(145deg, #ff4d73, #b5153a);
   box-shadow: 0 0 0 1px rgba(255, 77, 115, .5), 0 0 14px rgba(255, 77, 115, .45);
+}
+
+/* The row carries the reward's own colour; the ordinary controls borrow it, while delete
+   keeps its red warning language and its armed state remains visually authoritative. */
+.slice-row .icon-button:not(.icon-button--remove):not(:disabled):hover,
+.slice-row .icon-button:not(.icon-button--remove):not(:disabled):focus-visible {
+  transform: translateY(-1px) scale(1.08);
+  border-color: var(--entry-trim, var(--cyan));
+  color: #fff;
+  background: color-mix(in srgb, var(--entry-trim, var(--cyan)) 28%, rgba(12, 18, 30, .96));
+}
+
+.slice-row .icon-button--remove:not(:disabled):not(.is-armed):hover,
+.slice-row .icon-button--remove:not(:disabled):not(.is-armed):focus-visible {
+  transform: translateY(-1px) scale(1.05);
 }
 
 .save-preset {
@@ -1278,7 +1305,7 @@ summary:focus-visible {
 /* The dock leaves downward and the utility chips leave with it, so the cinematic stage is
    the wheel and nothing else. */
 .is-cinematic .saved-wheel-dock {
-  transform: translateY(220%);
+  transform: translateY(calc(100vh + 80px));
   pointer-events: none;
 }
 
@@ -2078,6 +2105,23 @@ summary:focus-visible {
 
 .is-result .hero-icon-frame::after {
   animation: winner-icon-sheen 9s cubic-bezier(.42, 0, .2, 1) infinite;
+}
+
+/* Winner art gets one tactile landing pop as the result plate arrives, then the slow sheen
+   continues alone. It is automatic so click-anywhere result dismissal stays unchanged. */
+.is-result .hero-icon-frame {
+  animation: winner-icon-land 320ms cubic-bezier(.2, .84, .28, 1) both;
+}
+
+.is-result .hero-icon-frame:nth-child(2) { animation-delay: 55ms; }
+.is-result .hero-icon-frame:nth-child(3) { animation-delay: 110ms; }
+.is-result .hero-icon-frame:nth-child(4) { animation-delay: 165ms; }
+
+@keyframes winner-icon-land {
+  0% { transform: scale(.86) rotate(0deg); }
+  52% { transform: scale(1.12) rotate(-1.5deg); }
+  78% { transform: scale(.97) rotate(.7deg); }
+  100% { transform: scale(1) rotate(0deg); }
 }
 
 @keyframes winner-icon-sheen {
