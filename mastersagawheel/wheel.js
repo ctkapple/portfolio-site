@@ -24,14 +24,14 @@
 
   var REWARDS = {
     ur: { label: "UR", singular: "UR", plural: "UR", image: "UR_Craft_Asset.png", color: "#bd4fe2", precedence: 90 },
-    gems: { label: "Gems", singular: "Gem", plural: "Gems", image: "Master_Duel_Gem.png", color: "#766cff", precedence: 85 },
+    gems: { label: "?", singular: "?", plural: "?", image: "Master_Duel_Gem.png", color: "#766cff", precedence: 85 },
     packs: { label: "Secret Packs", singular: "Secret Pack", plural: "Secret Packs", shortSingular: "Pack", shortPlural: "Packs", image: "The_Masters_Saga-Pack-Master_Duel.png", color: "#dfa735", precedence: 80, crop: "pack" },
     bans: { label: "Bans", singular: "Ban", plural: "Bans", image: "pot-of-greed-2.avif", color: "#dd453e", precedence: 70, crop: "pot" },
     sr: { label: "SR", singular: "SR", plural: "SR", image: "SR_Craft_asset.png", color: "#e6bc3f", precedence: 60 },
     r: { label: "R", singular: "R", plural: "R", image: "R_Craft_asset.png", color: "#31bde8", precedence: 50 },
     n: { label: "N", singular: "N", plural: "N", image: "N_Craft_asset.png", color: "#aeb8c5", precedence: 40 },
     nr: { label: "N/R", singular: "N/R", plural: "N/R", image: "N_R_Craft_asset.png", color: "#6da8c4", precedence: 30 },
-    custom: { label: "Custom text", singular: "", plural: "", image: null, color: "#a5afc0", precedence: 0 }
+    custom: { label: "Custom reward", singular: "", plural: "", image: "Master_Duel_Gem.png", color: "#766cff", precedence: 85 }
   };
   // Reward-tier color families: background comes from an entry's highest-tier reward,
   // text from its next-highest. Packs and N/R are nudged off SR-gold and R-blue so two
@@ -45,7 +45,7 @@
     r: "#31bde8",
     n: "#aeb8c5",
     nr: "#7a95a3",
-    custom: "#a5afc0"
+    custom: "#766cff"
   };
   var TEXT_ACCENTS = {
     ur: "#e9a6ff",
@@ -56,7 +56,7 @@
     r: "#7fe0ff",
     n: "#d7dee8",
     nr: "#a9c3cc",
-    custom: "#d8d2c9"
+    custom: "#d8d2ff"
   };
   var SHADE_RAMP = [
     { toward: "#000000", amount: .42 }, // deep
@@ -95,10 +95,13 @@
     customLabel: document.getElementById("custom-label"),
     sharedQuantity: document.getElementById("shared-quantity"),
     sliceList: document.getElementById("slice-list"),
-    savePresetForm: document.getElementById("save-preset-form"),
-    presetName: document.getElementById("preset-name"),
     newWheelButton: document.getElementById("new-wheel-button"),
     presetList: document.getElementById("preset-list"),
+    newWheelDialog: document.getElementById("new-wheel-dialog"),
+    newWheelForm: document.getElementById("new-wheel-form"),
+    newWheelName: document.getElementById("new-wheel-name"),
+    newWheelValidation: document.getElementById("new-wheel-validation"),
+    newWheelCancel: document.getElementById("new-wheel-cancel"),
     riggedToggle: document.getElementById("rigged-toggle"),
     riggedWinner: document.getElementById("rigged-winner"),
     editorStatus: document.getElementById("editor-status"),
@@ -112,6 +115,8 @@
     resultAlternatives: document.getElementById("result-alternatives"),
     composerToggle: document.getElementById("composer-toggle"),
     composer: document.getElementById("entry-composer"),
+    rewardDialog: document.getElementById("reward-dialog"),
+    composerHeading: document.getElementById("composer-heading"),
     composerClose: document.getElementById("composer-close"),
     componentType: document.getElementById("component-type"),
     componentTarget: document.getElementById("component-target"),
@@ -726,7 +731,7 @@
   }
 
   function rewardTierScale(item) {
-    var scales = { ur: 1, gems: .94, packs: .84, bans: .81, sr: .78, r: .67, n: .58, nr: .5, custom: .66 };
+    var scales = { ur: 1, gems: .94, packs: .84, bans: .81, sr: .78, r: .67, n: .58, nr: .5, custom: .94 };
     return scales[item.type] || .66;
   }
 
@@ -737,8 +742,8 @@
   function rewardVisualSpec(item, baseIconSize) {
     var unit = baseIconSize * rewardTierScale(item);
     if (item.type === "custom") {
-      var customSize = Math.max(8, unit * .56);
-      return { kind: "custom", item: item, width: Math.max(unit, Math.min(unit * 3.1, customSize * (item.text.length + (item.amount > 1 ? 3 : 0)))), height: customSize * 1.3, fontSize: customSize };
+      var customIconSize = unit * .84;
+      return { kind: "custom-icon", item: item, width: customIconSize, height: customIconSize, iconSize: customIconSize };
     }
 
     if (usesNumericRewardDisplay(item)) {
@@ -841,11 +846,14 @@
     return JSON.stringify(state.entries) !== JSON.stringify(preset.entries);
   }
 
-  var newWheelCounter = 0;
-
   function nextNewWheelName() {
-    var name = newWheelCounter === 0 ? "Custom Wheel" : "Custom Wheel " + newWheelCounter;
-    newWheelCounter += 1;
+    if (!findPresetByName("Custom Wheel")) return "Custom Wheel";
+    var number = 2;
+    var name = "Custom Wheel " + number;
+    while (findPresetByName(name)) {
+      number += 1;
+      name = "Custom Wheel " + number;
+    }
     return name;
   }
 
@@ -1068,14 +1076,13 @@
 
   function appendSvgShorthand(group, entry, position, rotation, count, expansion, sliceAngle, labelRadius) {
     if (entry.kind !== "structured") {
-      var legacy = svgElement("text", {
-        class: "wheel-slice__label", x: "0", y: "0",
-        "font-size": String(labelFontSize(count) + 2 * expansion),
-        "text-anchor": "middle", "dominant-baseline": "middle"
-      });
-      legacy.textContent = abbreviatedLabel(entryLabel(entry), count);
       var legacyGroup = svgElement("g", { transform: "translate(" + position.x + " " + position.y + ") rotate(" + rotation + ")" });
-      legacyGroup.appendChild(legacy);
+      var legacyIconSize = (count <= 8 ? 72 : count <= 18 ? 54 : count <= 36 ? 40 : 30) + 4 * expansion;
+      legacyGroup.appendChild(svgElement("image", {
+        class: "wheel-slice__icon wheel-slice__icon--custom", href: REWARDS.custom.image,
+        x: String(-legacyIconSize / 2), y: String(-legacyIconSize / 2), width: String(legacyIconSize), height: String(legacyIconSize),
+        preserveAspectRatio: "xMidYMid slice"
+      }));
       group.appendChild(legacyGroup);
       return;
     }
@@ -1126,10 +1133,11 @@
           rowGroup.appendChild(plus);
           cursorX += block.plusWidth + block.gap;
         }
-        if (spec.kind === "custom") {
-          var custom = svgElement("text", { class: "wheel-slice__custom", x: String(cursorX), y: String(itemY + spec.height / 2), "font-size": String(spec.fontSize), "dominant-baseline": "middle" });
-          custom.textContent = (spec.item.amount > 1 ? spec.item.amount + " × " : "") + abbreviatedLabel(spec.item.text, count);
-          rowGroup.appendChild(custom);
+        if (spec.kind === "custom-icon") {
+          rowGroup.appendChild(svgElement("image", {
+            class: "wheel-slice__icon wheel-slice__icon--custom", href: REWARDS.custom.image,
+            x: String(cursorX), y: String(itemY), width: String(spec.iconSize), height: String(spec.iconSize), preserveAspectRatio: "xMidYMid slice"
+          }));
         } else if (spec.kind === "number") {
           var amount = svgElement("text", { class: "wheel-slice__amount", x: String(cursorX + spec.numberWidth / 2), y: String(itemY + spec.height / 2), "font-size": String(spec.fontSize), "text-anchor": "middle", "dominant-baseline": "middle" });
           amount.textContent = String(spec.item.amount);
@@ -1318,21 +1326,9 @@
       var identity = document.createElement("div");
       identity.className = "slice-label-wrap";
       if (entry.kind === "structured") {
-        var structuredVisual = document.createElement("span");
-        structuredVisual.className = "slice-structured-visual";
-        appendCompactReward(structuredVisual, entry.reward);
-        structuredVisual.setAttribute("aria-label", entryLabel(entry));
-        structuredVisual.title = entryLabel(entry);
-        identity.appendChild(structuredVisual);
+        appendRewardExpression(identity, entry.reward);
       } else {
-        var input = document.createElement("input");
-        input.className = "slice-label-input";
-        input.type = "text";
-        input.maxLength = MAX_LABEL_LENGTH;
-        input.value = entry.label;
-        input.autocomplete = "off";
-        input.setAttribute("aria-label", "Rename reward " + (index + 1));
-        identity.appendChild(input);
+        appendRewardExpressionItem(identity, component("custom", 1, entry.label));
       }
 
       if (entry.id === state.riggedTargetId) {
@@ -1347,7 +1343,7 @@
       var label = entryLabel(entry);
       var up = makeButton("icon-button", "↑", "Move " + label + " up", "up");
       var down = makeButton("icon-button", "↓", "Move " + label + " down", "down");
-      if (entry.kind === "structured") actions.appendChild(makeButton("icon-button", "✎", "Edit " + label, "edit"));
+      actions.appendChild(makeButton("icon-button", "✎", "Edit " + label, "edit"));
       var remove = makeButton("icon-button icon-button--remove", "×", "Remove " + label, "remove");
       up.disabled = index === 0;
       down.disabled = index === state.entries.length - 1;
@@ -1359,71 +1355,62 @@
     dom.sliceList.appendChild(fragment);
   }
 
+  // This expression is deliberately separate from slice art: order rows stay readable
+  // at normal text size while the wheel can keep its compact visual shorthand.
+  function appendRewardExpression(container, reward) {
+    var always = reward.always || [];
+    var options = reward.options || [];
+    if (always.length) appendRewardExpressionBranch(container, always);
+    if (always.length && options.length) appendExpressionOperator(container, "+");
+    if (options.length > 1 && always.length) appendExpressionOperator(container, "(");
+    options.forEach(function (branch, index) {
+      if (index) appendExpressionOperator(container, "OR");
+      appendRewardExpressionBranch(container, branch);
+    });
+    if (options.length > 1 && always.length) appendExpressionOperator(container, ")");
+  }
+
+  function appendRewardExpressionBranch(container, branch) {
+    branch.forEach(function (item, index) {
+      if (index) appendExpressionOperator(container, "+");
+      appendRewardExpressionItem(container, item);
+    });
+  }
+
+  function appendExpressionOperator(container, text) {
+    var operator = document.createElement("span");
+    operator.className = "reward-expression__operator" + (text === "OR" ? " reward-expression__operator--or" : "");
+    operator.textContent = text;
+    container.appendChild(operator);
+  }
+
+  function appendRewardExpressionItem(container, item) {
+    var token = document.createElement("span");
+    token.className = "reward-expression__item";
+    var amount = document.createElement("b");
+    amount.textContent = String(item.amount);
+    var image = document.createElement("img");
+    image.src = REWARDS[item.type].image;
+    image.alt = "";
+    image.className = "reward-expression__icon reward-expression__icon--" + (REWARDS[item.type].crop || item.type);
+    token.append(amount, image);
+    if (item.type === "custom") {
+      var customText = document.createElement("span");
+      customText.textContent = item.text;
+      token.appendChild(customText);
+    }
+    token.setAttribute("aria-label", componentWords(item, false));
+    container.appendChild(token);
+  }
+
   function presetActionButton(text, action, name, extraClass) {
     var button = document.createElement("button");
     button.type = "button";
     button.className = "small-button" + (extraClass ? " " + extraClass : "");
     button.dataset.action = action;
     button.textContent = text;
-    button.setAttribute("aria-label", text + " preset " + name);
+    button.setAttribute("aria-label", text + " saved wheel " + name);
     return button;
-  }
-
-  function appendCompactReward(container, reward) {
-    var rows = rewardDisplayRows(reward);
-    rows.forEach(function (row, rowIndex) {
-      if (rowIndex && rows[rowIndex - 1].dividerAfter === "and") {
-        var divider = document.createElement("span");
-        divider.className = "slice-structured-divider" + (row.isSecondaryOption ? " is-secondary-option" : "");
-        divider.textContent = "+";
-        container.appendChild(divider);
-      }
-      var rowElement = document.createElement("span");
-      rowElement.className = "slice-structured-row" + (row.isSecondaryOption ? " is-secondary-option" : "");
-      row.components.forEach(function (item, itemIndex) {
-        if (itemIndex) {
-          var plus = document.createElement("span");
-          plus.className = "reward-plus";
-          plus.textContent = "+";
-          rowElement.appendChild(plus);
-        }
-        appendCompactRewardItem(rowElement, item);
-      });
-      container.appendChild(rowElement);
-    });
-  }
-
-  function appendCompactRewardItem(container, item) {
-    var token = document.createElement("span");
-    token.className = "slice-compact-reward";
-    token.style.setProperty("--reward-scale", String(rewardTierScale(item)));
-    token.setAttribute("aria-label", componentWords(item, false));
-    if (item.type === "custom") {
-      var custom = document.createElement("span");
-      custom.textContent = (item.amount > 1 ? item.amount + " × " : "") + item.text;
-      token.appendChild(custom);
-    } else if (usesNumericRewardDisplay(item)) {
-      var amount = document.createElement("b");
-      amount.textContent = String(item.amount);
-      token.appendChild(amount);
-      var numericImage = document.createElement("img");
-      numericImage.src = REWARDS[item.type].image;
-      numericImage.alt = "";
-      numericImage.className = "slice-compact-reward__icon slice-compact-reward__icon--" + (REWARDS[item.type].crop || item.type);
-      token.appendChild(numericImage);
-    } else {
-      var cluster = document.createElement("span");
-      cluster.className = "slice-reward-cluster slice-reward-cluster--" + item.amount;
-      for (var index = 0; index < item.amount; index += 1) {
-        var image = document.createElement("img");
-        image.src = REWARDS[item.type].image;
-        image.alt = "";
-        image.className = "slice-compact-reward__icon slice-compact-reward__icon--" + (REWARDS[item.type].crop || item.type);
-        cluster.appendChild(image);
-      }
-      token.appendChild(cluster);
-    }
-    container.appendChild(token);
   }
 
   function renderWheelIdentity() {
@@ -1452,29 +1439,30 @@
 
   function renderPresetList() {
     dom.presetList.replaceChildren();
-    if (!state.presets.length) {
-      var empty = document.createElement("li");
-      empty.className = "empty-list";
-      empty.textContent = "No saved wheels.";
-      dom.presetList.appendChild(empty);
-      return;
-    }
-
     var fragment = document.createDocumentFragment();
     presetDisplayOrder().forEach(function (preset) {
       var theme = PRESET_THEMES[presetIconKey(preset)];
-      var row = document.createElement("li");
-      row.className = "preset-row";
+      var row = document.createElement("div");
+      row.className = "saved-wheel-dock__item";
+      row.setAttribute("role", "listitem");
       row.dataset.presetId = preset.id;
       row.style.setProperty("--preset-card-primary", theme.primary);
-      row.style.setProperty("--preset-card-secondary", theme.secondary);
-
-      var top = document.createElement("div");
-      top.className = "preset-row__top";
+      var load = document.createElement("button");
+      load.type = "button";
+      load.className = "saved-wheel-dock__icon" + (state.draftIdentity.presetId === preset.id ? " is-active" : "");
+      load.dataset.action = "load";
+      load.setAttribute("aria-label", "Load " + preset.name);
+      load.title = preset.name;
       var icon = document.createElement("img");
-      icon.className = "preset-row__icon";
       icon.src = theme.image;
       icon.alt = "";
+      load.appendChild(icon);
+      var surface = document.createElement("div");
+      surface.className = "saved-wheel-dock__surface";
+      surface.setAttribute("role", "group");
+      surface.setAttribute("aria-label", "Manage " + preset.name);
+      var name = document.createElement("strong");
+      name.textContent = preset.name;
       var input = document.createElement("input");
       input.className = "preset-name-input";
       input.type = "text";
@@ -1483,12 +1471,10 @@
       input.autocomplete = "off";
       input.setAttribute("aria-label", "Rename preset " + preset.name);
       var count = document.createElement("span");
-      count.className = "preset-row__count";
+      count.className = "saved-wheel-dock__count";
       count.textContent = preset.entries.length + (preset.entries.length === 1 ? " reward" : " rewards");
-      top.append(icon, input, count);
-
       var actions = document.createElement("div");
-      actions.className = "preset-row__actions";
+      actions.className = "saved-wheel-dock__actions";
       var deleteButton = presetActionButton("Delete", "delete", preset.name, "small-button--delete");
       if (preset.builtinKey) {
         deleteButton.disabled = true;
@@ -1500,31 +1486,15 @@
         presetActionButton("Duplicate", "duplicate", preset.name),
         deleteButton
       );
-      row.append(top);
+      if (state.draftIdentity.presetId === preset.id) actions.appendChild(presetActionButton("Save", "save", preset.name));
+      surface.append(name, input, count, actions);
+      row.append(load, surface);
       if (preset.builtinKey) {
         var pin = document.createElement("span");
-        pin.className = "preset-row__pin";
+        pin.className = "saved-wheel-dock__pin";
         pin.textContent = "Pinned";
-        row.appendChild(pin);
-      } else {
-        var iconOptions = document.createElement("div");
-        iconOptions.className = "preset-row__icon-options";
-        GENERIC_ICON_KEYS.forEach(function (iconKey) {
-          var choice = document.createElement("button");
-          choice.type = "button";
-          choice.className = "preset-row__icon-choice" + (presetIconKey(preset) === iconKey ? " is-selected" : "");
-          choice.dataset.action = "icon";
-          choice.dataset.iconKey = iconKey;
-          choice.setAttribute("aria-label", "Use " + iconKey + " icon for " + preset.name);
-          var choiceImage = document.createElement("img");
-          choiceImage.src = PRESET_THEMES[iconKey].image;
-          choiceImage.alt = "";
-          choice.appendChild(choiceImage);
-          iconOptions.appendChild(choice);
-        });
-        row.appendChild(iconOptions);
+        surface.appendChild(pin);
       }
-      row.appendChild(actions);
       fragment.appendChild(row);
     });
     dom.presetList.appendChild(fragment);
@@ -1543,14 +1513,18 @@
       var definition = REWARDS[button.dataset.reward];
       var name = quantity === 1 ? (definition.shortSingular || definition.singular) : (definition.shortPlural || definition.plural);
       button.disabled = atLimit;
-      button.querySelector("span").textContent = quantity + " " + name;
-      button.setAttribute("aria-label", "Add one " + quantity + " " + name + " wheel reward");
+      button.querySelector("span").textContent = button.dataset.reward === "gems" ? "?" : quantity + " " + name;
+      button.setAttribute("aria-label", button.dataset.reward === "gems"
+        ? "Add one mystery gem wheel reward"
+        : "Add one " + quantity + " " + name + " wheel reward");
     });
     document.querySelectorAll("[data-composer-reward]").forEach(function (button) {
       var definition = REWARDS[button.dataset.composerReward];
       var name = quantity === 1 ? (definition.shortSingular || definition.singular) : (definition.shortPlural || definition.plural);
-      button.querySelector("span").textContent = quantity + " " + name;
-      button.setAttribute("aria-label", "Use " + quantity + " " + name + " in the combined reward");
+      button.querySelector("span").textContent = button.dataset.composerReward === "gems" ? "?" : quantity + " " + name;
+      button.setAttribute("aria-label", button.dataset.composerReward === "gems"
+        ? "Use one mystery gem reward in the combined reward"
+        : "Use " + quantity + " " + name + " in the combined reward");
     });
     var customAddButton = dom.customForm.querySelector("button[type='submit']");
     customAddButton.disabled = atLimit;
@@ -1607,13 +1581,11 @@
   function simpleRewardNode(item) {
     var wrapper = document.createElement("span");
     wrapper.className = "simple-slot__reward";
-    if (item.type !== "custom") {
-      var image = document.createElement("img");
-      image.src = REWARDS[item.type].image;
-      image.alt = "";
-      image.dataset.crop = REWARDS[item.type].crop || item.type;
-      wrapper.appendChild(image);
-    }
+    var image = document.createElement("img");
+    image.src = REWARDS[item.type].image;
+    image.alt = "";
+    image.dataset.crop = REWARDS[item.type].crop || item.type;
+    wrapper.appendChild(image);
     var label = document.createElement("b");
     label.textContent = item.type === "custom" ? item.text : REWARDS[item.type].label;
     wrapper.appendChild(label);
@@ -1658,6 +1630,20 @@
         slot.appendChild(simpleRewardNode(item));
         var controls = document.createElement("span");
         controls.className = "simple-slot__controls";
+        if (item.type !== "custom") {
+          var type = document.createElement("select");
+          type.className = "simple-slot__type";
+          type.dataset.simpleType = String(index);
+          type.setAttribute("aria-label", "Reward type for " + componentWords(item, false));
+          Object.keys(REWARDS).filter(function (key) { return key !== "custom"; }).forEach(function (key) {
+            var option = document.createElement("option");
+            option.value = key;
+            option.textContent = REWARDS[key].label;
+            option.selected = key === item.type;
+            type.appendChild(option);
+          });
+          controls.appendChild(type);
+        }
         var amount = document.createElement("input");
         amount.type = "number";
         amount.min = "1";
@@ -1832,26 +1818,41 @@
     dom.componentCustomText.value = "";
     renderComposer();
     if (close) {
-      dom.composer.hidden = true;
+      if (dom.rewardDialog && dom.rewardDialog.open) dom.rewardDialog.close();
+      else dom.composer.hidden = true;
       dom.composerToggle.setAttribute("aria-expanded", "false");
     }
   }
 
+  function handleRewardDialogClose() {
+    // Closing by Escape or the × button must leave the saved entry untouched.
+    resetComposer(false);
+    dom.composerToggle.setAttribute("aria-expanded", "false");
+  }
+
   function openComposer(entry) {
     if (entry) {
-      state.composer = deepClone(entry.reward);
-      state.simpleComposer = rewardToSimple(entry.reward);
+      state.composer = entry.kind === "structured"
+        ? deepClone(entry.reward)
+        : { always: [component("custom", 1, entry.label)], options: [] };
+      state.simpleComposer = rewardToSimple(state.composer);
       state.editingEntryId = entry.id;
       dom.composerAdvanced.open = !state.simpleComposer;
-    } else if (dom.composer.hidden) {
+      dom.composerHeading.textContent = "Edit wheel reward";
+    } else {
       state.editingEntryId = null;
       state.simpleComposer = blankSimpleComposer();
       dom.composerAdvanced.open = false;
+      dom.composerHeading.textContent = "Build one wheel reward";
     }
     dom.composer.hidden = false;
     dom.composerToggle.setAttribute("aria-expanded", "true");
     renderComposer();
-    dom.componentType.focus();
+    if (dom.rewardDialog && typeof dom.rewardDialog.showModal === "function") dom.rewardDialog.showModal();
+    window.requestAnimationFrame(function () {
+      var simpleAmount = dom.simpleExpression.querySelector("[data-simple-amount]");
+      (simpleAmount || dom.componentType).focus();
+    });
   }
 
   function renderAll() {
@@ -2122,21 +2123,15 @@
     var amount = document.createElement("b");
     amount.textContent = String(item.amount);
     wrapper.appendChild(amount);
-    if (item.type === "custom") {
-      var custom = document.createElement("span");
-      custom.textContent = item.text;
-      wrapper.appendChild(custom);
-    } else {
-      var definition = REWARDS[item.type];
-      var image = document.createElement("img");
-      image.src = definition.image;
-      image.alt = "";
-      image.className = "reward-token__image reward-token__image--" + (definition.crop || item.type);
-      var words = document.createElement("span");
-      words.textContent = item.amount === 1 ? definition.singular : definition.plural;
-      wrapper.appendChild(image);
-      if (size !== "compact") wrapper.appendChild(words);
-    }
+    var definition = REWARDS[item.type];
+    var image = document.createElement("img");
+    image.src = definition.image;
+    image.alt = "";
+    image.className = "reward-token__image reward-token__image--" + (definition.crop || item.type);
+    wrapper.appendChild(image);
+    var words = document.createElement("span");
+    words.textContent = item.type === "custom" ? item.text : (item.amount === 1 ? definition.singular : definition.plural);
+    if (size !== "compact" || item.type === "custom") wrapper.appendChild(words);
     wrapper.setAttribute("aria-label", componentWords(item, false));
     return wrapper;
   }
@@ -2158,10 +2153,7 @@
     dom.resultAlternatives.replaceChildren();
     dom.resultCard.setAttribute("aria-label", "Selected: " + entryLabel(entry));
     if (entry.kind !== "structured") {
-      var legacy = document.createElement("strong");
-      legacy.className = "result-card__legacy";
-      legacy.textContent = entry.label;
-      dom.resultPrimary.appendChild(legacy);
+      dom.resultPrimary.appendChild(htmlComponent(component("custom", 1, entry.label), "result"));
     } else {
       appendHtmlBranch(dom.resultPrimary, primaryComponents(entry.reward), "result");
       var primaryIndex = primaryOptionIndex(entry.reward);
@@ -2346,7 +2338,7 @@
   });
 
   dom.composerToggle.addEventListener("click", function () {
-    if (dom.composer.hidden) openComposer(null);
+    if (!dom.rewardDialog.open) openComposer(null);
     else resetComposer(true);
   });
   dom.composerClose.addEventListener("click", function () { resetComposer(true); });
@@ -2420,6 +2412,15 @@
     dom.composerSubmit.disabled = Boolean(validation);
   });
   dom.simpleExpression.addEventListener("change", function (event) {
+    if (event.target.dataset.simpleType && state.simpleComposer) {
+      var typeItem = state.simpleComposer.tokens[Number(event.target.dataset.simpleType)];
+      if (!typeItem || !REWARDS[event.target.value] || event.target.value === "custom") return;
+      typeItem.type = event.target.value;
+      delete typeItem.text;
+      updateComposerFromSimple();
+      renderComposer();
+      return;
+    }
     if (!event.target.dataset.simpleAmount || !state.simpleComposer) return;
     var item = state.simpleComposer.tokens[Number(event.target.dataset.simpleAmount)];
     var amount = Number(event.target.value);
@@ -2565,28 +2566,6 @@
     setStatus(state.riggedEnabled ? "Rigged target enabled for the next spin." : "Rigged mode disabled.");
   });
 
-  dom.sliceList.addEventListener("keydown", function (event) {
-    if (event.key === "Enter" && event.target.classList.contains("slice-label-input")) {
-      event.preventDefault();
-      event.target.blur();
-    }
-  });
-
-  dom.sliceList.addEventListener("change", function (event) {
-    if (!event.target.classList.contains("slice-label-input")) return;
-    var row = event.target.closest("[data-entry-id]");
-    var entry = state.entries.find(function (candidate) { return candidate.id === row.dataset.entryId; });
-    if (!entry) return;
-    var label = cleanText(event.target.value, MAX_LABEL_LENGTH);
-    if (!label) {
-      event.target.value = entry.label;
-      setStatus("Reward labels cannot be blank.", "warning");
-      return;
-    }
-    entry.label = label;
-    commitChange("Reward renamed.");
-  });
-
   dom.sliceList.addEventListener("click", function (event) {
     var button = event.target.closest("[data-action]");
     if (!button) return;
@@ -2596,7 +2575,7 @@
     var entry = state.entries[index];
     var action = button.dataset.action;
 
-    if (action === "edit" && entry.kind === "structured") {
+    if (action === "edit") {
       openComposer(entry);
       return;
     }
@@ -2619,61 +2598,49 @@
     focusRowAction(entry.id, action);
   });
 
-  dom.savePresetForm.addEventListener("submit", async function (event) {
-    event.preventDefault();
-    var name = cleanText(dom.presetName.value, MAX_LABEL_LENGTH);
-    if (!name) {
-      setStatus("Enter a preset name first.", "warning");
-      dom.presetName.focus();
-      return;
-    }
-
-    var existing = findPresetByName(name);
-    var selectedIcon = dom.savePresetForm.querySelector("input[name='presetIcon']:checked").value;
-    if (existing) {
-      var shouldOverwrite = await requestConfirmation({
-        title: "Replace saved wheel?",
-        message: "“" + existing.name + "” already exists. Replace its saved rewards with the current wheel?",
-        confirmLabel: "Replace"
-      });
-      if (!shouldOverwrite) return;
-      existing.entries = cloneEntries(state.entries, false);
-      if (!existing.builtinKey) existing.iconKey = selectedIcon;
-      existing.updatedAt = Date.now();
-      state.draftIdentity = { presetId: existing.id, name: existing.name, iconKey: presetIconKey(existing) };
-      commitChange(existing.name + " updated.");
-    } else {
-      var presetId = createId("preset");
-      var created = {
-        id: presetId,
-        name: name,
-        entries: cloneEntries(state.entries, false),
-        updatedAt: Date.now(),
-        builtinKey: null,
-        iconKey: selectedIcon
-      };
-      state.presets.push(created);
-      state.draftIdentity = { presetId: presetId, name: name, iconKey: selectedIcon };
-      commitChange(name + " saved.");
-    }
-    dom.presetName.value = "";
-  });
-
   dom.newWheelButton.addEventListener("click", async function (event) {
-    // Lives inside <summary>; stop the click from also toggling the details disclosure.
     event.preventDefault();
-    event.stopPropagation();
     var canReplace = !isDraftDirty() || await requestConfirmation({
       title: "Start a new wheel?",
       message: "Starting a new wheel will replace the rewards currently on the wheel.",
       confirmLabel: "New wheel"
     });
     if (!canReplace) return;
-    var name = cleanText(dom.presetName.value, MAX_LABEL_LENGTH) || nextNewWheelName();
+    dom.newWheelName.value = nextNewWheelName();
+    dom.newWheelValidation.textContent = "";
+    dom.newWheelDialog.showModal();
+    window.requestAnimationFrame(function () { dom.newWheelName.select(); });
+  });
+
+  dom.newWheelCancel.addEventListener("click", function () { dom.newWheelDialog.close(); });
+  dom.newWheelForm.addEventListener("submit", function (event) {
+    event.preventDefault();
+    var name = cleanText(dom.newWheelName.value, MAX_LABEL_LENGTH);
+    if (!name) {
+      dom.newWheelValidation.textContent = "Enter a wheel name.";
+      dom.newWheelName.focus();
+      return;
+    }
+    if (findPresetByName(name)) {
+      dom.newWheelValidation.textContent = "A saved wheel already uses that name.";
+      dom.newWheelName.focus();
+      return;
+    }
+    var selectedIcon = dom.newWheelForm.querySelector("input[name='newWheelIcon']:checked").value;
+    var created = {
+      id: createId("preset"),
+      name: name,
+      entries: [],
+      updatedAt: Date.now(),
+      builtinKey: null,
+      iconKey: selectedIcon
+    };
+    state.presets.push(created);
     state.entries = [];
-    state.draftIdentity = { presetId: null, name: name, iconKey: "genex" };
+    state.draftIdentity = { presetId: created.id, name: created.name, iconKey: created.iconKey };
     clearRigging();
-    commitChange(name + " ready to build.");
+    dom.newWheelDialog.close();
+    commitChange(name + " created and ready to build.");
   });
 
   dom.presetList.addEventListener("keydown", function (event) {
@@ -2692,15 +2659,6 @@
     if (!preset) return;
     var action = button.dataset.action;
 
-    if (action === "icon") {
-      if (preset.builtinKey) return;
-      preset.iconKey = validIconKey(button.dataset.iconKey) || preset.iconKey;
-      preset.updatedAt = Date.now();
-      if (state.draftIdentity.presetId === preset.id) state.draftIdentity.iconKey = preset.iconKey;
-      commitChange(preset.name + " icon updated.");
-      return;
-    }
-
     if (action === "load") {
       var canLoad = !isDraftDirty() || await requestConfirmation({
         title: "Replace current wheel?",
@@ -2712,6 +2670,14 @@
       state.draftIdentity = { presetId: preset.id, name: preset.name, iconKey: presetIconKey(preset) };
       clearRigging();
       commitChange(preset.name + " loaded.");
+      return;
+    }
+
+    if (action === "save") {
+      if (state.draftIdentity.presetId !== preset.id) return;
+      preset.entries = cloneEntries(state.entries, false);
+      preset.updatedAt = Date.now();
+      commitChange(preset.name + " saved.");
       return;
     }
 
@@ -2783,6 +2749,7 @@
     syncSoundToggle();
   });
   dom.confirmDialog.addEventListener("close", handleDialogClose);
+  dom.rewardDialog.addEventListener("close", handleRewardDialogClose);
 
   window.addEventListener("click", function (event) {
     if (isUtilityControl(event.target)) return;
