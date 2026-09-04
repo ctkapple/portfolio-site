@@ -700,35 +700,72 @@
     return sortedComponents(components);
   }
 
-  // Full display sequence for a reward: every always-component and every OR branch,
-  // in original order, with "and"/"or" separators marking how they combine. Used
-  // wherever the wheel must show the complete recipe instead of just the best outcome.
-  function entryDisplayTokens(reward) {
-    var tokens = [];
-    var always = sortedComponents(reward.always || []);
-    var options = (reward.options || []).map(sortedComponents);
-    always.forEach(function (item, index) {
-      if (index) tokens.push({ kind: "and" });
-      tokens.push({ kind: "item", item: item });
-    });
-    options.forEach(function (branch, branchIndex) {
-      if (branchIndex === 0) {
-        if (always.length) tokens.push({ kind: "and" });
-      } else {
-        tokens.push({ kind: "or" });
-      }
-      branch.forEach(function (item, itemIndex) {
-        if (itemIndex) tokens.push({ kind: "and" });
-        tokens.push({ kind: "item", item: item });
+  // The wheel treats OR branches as descending visual tiers. Their original order and
+  // full wording remain in the reward data and accessibility labels; this only changes
+  // the compact slice presentation.
+  function rewardDisplayRows(reward) {
+    var rows = [];
+    function appendComponents(components, isSecondaryOption) {
+      components.forEach(function (item, index) {
+        if (index && rows.length) rows[rows.length - 1].dividerAfter = "and";
+        rows.push({ components: [item], isSecondaryOption: Boolean(isSecondaryOption), dividerAfter: null });
       });
+    }
+
+    var always = sortedComponents(reward.always || []);
+    appendComponents(always, false);
+    (reward.options || []).map(function (branch, index) {
+      return { components: sortedComponents(branch), index: index, precedence: branchPrecedence(branch) };
+    }).sort(function (a, b) {
+      return b.precedence - a.precedence || a.index - b.index;
+    }).forEach(function (branch, optionIndex) {
+      if (optionIndex === 0 && always.length && rows.length) rows[rows.length - 1].dividerAfter = "and";
+      appendComponents(branch.components, optionIndex > 0);
     });
-    return tokens;
+    return rows;
   }
 
-  function entryDisplayItemCount(reward) {
-    var count = (reward.always || []).length;
-    (reward.options || []).forEach(function (branch) { count += branch.length; });
-    return count;
+  function rewardTierScale(item) {
+    var scales = { ur: 1, gems: .94, packs: .84, bans: .81, sr: .78, r: .67, n: .58, nr: .5, custom: .66 };
+    return scales[item.type] || .66;
+  }
+
+  function usesNumericRewardDisplay(item) {
+    return item.type === "packs" || item.type === "bans" || item.amount > 4;
+  }
+
+  function rewardVisualSpec(item, baseIconSize) {
+    var unit = baseIconSize * rewardTierScale(item);
+    if (item.type === "custom") {
+      var customSize = Math.max(8, unit * .56);
+      return { kind: "custom", item: item, width: Math.max(unit, Math.min(unit * 3.1, customSize * (item.text.length + (item.amount > 1 ? 3 : 0)))), height: customSize * 1.3, fontSize: customSize };
+    }
+
+    if (usesNumericRewardDisplay(item)) {
+      var iconSize = unit * .84;
+      var fontSize = Math.max(8, unit * .54);
+      var numberWidth = fontSize * (String(item.amount).length * .74 + .45);
+      return { kind: "number", item: item, width: numberWidth + iconSize + 4, height: Math.max(iconSize, fontSize), iconSize: iconSize, fontSize: fontSize, numberWidth: numberWidth };
+    }
+
+    var clusterCount = item.amount;
+    var clusterScale = { 1: 1, 2: .72, 3: .6, 4: .54 }[clusterCount];
+    var clusterIconSize = unit * clusterScale;
+    var gap = clusterCount === 1 ? 0 : Math.max(1.5, clusterIconSize * .08);
+    var positions;
+    if (clusterCount === 1) positions = [{ x: 0, y: 0 }];
+    else if (clusterCount === 2) positions = [{ x: 0, y: 0 }, { x: clusterIconSize + gap, y: 0 }];
+    else if (clusterCount === 3) positions = [
+      { x: 0, y: 0 }, { x: clusterIconSize + gap, y: 0 },
+      { x: (clusterIconSize + gap) / 2, y: clusterIconSize + gap }
+    ];
+    else positions = [
+      { x: 0, y: 0 }, { x: clusterIconSize + gap, y: 0 },
+      { x: 0, y: clusterIconSize + gap }, { x: clusterIconSize + gap, y: clusterIconSize + gap }
+    ];
+    var clusterWidth = clusterCount === 1 ? clusterIconSize : clusterIconSize * 2 + gap;
+    var clusterHeight = clusterCount <= 2 ? clusterIconSize : clusterIconSize * 2 + gap;
+    return { kind: "cluster", item: item, width: clusterWidth, height: clusterHeight, iconSize: clusterIconSize, positions: positions };
   }
 
   function presetEntry(always, options) {
@@ -1043,83 +1080,78 @@
       return;
     }
 
-    var tokens = entryDisplayTokens(entry.reward);
-    var itemCount = tokens.filter(function (token) { return token.kind === "item"; }).length;
-    var scale = itemCount <= 2 ? 1 : itemCount === 3 ? 0.95 : itemCount === 4 ? 0.8 : itemCount === 5 ? 0.68 : 0.58;
-    var iconSize = (count <= 8 ? 38 : count <= 18 ? 30 : count <= 36 ? 23 : 18) * scale;
-    var fontSize = (count <= 8 ? 17 : count <= 18 ? 14 : count <= 36 ? 11 : 9) * scale;
+    var rows = rewardDisplayRows(entry.reward);
+    var baseIconSize = (count <= 8 ? 96 : count <= 18 ? 70 : count <= 36 ? 52 : 36) + 6 * expansion;
+    var blocks = [];
+    rows.forEach(function (row, index) {
+      if (index && rows[index - 1].dividerAfter === "and") blocks.push({ kind: "divider", height: 16, width: 16, isSecondaryOption: row.isSecondaryOption });
+      var specs = row.components.map(function (item) { return rewardVisualSpec(item, baseIconSize); });
+      var gap = specs.length > 1 ? 7 : 0;
+      var plusWidth = specs.length > 1 ? 11 : 0;
+      var width = specs.reduce(function (sum, spec) { return sum + spec.width; }, 0) + (specs.length - 1) * (gap + plusWidth);
+      var height = specs.reduce(function (largest, spec) { return Math.max(largest, spec.height); }, 0);
+      blocks.push({ kind: "row", specs: specs, width: width, height: height, gap: gap, plusWidth: plusWidth, isSecondaryOption: row.isSecondaryOption });
+    });
 
-    function tokenWidths(iconSize, fontSize) {
-      // Zen Dots renders noticeably wider than the legacy sans stack (~1.5x on digits), so the
-      // amount-digit-before-icon gap needs extra headroom or the two visually collide.
-      return { pair: iconSize + fontSize * 2.1, iconOnly: iconSize * 1.15, and: fontSize * 1.25, or: fontSize * 1.7 };
-    }
-    // A quantity-1 icon has no amount digit next to it, so it only needs its own width, not the full pair width.
-    function tokenWidth(token, w) {
-      if (token.kind === "and") return w.and;
-      if (token.kind === "or") return w.or;
-      return (token.item.amount === 1 && token.item.type !== "custom") ? w.iconOnly : w.pair;
-    }
-
-    var w = tokenWidths(iconSize, fontSize);
-    var totalWidth = tokens.reduce(function (sum, token) { return sum + tokenWidth(token, w); }, 0);
-
-    // Clamp the whole shorthand to the wedge's actual chord width at its label radius so it
-    // never bleeds into neighboring slices or past the rim, however many OR alternatives it lists.
-    if (sliceAngle && labelRadius) {
-      var wedgeChord = 2 * labelRadius * Math.sin((sliceAngle / 2) * Math.PI / 180) * 0.92;
-      if (totalWidth > wedgeChord) {
-        var fitScale = Math.max(0.45, wedgeChord / totalWidth);
-        iconSize *= fitScale;
-        fontSize *= fitScale;
-        w = tokenWidths(iconSize, fontSize);
-        totalWidth = tokens.reduce(function (sum, token) { return sum + tokenWidth(token, w); }, 0);
-      }
-    }
+    var rowGap = 7;
+    var totalHeight = blocks.reduce(function (sum, block) { return sum + block.height; }, 0) + Math.max(0, blocks.length - 1) * rowGap;
+    var widest = blocks.reduce(function (largest, block) { return Math.max(largest, block.width); }, 0);
+    var wedgeChord = sliceAngle && labelRadius ? 2 * labelRadius * Math.sin((sliceAngle / 2) * Math.PI / 180) * .9 : widest;
+    // Fill the safe radial band between Spheal and the rim before shrinking a reward.
+    var availableHeight = Math.max(40, 2 * Math.min(labelRadius - 100, 268 - labelRadius));
+    var fitScale = Math.min(1, wedgeChord / Math.max(widest, 1), availableHeight / Math.max(totalHeight, 1));
+    fitScale = Math.max(.25, fitScale);
 
     var shorthand = svgElement("g", {
-      class: "wheel-slice__shorthand wheel-slice__shorthand--" + itemCount,
-      transform: "translate(" + position.x + " " + position.y + ") rotate(" + rotation + ") translate(" + (-totalWidth / 2) + " 0)"
+      class: "wheel-slice__shorthand wheel-slice__reward-stack",
+      transform: "translate(" + position.x + " " + position.y + ") rotate(" + rotation + ") scale(" + fitScale + ")"
     });
-    var cursor = 0;
-    tokens.forEach(function (token) {
-      var width = tokenWidth(token, w);
-      if (token.kind === "and") {
-        var plus = svgElement("text", { class: "wheel-slice__plus", x: String(cursor + width / 2), y: "1", "font-size": String(fontSize), "text-anchor": "middle", "dominant-baseline": "middle" });
-        plus.textContent = "+";
-        shorthand.appendChild(plus);
-        cursor += width;
+    var cursorY = -totalHeight / 2;
+    blocks.forEach(function (block) {
+      if (block.kind === "divider") {
+        var divider = svgElement("text", { class: "wheel-slice__plus wheel-slice__always-divider" + (block.isSecondaryOption ? " is-secondary-option" : ""), x: "0", y: String(cursorY + block.height / 2), "font-size": "16", "text-anchor": "middle", "dominant-baseline": "middle" });
+        divider.textContent = "+";
+        shorthand.appendChild(divider);
+        cursorY += block.height + rowGap;
         return;
       }
-      if (token.kind === "or") {
-        var or = svgElement("text", { class: "wheel-slice__or", x: String(cursor + width / 2), y: "1", "font-size": String(fontSize * 0.72), "text-anchor": "middle", "dominant-baseline": "middle" });
-        or.textContent = "OR";
-        shorthand.appendChild(or);
-        cursor += width;
-        return;
-      }
-      var item = token.item;
-      var showAmount = item.amount !== 1;
-      if (showAmount) {
-        var amount = svgElement("text", { class: "wheel-slice__amount", x: String(cursor + fontSize * 0.62), y: "1", "font-size": String(fontSize), "text-anchor": "middle", "dominant-baseline": "middle" });
-        amount.textContent = String(item.amount);
-        shorthand.appendChild(amount);
-      }
-      if (item.type === "custom") {
-        var custom = svgElement("text", { class: "wheel-slice__custom", x: String(cursor + (showAmount ? fontSize * 2.0 : fontSize * 0.3)), y: "1", "font-size": String(fontSize * 0.76), "dominant-baseline": "middle" });
-        custom.textContent = abbreviatedLabel(item.text, count);
-        shorthand.appendChild(custom);
-      } else {
-        var definition = REWARDS[item.type];
-        var iconX = showAmount ? cursor + fontSize * 1.8 : cursor + (width - iconSize) / 2;
-        shorthand.appendChild(svgElement("image", {
-          class: "wheel-slice__icon wheel-slice__icon--" + (definition.crop || item.type),
-          href: definition.image,
-          x: String(iconX), y: String(-iconSize / 2), width: String(iconSize), height: String(iconSize),
-          preserveAspectRatio: "xMidYMid slice"
-        }));
-      }
-      cursor += width;
+
+      var cursorX = -block.width / 2;
+      var rowGroup = svgElement("g", { class: block.isSecondaryOption ? "wheel-slice__option--secondary" : "" });
+      block.specs.forEach(function (spec, index) {
+        var itemY = cursorY + (block.height - spec.height) / 2;
+        if (index) {
+          var plus = svgElement("text", { class: "wheel-slice__plus", x: String(cursorX + block.plusWidth / 2), y: String(cursorY + block.height / 2), "font-size": "13", "text-anchor": "middle", "dominant-baseline": "middle" });
+          plus.textContent = "+";
+          rowGroup.appendChild(plus);
+          cursorX += block.plusWidth + block.gap;
+        }
+        if (spec.kind === "custom") {
+          var custom = svgElement("text", { class: "wheel-slice__custom", x: String(cursorX), y: String(itemY + spec.height / 2), "font-size": String(spec.fontSize), "dominant-baseline": "middle" });
+          custom.textContent = (spec.item.amount > 1 ? spec.item.amount + " × " : "") + abbreviatedLabel(spec.item.text, count);
+          rowGroup.appendChild(custom);
+        } else if (spec.kind === "number") {
+          var amount = svgElement("text", { class: "wheel-slice__amount", x: String(cursorX + spec.numberWidth / 2), y: String(itemY + spec.height / 2), "font-size": String(spec.fontSize), "text-anchor": "middle", "dominant-baseline": "middle" });
+          amount.textContent = String(spec.item.amount);
+          rowGroup.appendChild(amount);
+          var numericDefinition = REWARDS[spec.item.type];
+          rowGroup.appendChild(svgElement("image", {
+            class: "wheel-slice__icon wheel-slice__icon--" + (numericDefinition.crop || spec.item.type), href: numericDefinition.image,
+            x: String(cursorX + spec.numberWidth + 4), y: String(itemY + (spec.height - spec.iconSize) / 2), width: String(spec.iconSize), height: String(spec.iconSize), preserveAspectRatio: "xMidYMid slice"
+          }));
+        } else {
+          var definition = REWARDS[spec.item.type];
+          spec.positions.forEach(function (iconPosition) {
+            rowGroup.appendChild(svgElement("image", {
+              class: "wheel-slice__icon wheel-slice__icon--" + (definition.crop || spec.item.type), href: definition.image,
+              x: String(cursorX + iconPosition.x), y: String(itemY + iconPosition.y), width: String(spec.iconSize), height: String(spec.iconSize), preserveAspectRatio: "xMidYMid slice"
+            }));
+          });
+        }
+        cursorX += spec.width;
+      });
+      shorthand.appendChild(rowGroup);
+      cursorY += block.height + rowGap;
     });
     group.appendChild(shorthand);
   }
@@ -1131,7 +1163,7 @@
 
     var count = entries.length;
     if (!count) {
-      dom.wheelDescription.textContent = "The wheel is empty. Add an entry to begin.";
+      dom.wheelDescription.textContent = "The wheel is empty. Add a reward to begin.";
       dom.rotor.style.transform = "rotate(" + state.rotation + "deg)";
       return;
     }
@@ -1190,15 +1222,13 @@
         }));
       }
 
-      var displayItemCount = entry.kind === "structured" ? entryDisplayItemCount(entry.reward) : 0;
-      var baseLabelRadius = displayItemCount >= 5 ? 150 : displayItemCount === 4 ? 160 : displayItemCount === 3 ? 170
-        : displayItemCount === 2 ? 180 : displayItemCount === 1 ? 220 : 238;
+      var displayRowCount = entry.kind === "structured" ? rewardDisplayRows(entry.reward).length : 0;
+      var baseLabelRadius = displayRowCount >= 2 ? 184 : displayRowCount === 1 ? 220 : 238;
       var labelRadius = baseLabelRadius + 8 * winnerExpansion;
       var position = polar(labelRadius, centerAngle);
-      var rotation = centerAngle;
-      if (normalizeAngle(centerAngle) > 90 && normalizeAngle(centerAngle) < 270) {
-        rotation += 180;
-      }
+      // Local positive Y points toward the center button, making the lowest tier
+      // rest against the wheel's visual floor on every wedge.
+      var rotation = centerAngle + 90;
       appendSvgShorthand(group, entry, position, rotation, count, winnerExpansion, sliceAngle, labelRadius);
       dom.rotor.appendChild(group);
     });
@@ -1206,8 +1236,8 @@
     dom.rotor.style.transform = "rotate(" + state.rotation + "deg)";
     var selected = winnerId && entries.find(function (entry) { return entry.id === winnerId; });
     dom.wheelDescription.textContent = selected
-      ? "The selected entry is " + entryLabel(selected) + "."
-      : "A wheel with " + count + (count === 1 ? " equal entry." : " equal entries.");
+      ? "The selected reward is " + entryLabel(selected) + "."
+      : "A wheel with " + count + (count === 1 ? " equal reward." : " equal rewards.");
   }
 
   function makeButton(className, text, label, action) {
@@ -1236,7 +1266,7 @@
     dom.riggedWinner.replaceChildren();
     var placeholder = document.createElement("option");
     placeholder.value = "";
-    placeholder.textContent = state.entries.length ? "Choose an entry" : "Add entries first";
+    placeholder.textContent = state.entries.length ? "Choose a reward" : "Add rewards first";
     dom.riggedWinner.appendChild(placeholder);
 
     // Identical entries collapse into one option, keyed by the first entry with that
@@ -1266,7 +1296,7 @@
     if (!state.entries.length) {
       var empty = document.createElement("li");
       empty.className = "empty-list";
-      empty.textContent = "No entries yet.";
+      empty.textContent = "No rewards yet.";
       dom.sliceList.appendChild(empty);
       return;
     }
@@ -1301,7 +1331,7 @@
         input.maxLength = MAX_LABEL_LENGTH;
         input.value = entry.label;
         input.autocomplete = "off";
-        input.setAttribute("aria-label", "Rename entry " + (index + 1));
+        input.setAttribute("aria-label", "Rename reward " + (index + 1));
         identity.appendChild(input);
       }
 
@@ -1340,24 +1370,60 @@
   }
 
   function appendCompactReward(container, reward) {
-    var always = sortedComponents(reward.always || []);
-    var options = (reward.options || []).map(sortedComponents);
-    appendHtmlBranch(container, always, "compact");
-    if (always.length && options.length) {
-      var and = document.createElement("span");
-      and.className = "reward-plus";
-      and.textContent = "+";
-      container.appendChild(and);
-    }
-    options.forEach(function (branch, index) {
-      if (index) {
-        var or = document.createElement("span");
-        or.className = "reward-or";
-        or.textContent = "OR";
-        container.appendChild(or);
+    var rows = rewardDisplayRows(reward);
+    rows.forEach(function (row, rowIndex) {
+      if (rowIndex && rows[rowIndex - 1].dividerAfter === "and") {
+        var divider = document.createElement("span");
+        divider.className = "slice-structured-divider" + (row.isSecondaryOption ? " is-secondary-option" : "");
+        divider.textContent = "+";
+        container.appendChild(divider);
       }
-      appendHtmlBranch(container, branch, "compact");
+      var rowElement = document.createElement("span");
+      rowElement.className = "slice-structured-row" + (row.isSecondaryOption ? " is-secondary-option" : "");
+      row.components.forEach(function (item, itemIndex) {
+        if (itemIndex) {
+          var plus = document.createElement("span");
+          plus.className = "reward-plus";
+          plus.textContent = "+";
+          rowElement.appendChild(plus);
+        }
+        appendCompactRewardItem(rowElement, item);
+      });
+      container.appendChild(rowElement);
     });
+  }
+
+  function appendCompactRewardItem(container, item) {
+    var token = document.createElement("span");
+    token.className = "slice-compact-reward";
+    token.style.setProperty("--reward-scale", String(rewardTierScale(item)));
+    token.setAttribute("aria-label", componentWords(item, false));
+    if (item.type === "custom") {
+      var custom = document.createElement("span");
+      custom.textContent = (item.amount > 1 ? item.amount + " × " : "") + item.text;
+      token.appendChild(custom);
+    } else if (usesNumericRewardDisplay(item)) {
+      var amount = document.createElement("b");
+      amount.textContent = String(item.amount);
+      token.appendChild(amount);
+      var numericImage = document.createElement("img");
+      numericImage.src = REWARDS[item.type].image;
+      numericImage.alt = "";
+      numericImage.className = "slice-compact-reward__icon slice-compact-reward__icon--" + (REWARDS[item.type].crop || item.type);
+      token.appendChild(numericImage);
+    } else {
+      var cluster = document.createElement("span");
+      cluster.className = "slice-reward-cluster slice-reward-cluster--" + item.amount;
+      for (var index = 0; index < item.amount; index += 1) {
+        var image = document.createElement("img");
+        image.src = REWARDS[item.type].image;
+        image.alt = "";
+        image.className = "slice-compact-reward__icon slice-compact-reward__icon--" + (REWARDS[item.type].crop || item.type);
+        cluster.appendChild(image);
+      }
+      token.appendChild(cluster);
+    }
+    container.appendChild(token);
   }
 
   function renderWheelIdentity() {
@@ -1418,7 +1484,7 @@
       input.setAttribute("aria-label", "Rename preset " + preset.name);
       var count = document.createElement("span");
       count.className = "preset-row__count";
-      count.textContent = preset.entries.length + (preset.entries.length === 1 ? " entry" : " entries");
+      count.textContent = preset.entries.length + (preset.entries.length === 1 ? " reward" : " rewards");
       top.append(icon, input, count);
 
       var actions = document.createElement("div");
@@ -1468,7 +1534,7 @@
     var count = state.entries.length;
     var atLimit = count >= MAX_ENTRIES;
     dom.spinButton.disabled = count === 0;
-    dom.spinCount.textContent = count ? count + (count === 1 ? " entry" : " entries") : "No entries";
+    dom.spinCount.textContent = count ? count + (count === 1 ? " reward" : " rewards") : "No rewards";
     dom.entryTotal.textContent = count + " / " + MAX_ENTRIES;
     dom.emptyWheel.hidden = count !== 0;
     var quantity = state.quantity;
@@ -1478,13 +1544,13 @@
       var name = quantity === 1 ? (definition.shortSingular || definition.singular) : (definition.shortPlural || definition.plural);
       button.disabled = atLimit;
       button.querySelector("span").textContent = quantity + " " + name;
-      button.setAttribute("aria-label", "Add one " + quantity + " " + name + " wheel entry");
+      button.setAttribute("aria-label", "Add one " + quantity + " " + name + " wheel reward");
     });
     document.querySelectorAll("[data-composer-reward]").forEach(function (button) {
       var definition = REWARDS[button.dataset.composerReward];
       var name = quantity === 1 ? (definition.shortSingular || definition.singular) : (definition.shortPlural || definition.plural);
       button.querySelector("span").textContent = quantity + " " + name;
-      button.setAttribute("aria-label", "Use " + quantity + " " + name + " in the combined entry");
+      button.setAttribute("aria-label", "Use " + quantity + " " + name + " in the combined reward");
     });
     var customAddButton = dom.customForm.querySelector("button[type='submit']");
     customAddButton.disabled = atLimit;
@@ -1566,7 +1632,7 @@
     dom.composerSimpleCustomAdd.disabled = !compatible || simple.tokens.length >= 3;
 
     if (!compatible) {
-      dom.composerSimpleNote.textContent = "This entry uses a more complex saved structure. Edit it under Advanced structure without losing any rewards.";
+      dom.composerSimpleNote.textContent = "This reward uses a more complex saved structure. Edit it under Advanced structure without losing any rewards.";
     } else if (!simple.tokens.length) {
       dom.composerSimpleNote.textContent = "Choose the first reward above.";
     } else if (simple.tokens.length >= 3) {
@@ -1643,8 +1709,8 @@
     if (reward.options.length === 1) return "Choose one needs at least two alternatives, or remove that alternative.";
     if (reward.options.some(function (branch) { return !branch.length; })) return "Every alternative needs at least one component.";
     if (components.some(function (item) { return item.type === "custom" && !cleanText(item.text, MAX_LABEL_LENGTH); })) return "Custom components need readable text.";
-    if (primaryComponents(reward).length > 3) return "The primary wheel shorthand can show at most three components.";
-    if (!state.editingEntryId && state.entries.length >= MAX_ENTRIES) return "The wheel is limited to " + MAX_ENTRIES + " entries.";
+    if (primaryComponents(reward).length > 3) return "The primary wheel reward display can show at most three components.";
+    if (!state.editingEntryId && state.entries.length >= MAX_ENTRIES) return "The wheel is limited to " + MAX_ENTRIES + " rewards.";
     return "";
   }
 
@@ -1749,7 +1815,7 @@
     var validation = composerValidationMessage();
     dom.composerValidation.textContent = validation;
     dom.composerSubmit.disabled = Boolean(validation);
-    dom.composerSubmit.textContent = state.editingEntryId ? "Update wheel entry" : "Add entry to wheel";
+    dom.composerSubmit.textContent = state.editingEntryId ? "Update wheel reward" : "Add reward to wheel";
   }
 
   function emptyComposerNote(text) {
@@ -1806,7 +1872,7 @@
 
   function addEntry(entry) {
     if (state.entries.length >= MAX_ENTRIES) {
-      setStatus("The wheel is limited to " + MAX_ENTRIES + " entries.", "warning");
+      setStatus("The wheel is limited to " + MAX_ENTRIES + " rewards.", "warning");
       return false;
     }
     state.entries.push(entry);
@@ -2201,7 +2267,7 @@
     state.phase = "result";
     document.body.classList.add("is-result");
     dom.spinButton.setAttribute("aria-label", "Dismiss result");
-    dom.resultAnnouncement.textContent = "Selected: " + entryLabel(winner) + ". Click anywhere or press any key to return to setup.";
+    dom.resultAnnouncement.textContent = "Selected reward: " + entryLabel(winner) + ". Click anywhere or press any key to return to setup.";
   }
 
   function exitResult() {
@@ -2241,7 +2307,7 @@
       var type = button.dataset.reward;
       var entry = structuredEntry([component(type, state.quantity)], []);
       if (addEntry(entry)) {
-        commitChange(entryLabel(entry) + " added as one wheel entry.");
+        commitChange(entryLabel(entry) + " added as one wheel reward.");
       }
     });
   });
@@ -2275,7 +2341,7 @@
     }
     if (!addEntry({ id: createId("entry"), kind: "custom", label: label, presetKind: null })) return;
     dom.customLabel.value = "";
-    commitChange(label + " added as one wheel entry.");
+    commitChange(label + " added as one wheel reward.");
     dom.customLabel.focus();
   });
 
@@ -2469,11 +2535,11 @@
     if (state.editingEntryId) {
       var index = state.entries.findIndex(function (entry) { return entry.id === state.editingEntryId; });
       if (index >= 0) state.entries[index] = { id: state.editingEntryId, kind: "structured", reward: reward };
-      commitChange("Structured entry updated.");
+      commitChange("Structured reward updated.");
     } else {
       var entry = structuredEntry(reward.always, reward.options);
       if (!addEntry(entry)) return;
-      commitChange(entryLabel(entry) + " added as one wheel entry.");
+      commitChange(entryLabel(entry) + " added as one wheel reward.");
     }
     resetComposer(true);
   });
@@ -2514,11 +2580,11 @@
     var label = cleanText(event.target.value, MAX_LABEL_LENGTH);
     if (!label) {
       event.target.value = entry.label;
-      setStatus("Entry labels cannot be blank.", "warning");
+      setStatus("Reward labels cannot be blank.", "warning");
       return;
     }
     entry.label = label;
-    commitChange("Entry renamed.");
+    commitChange("Reward renamed.");
   });
 
   dom.sliceList.addEventListener("click", function (event) {
@@ -2567,7 +2633,7 @@
     if (existing) {
       var shouldOverwrite = await requestConfirmation({
         title: "Replace saved wheel?",
-        message: "“" + existing.name + "” already exists. Replace its saved entries with the current wheel?",
+        message: "“" + existing.name + "” already exists. Replace its saved rewards with the current wheel?",
         confirmLabel: "Replace"
       });
       if (!shouldOverwrite) return;
@@ -2599,7 +2665,7 @@
     event.stopPropagation();
     var canReplace = !isDraftDirty() || await requestConfirmation({
       title: "Start a new wheel?",
-      message: "Starting a new wheel will replace the entries currently on the wheel.",
+      message: "Starting a new wheel will replace the rewards currently on the wheel.",
       confirmLabel: "New wheel"
     });
     if (!canReplace) return;
@@ -2638,7 +2704,7 @@
     if (action === "load") {
       var canLoad = !isDraftDirty() || await requestConfirmation({
         title: "Replace current wheel?",
-        message: "Loading “" + preset.name + "” will replace the entries currently on the wheel.",
+        message: "Loading “" + preset.name + "” will replace the rewards currently on the wheel.",
         confirmLabel: "Load preset"
       });
       if (!canLoad) return;

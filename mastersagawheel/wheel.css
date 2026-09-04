@@ -1714,6 +1714,15 @@ summary:focus-visible {
 }
 
 .wheel-slice__custom { font-weight: 720; }
+.wheel-slice__always-divider {
+  opacity: .78;
+  font-size: 14px;
+}
+
+.wheel-slice__option--secondary,
+.wheel-slice__always-divider.is-secondary-option {
+  opacity: .8;
+}
 .wheel-slice__or {
   fill: var(--slice-text, #fff);
   font-family: var(--font-display);
@@ -1819,19 +1828,76 @@ summary:focus-visible {
 }
 
 .slice-structured-visual {
-  display: flex;
+  display: grid;
   min-width: 0;
-  align-items: center;
-  gap: 4px;
+  justify-items: start;
+  gap: 3px;
   overflow: hidden;
 }
 
-.slice-structured-visual .reward-plus,
-.slice-structured-visual .reward-or {
+.slice-structured-row {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 3px;
+}
+
+.slice-structured-divider,
+.slice-structured-visual .reward-plus {
   color: rgba(234, 240, 255, .72);
   font-size: .57rem;
   font-weight: 800;
 }
+
+.slice-structured-divider {
+  line-height: .8;
+  margin: 0 0 0 2px;
+}
+
+.slice-structured-row.is-secondary-option,
+.slice-structured-divider.is-secondary-option {
+  opacity: .8;
+}
+
+.slice-compact-reward {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 3px;
+  color: #fff;
+}
+
+.slice-compact-reward > b,
+.slice-compact-reward > span {
+  font-size: .62rem;
+  font-weight: 850;
+}
+
+.slice-compact-reward__icon {
+  width: calc(24px * var(--reward-scale, 1));
+  height: calc(24px * var(--reward-scale, 1));
+  border-radius: 5px;
+  object-fit: contain;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .62));
+}
+
+.slice-compact-reward__icon--pack,
+.slice-compact-reward__icon--pot {
+  object-fit: cover;
+}
+
+.slice-compact-reward__icon--pack { object-position: 50% 30%; }
+.slice-compact-reward__icon--pot { object-position: 50% 44%; }
+
+.slice-reward-cluster {
+  display: inline-grid;
+  grid-template-columns: repeat(2, auto);
+  gap: 1px;
+  align-items: center;
+}
+
+.slice-reward-cluster--1 { grid-template-columns: auto; }
+.slice-reward-cluster--3 > :nth-child(3) { grid-column: 1 / span 2; justify-self: center; }
 
 .result-card__legacy { font-size: 1.55rem; }
 .result-card__dismiss { margin: 13px 0 0; color: #77849a; font-size: .6rem; text-align: center; }
