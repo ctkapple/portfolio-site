@@ -2026,7 +2026,7 @@ summary:focus-visible {
   z-index: 1;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(115deg, transparent 42%, rgb(255 255 255 / .9) 50%, transparent 58%);
+  background: linear-gradient(115deg, transparent 35%, rgb(255 255 255 / .68) 50%, transparent 65%);
   background-size: 300% 100%;
   background-position: -140% 0;
   -webkit-mask-image: var(--hero-icon-mask);
@@ -2048,14 +2048,16 @@ summary:focus-visible {
 }
 
 .is-result .hero-icon-frame::after {
-  animation: winner-icon-sheen 3.8s cubic-bezier(.4, 0, .2, 1) infinite;
+  animation: winner-icon-sheen 9s cubic-bezier(.42, 0, .2, 1) infinite;
 }
 
 @keyframes winner-icon-sheen {
-  0%, 50%, 100% { opacity: 0; background-position: -140% 0; }
-  8% { opacity: 1; }
-  32% { opacity: 1; background-position: 240% 0; }
-  40% { opacity: 0; background-position: 240% 0; }
+  0%, 100% { opacity: 0; background-position: -150% 0; }
+  12% { opacity: .14; background-position: -122% 0; }
+  32% { opacity: .42; background-position: -34% 0; }
+  54% { opacity: .68; background-position: 104% 0; }
+  70% { opacity: .32; background-position: 218% 0; }
+  82% { opacity: 0; background-position: 290% 0; }
 }
 
 /* The wheel slice's own cluster shapes, at full size: two abreast, three as 2 + 1 centred,
