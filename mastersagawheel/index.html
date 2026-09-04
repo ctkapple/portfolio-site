@@ -24,7 +24,7 @@
   <main class="app-shell">
     <aside class="side-rail side-rail--left setup-only" aria-label="Wheel setup">
       <section class="editor-section editor-section--add" aria-labelledby="add-heading">
-        <div class="section-heading">
+        <div class="section-heading section-heading--with-total">
           <h2 id="add-heading">Rewards</h2>
           <output class="entry-total" id="entry-total">0 / 60</output>
         </div>
@@ -68,6 +68,7 @@
       <header class="wheel-identity" id="wheel-identity">
         <img id="wheel-identity-icon" src="Genex_Controller-Icon-Master_Duel.png" alt="">
         <h1 id="wheel-identity-name">Custom Wheel</h1>
+        <img id="wheel-identity-icon-end" src="Genex_Controller-Icon-Master_Duel.png" alt="">
       </header>
 
       <div class="wheel-shell" id="wheel-shell">
@@ -157,8 +158,8 @@
   </div>
 
   <div class="utility-chips" aria-label="Page utilities">
-    <a class="feedback-chip" href="https://forms.gle/cAHrPmv7hJ1EaCwV8" target="_blank" rel="noopener noreferrer">Feedback</a>
     <button class="sound-chip" id="sound-toggle" type="button" aria-pressed="true">Sound on</button>
+    <a class="feedback-chip" href="https://forms.gle/cAHrPmv7hJ1EaCwV8" target="_blank" rel="noopener noreferrer">Feedback</a>
   </div>
 
   <dialog class="wheel-dialog" id="reward-dialog" aria-labelledby="composer-heading">

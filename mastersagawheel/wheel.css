@@ -163,7 +163,8 @@ summary:focus-visible {
 }
 
 .wheel-identity {
-  display: flex;
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr) 58px;
   min-width: min(440px, 90%);
   align-items: center;
   justify-content: center;
@@ -192,6 +193,8 @@ summary:focus-visible {
   font-size: clamp(1.65rem, 2.2vw, 2.4rem);
   line-height: 1;
   letter-spacing: -.01em;
+  overflow-wrap: anywhere;
+  text-align: center;
   text-shadow: 0 0 24px color-mix(in srgb, var(--preset-primary) 32%, transparent);
 }
 
@@ -509,9 +512,10 @@ summary:focus-visible {
 }
 
 .section-heading {
+  position: relative;
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
+  align-items: center;
+  justify-content: center;
   gap: 18px;
   margin-bottom: 18px;
 }
@@ -535,6 +539,15 @@ summary:focus-visible {
 
 .entry-total {
   font-variant-numeric: tabular-nums;
+}
+
+/* Keep the heading at the rail's visual center while the changing count stays out of its way. */
+.section-heading--with-total .entry-total {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  margin: 0;
+  transform: translateY(-50%);
 }
 
 .quantity-row {

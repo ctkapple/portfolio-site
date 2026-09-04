@@ -142,6 +142,7 @@
     composerSourceMount: document.getElementById("composer-source-mount"),
     simpleExpression: document.getElementById("simple-expression"),
     wheelIdentityIcon: document.getElementById("wheel-identity-icon"),
+    wheelIdentityIconEnd: document.getElementById("wheel-identity-icon-end"),
     wheelIdentityName: document.getElementById("wheel-identity-name"),
     soundToggle: document.getElementById("sound-toggle")
   };
@@ -188,6 +189,9 @@
     ],
     landImpact: "sounds/lowFrequency_explosion_001.ogg",
     landChime: "sounds/laserLarge_002.ogg",
+    editorAdd: "sounds/laserLarge_003.ogg",
+    editorMove: "sounds/laserSmall_003.ogg",
+    editorLoad: "sounds/laserLarge_004.ogg",
     music: "sounds/Finish.mp3"
   };
   var audioController = new SoundController();
@@ -250,7 +254,8 @@
   SoundController.prototype.warm = function () {
     var self = this;
     if (!this.ensureContext()) return;
-    [SOUND_ASSETS.arm, SOUND_ASSETS.launch, SOUND_ASSETS.landImpact, SOUND_ASSETS.landChime, SOUND_ASSETS.music]
+    [SOUND_ASSETS.arm, SOUND_ASSETS.launch, SOUND_ASSETS.landImpact, SOUND_ASSETS.landChime,
+      SOUND_ASSETS.editorAdd, SOUND_ASSETS.editorMove, SOUND_ASSETS.editorLoad, SOUND_ASSETS.music]
       .concat(SOUND_ASSETS.ticks)
       .forEach(function (url) { self.load(url).catch(function () {}); });
   };
@@ -439,6 +444,18 @@
     soundEvents.addEventListener("winnerReveal", function () {
       audioController.play(SOUND_ASSETS.landImpact, { gain: 0.28 });
       audioController.play(SOUND_ASSETS.landChime, { gain: 0.2, delay: 0.04, rate: 1.06 });
+    });
+    soundEvents.addEventListener("rewardAdded", function () {
+      audioController.play(SOUND_ASSETS.editorAdd, { gain: 0.13, rate: 0.98 });
+    });
+    soundEvents.addEventListener("rewardRemoved", function () {
+      audioController.play(SOUND_ASSETS.landImpact, { gain: 0.12, rate: 0.9 });
+    });
+    soundEvents.addEventListener("rewardMoved", function () {
+      audioController.play(SOUND_ASSETS.editorMove, { gain: 0.1 });
+    });
+    soundEvents.addEventListener("presetLoaded", function () {
+      audioController.play(SOUND_ASSETS.editorLoad, { gain: 0.18 });
     });
     soundEvents.addEventListener("exitResult", function () {
       audioController.stopAll(0.12);
@@ -1444,8 +1461,10 @@
   function renderWheelIdentity() {
     var theme = PRESET_THEMES[validIconKey(state.draftIdentity.iconKey) || "genex"];
     dom.wheelIdentityName.textContent = state.draftIdentity.name || "Custom Wheel";
-    dom.wheelIdentityIcon.src = theme.image;
-    dom.wheelIdentityIcon.alt = "";
+    [dom.wheelIdentityIcon, dom.wheelIdentityIconEnd].forEach(function (icon) {
+      icon.src = theme.image;
+      icon.alt = "";
+    });
     document.body.style.setProperty("--preset-primary", theme.primary);
     document.body.style.setProperty("--preset-secondary", theme.secondary);
     document.body.style.setProperty("--preset-deep", theme.deep);
@@ -2612,9 +2631,11 @@
         }
         return;
       }
+      audioController.unlock();
       var entry = structuredEntry([item], []);
       if (addEntry(entry)) {
         commitChange(entryLabel(entry) + " added as one wheel reward.");
+        emitSoundEvent("rewardAdded");
       }
     });
   });
@@ -2676,10 +2697,12 @@
       }
       return;
     }
+    audioController.unlock();
     var entry = structuredEntry([item], []);
     if (!addEntry(entry)) return;
     dom.customLabel.value = "";
     commitChange(entryLabel(entry) + " added as one wheel reward.");
+    emitSoundEvent("rewardAdded");
     dom.customLabel.focus();
   });
   dom.customLabel.addEventListener("input", syncControls);
@@ -2731,9 +2754,11 @@
       if (index >= 0) state.entries[index] = { id: state.editingEntryId, kind: "structured", reward: reward };
       commitChange("Wheel reward updated.");
     } else {
+      audioController.unlock();
       var entry = structuredEntry(reward.always, reward.options);
       if (!addEntry(entry)) return;
       commitChange(entryLabel(entry) + " added as one wheel reward.");
+      emitSoundEvent("rewardAdded");
     }
     resetComposer(true);
   });
@@ -2790,6 +2815,8 @@
     var entry = state.entries[index];
     var action = button.dataset.action;
 
+    if (action === "remove" || action === "up" || action === "down") audioController.unlock();
+
     if (action !== "remove") disarmRemoveButton();
 
     if (action === "edit") {
@@ -2807,6 +2834,7 @@
       state.entries.splice(index, 1);
       if (entry.id === state.riggedTargetId) clearRigging();
       commitChange(label + " removed.");
+      emitSoundEvent("rewardRemoved");
       var next = state.entries[Math.min(index, state.entries.length - 1)];
       if (next) focusRowAction(next.id, "remove");
       else dom.customLabel.focus();
@@ -2818,6 +2846,7 @@
     state.entries.splice(index, 1);
     state.entries.splice(targetIndex, 0, entry);
     commitChange(entryLabel(entry) + " moved " + action + ".");
+    emitSoundEvent("rewardMoved", { direction: action });
     focusRowAction(entry.id, action);
   });
 
@@ -2882,6 +2911,8 @@
     var action = button.dataset.action;
 
     if (action === "load") {
+      // Unlock before a confirmation dialog awaits, while this click is still a trusted gesture.
+      audioController.unlock();
       var canLoad = !isDraftDirty() || await requestConfirmation({
         message: "Any unsaved progress will be lost",
         confirmLabel: "Load preset"
@@ -2891,6 +2922,7 @@
       state.draftIdentity = { presetId: preset.id, name: preset.name, iconKey: presetIconKey(preset) };
       clearRigging();
       commitChange(preset.name + " loaded.");
+      emitSoundEvent("presetLoaded");
       return;
     }
 
