@@ -1351,7 +1351,7 @@
       row.className = "slice-row";
       row.dataset.entryId = entry.id;
       row.style.setProperty("--entry-gradient", visual.css);
-      row.style.setProperty("--entry-trim", visual.textColor);
+      row.style.setProperty("--entry-trim", visual.base);
       if (entry.id === state.riggedTargetId) row.classList.add("is-rigged-target");
 
       var number = document.createElement("span");
@@ -1377,12 +1377,14 @@
       actions.className = "row-actions";
       var label = entryLabel(entry);
       var up = makeButton("icon-button", "↑", "Move " + label + " up", "up");
+      var edit = makeButton("icon-button", "✎", "Edit " + label, "edit");
       var down = makeButton("icon-button", "↓", "Move " + label + " down", "down");
-      actions.appendChild(makeButton("icon-button", "✎", "Edit " + label, "edit"));
       var remove = makeButton("icon-button icon-button--remove", "×", "Remove " + label, "remove");
       up.disabled = index === 0;
       down.disabled = index === state.entries.length - 1;
-      actions.append(up, down, remove);
+      // Grid auto-placement fills row-major, so this DOM order lays out as
+      // up/edit on the top row and down/remove on the bottom row.
+      actions.append(up, edit, down, remove);
 
       row.append(number, identity, actions);
       fragment.appendChild(row);
@@ -2942,6 +2944,27 @@
     setStatus(state.riggedEnabled ? "Rigged target enabled for the next spin." : "Rigged mode disabled.");
   });
 
+  var armedRemoveButton = null;
+  var armedRemoveTimer = null;
+
+  function disarmRemoveButton() {
+    if (!armedRemoveButton) return;
+    armedRemoveButton.classList.remove("is-armed");
+    armedRemoveButton.setAttribute("aria-label", armedRemoveButton.dataset.defaultLabel);
+    armedRemoveButton = null;
+    clearTimeout(armedRemoveTimer);
+    armedRemoveTimer = null;
+  }
+
+  function armRemoveButton(button, label) {
+    disarmRemoveButton();
+    button.dataset.defaultLabel = button.getAttribute("aria-label");
+    button.classList.add("is-armed");
+    button.setAttribute("aria-label", "Click again to remove " + label);
+    armedRemoveButton = button;
+    armedRemoveTimer = setTimeout(disarmRemoveButton, 2500);
+  }
+
   dom.sliceList.addEventListener("click", function (event) {
     var button = event.target.closest("[data-action]");
     if (!button) return;
@@ -2951,15 +2974,23 @@
     var entry = state.entries[index];
     var action = button.dataset.action;
 
+    if (action !== "remove") disarmRemoveButton();
+
     if (action === "edit") {
       openComposer(entry);
       return;
     }
 
     if (action === "remove") {
+      var label = entryLabel(entry);
+      if (button !== armedRemoveButton) {
+        armRemoveButton(button, label);
+        return;
+      }
+      disarmRemoveButton();
       state.entries.splice(index, 1);
       if (entry.id === state.riggedTargetId) clearRigging();
-      commitChange(entryLabel(entry) + " removed.");
+      commitChange(label + " removed.");
       var next = state.entries[Math.min(index, state.entries.length - 1)];
       if (next) focusRowAction(next.id, "remove");
       else dom.customLabel.focus();

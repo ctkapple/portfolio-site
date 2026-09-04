@@ -824,7 +824,9 @@ summary:focus-visible {
 .tier-mark--r { color: #ed67ff; }
 
 .row-actions {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(2, 28px);
+  grid-auto-rows: 28px;
   gap: 4px;
 }
 
@@ -847,6 +849,13 @@ summary:focus-visible {
   border-color: rgba(255, 100, 143, 0.62);
   color: #ff9ab6;
   background: rgba(91, 16, 41, 0.4);
+}
+
+.icon-button--remove.is-armed {
+  border-color: #ff4d73;
+  color: #fff;
+  background: linear-gradient(145deg, #ff4d73, #b5153a);
+  box-shadow: 0 0 0 1px rgba(255, 77, 115, .5), 0 0 14px rgba(255, 77, 115, .45);
 }
 
 .save-preset {
@@ -2196,6 +2205,18 @@ summary:focus-visible {
 
 .saved-wheel-dock__item { position: relative; flex: 0 0 auto; }
 
+/* Bridges the visual gap between the icon and the popped-up surface so the pointer
+   stays over a hoverable element the whole way up, instead of the surface closing
+   the instant the cursor crosses the empty space between them. */
+.saved-wheel-dock__item::after {
+  content: "";
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  width: 252px;
+  height: 10px;
+}
+
 .saved-wheel-dock__icon,
 .saved-wheel-dock__new {
   display: grid;
@@ -2301,7 +2322,8 @@ summary:focus-visible {
 .wheel-dialog::backdrop { background: rgba(1, 3, 8, .78); backdrop-filter: blur(8px); }
 .wheel-dialog .entry-composer { margin: 0; border: 0; border-radius: 0; background: transparent; }
 .wheel-dialog--new { width: min(430px, calc(100vw - 48px)); }
-.wheel-dialog--new form { padding: 26px; }
+.wheel-dialog--new form { padding: 26px; text-align: center; }
 .wheel-dialog--new .field { margin-top: 18px; }
-.wheel-dialog--new .preset-icon-picker { margin-top: 18px; }
+.wheel-dialog--new .preset-icon-picker { margin-top: 18px; justify-content: center; }
+.wheel-dialog--new .dialog-actions { justify-content: center; }
 .dialog-validation { min-height: 17px; margin: 12px 0 0; color: var(--gold); font-size: .62rem; }
