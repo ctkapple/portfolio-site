@@ -8,7 +8,21 @@
   var DEFAULT_SEED_VERSION = 2;
   var MAX_ENTRIES = 60;
   var MAX_LABEL_LENGTH = 48;
-  var REVEAL_DURATION = 620;
+  // Just long enough to register that the wheel has stopped before the reveal takes over.
+  var LANDING_HOLD_MS = 120;
+  // The reveal resolves on its own cadence and then rests indefinitely: the burst fires from
+  // the landed wedge, the plate unfurls out of it, and snow keeps falling until dismissal.
+  var PLATE_UNFURL_DELAY_MS = 180;
+  var PARTICLE_COUNT = 20;
+  var PARTICLE_STAGGER_MS = 700;
+  var SNOW_START_MS = 700;
+  var SNOW_COUNT = 28;
+  var SNOW_FADE_MS = 900;
+  // Finish.mp3 runs ~24.9s. The snow is tied to the music, so the muted path — where there
+  // is no track to report a duration — falls back to the same length.
+  var MUSIC_FALLBACK_MS = 24900;
+  var EXIT_PLATE_MS = 260;
+  var EXIT_SETTLE_MS = 520;
   // The spin is one continuous exponential decay from SPIN_VELOCITY to a stop, aimed at an
   // exact target angle from the first frame — see runSpinMotion. It always arrives already
   // slow, so there is never a separate "settle" tween that could snap or speed up at the end.
@@ -26,7 +40,7 @@
     ur: { label: "UR", singular: "UR", plural: "UR", image: "UR_Craft_Asset.png", color: "#bd4fe2", precedence: 90 },
     gems: { label: "?", singular: "?", plural: "?", image: "Master_Duel_Gem.png", color: "#766cff", precedence: 85 },
     packs: { label: "Secret Packs", singular: "Secret Pack", plural: "Secret Packs", shortSingular: "Pack", shortPlural: "Packs", image: "The_Masters_Saga-Pack-Master_Duel.png", color: "#dfa735", precedence: 80, crop: "pack" },
-    bans: { label: "Bans", singular: "Ban", plural: "Bans", image: "pot-of-greed-2.avif", color: "#dd453e", precedence: 70, crop: "pot" },
+    bans: { label: "Bans", singular: "Ban", plural: "Bans", image: "Ban_Asset.png", color: "#dd453e", precedence: 70 },
     sr: { label: "SR", singular: "SR", plural: "SR", image: "SR_Craft_asset.png", color: "#e6bc3f", precedence: 60 },
     r: { label: "R", singular: "R", plural: "R", image: "R_Craft_asset.png", color: "#31bde8", precedence: 50 },
     n: { label: "N", singular: "N", plural: "N", image: "N_Craft_asset.png", color: "#aeb8c5", precedence: 40 },
@@ -82,7 +96,7 @@
   var dom = {
     rotor: document.getElementById("wheel-rotor"),
     wheelDescription: document.getElementById("wheel-description"),
-    winnerCallout: document.getElementById("winner-callout"),
+    wheelShell: document.getElementById("wheel-shell"),
     wheelPointer: document.getElementById("wheel-pointer"),
     spinButton: document.getElementById("spin-button"),
     sphealRotator: document.getElementById("spheal-rotator"),
@@ -113,6 +127,8 @@
     resultCard: document.getElementById("result-card"),
     resultPrimary: document.getElementById("result-primary"),
     resultAlternatives: document.getElementById("result-alternatives"),
+    winnerParticles: document.getElementById("winner-particles"),
+    snowField: document.getElementById("snow-field"),
     composerToggle: document.getElementById("composer-toggle"),
     composer: document.getElementById("entry-composer"),
     rewardDialog: document.getElementById("reward-dialog"),
@@ -155,6 +171,8 @@
     spinSnapshot: null,
     winnerIndex: -1,
     spinMotion: null,
+    snowTimer: 0,
+    snowStopTimer: 0,
     storageEnabled: storageIsAvailable(),
     soundEnabled: true,
     composer: { always: [], options: [] },
@@ -315,14 +333,14 @@
   };
 
   SoundController.prototype.playMusic = function (delay) {
-    if (!state.soundEnabled) return;
+    if (!state.soundEnabled) return Promise.resolve(0);
     var context = this.ensureContext();
-    if (!context) return;
+    if (!context) return Promise.resolve(0);
     this.stopMusic(0);
     var self = this;
     var token = ++this.musicToken;
     var generation = this.generation;
-    this.load(SOUND_ASSETS.music).then(function (buffer) {
+    return this.load(SOUND_ASSETS.music).then(function (buffer) {
       if (!state.soundEnabled || token !== self.musicToken || generation !== self.generation || !self.context) return;
       var source = self.context.createBufferSource();
       var gain = self.context.createGain();
@@ -343,7 +361,8 @@
       });
       source.start(startAt);
       source.stop(startAt + finishAt);
-    }).catch(function () {});
+      return (delay || 0) * 1000 + finishAt * 1000;
+    }).catch(function () { return 0; });
   };
 
   SoundController.prototype.stopMusic = function (fadeDuration) {
@@ -426,10 +445,9 @@
       var detail = event.detail || {};
       audioController.playTick(detail.velocity, detail.initialVelocity);
     });
-    soundEvents.addEventListener("winnerLand", function () {
+    soundEvents.addEventListener("winnerReveal", function () {
       audioController.play(SOUND_ASSETS.landImpact, { gain: 0.28 });
       audioController.play(SOUND_ASSETS.landChime, { gain: 0.2, delay: 0.04, rate: 1.06 });
-      audioController.playMusic(0.18);
     });
     soundEvents.addEventListener("exitResult", function () {
       audioController.stopAll(0.12);
@@ -735,8 +753,10 @@
     return scales[item.type] || .66;
   }
 
+  // Only the pack art stays a count-plus-icon: it is a wide card that does not tile. Every
+  // other reward, bans included, repeats its icon up to four before falling back to a count.
   function usesNumericRewardDisplay(item) {
-    return item.type === "packs" || item.type === "bans" || item.amount > 4;
+    return item.type === "packs" || item.amount > 4;
   }
 
   function rewardVisualSpec(item, baseIconSize) {
@@ -1057,6 +1077,19 @@
     return entryVisual(entry).base;
   }
 
+  // The slice gradient is a deliberately shaded, low-chroma family color — good for a wheel
+  // face, far too muted to carry a win on its own. The reveal borrows the reward's vivid
+  // catalogue color for rims, glows and the burst, and leaves the plate's fill neutral so
+  // the full-color reward art stays readable on top of it.
+  function accentFor(entry) {
+    var type = "custom";
+    if (entry.kind === "structured") {
+      var leading = primaryComponents(entry.reward)[0];
+      if (leading) type = leading.type;
+    }
+    return (REWARDS[type] || REWARDS.custom).color;
+  }
+
   function normalizeAngle(angle) {
     return ((angle % 360) + 360) % 360;
   }
@@ -1084,7 +1117,7 @@
         preserveAspectRatio: "xMidYMid slice"
       }));
       group.appendChild(legacyGroup);
-      return;
+      return { node: legacyGroup, fitScale: 1 };
     }
 
     var rows = rewardDisplayRows(entry.reward);
@@ -1162,12 +1195,11 @@
       cursorY += block.height + rowGap;
     });
     group.appendChild(shorthand);
+    return { node: shorthand, fitScale: fitScale };
   }
 
-  function renderWheel(entries, winnerId, expansion) {
+  function renderWheel(entries, winnerId) {
     dom.rotor.replaceChildren();
-    dom.winnerCallout.replaceChildren();
-    dom.winnerCallout.classList.remove("is-visible");
 
     var count = entries.length;
     if (!count) {
@@ -1195,8 +1227,7 @@
       });
       gradientDefinitions.appendChild(gradient);
       var isWinner = entry.id === winnerId;
-      var winnerExpansion = isWinner ? expansion || 0 : 0;
-      var radius = 276 + 24 * winnerExpansion;
+      var radius = 276;
       var startAngle = -90 + index * sliceAngle;
       var endAngle = -90 + (index + 1) * sliceAngle;
       var centerAngle = -90 + (index + 0.5) * sliceAngle;
@@ -1214,37 +1245,41 @@
       title.textContent = entryLabel(entry);
       group.appendChild(title);
 
+      var shape;
       if (count === 1) {
-        group.appendChild(svgElement("circle", {
+        shape = svgElement("circle", {
           class: "wheel-slice__shape",
           cx: "300",
           cy: "300",
           r: String(radius),
           fill: "url(#" + gradientId + ")"
-        }));
+        });
       } else {
-        group.appendChild(svgElement("path", {
+        shape = svgElement("path", {
           class: "wheel-slice__shape",
           d: wedgePath(startAngle, endAngle, radius),
           fill: "url(#" + gradientId + ")"
-        }));
+        });
       }
+      group.appendChild(shape);
 
       var displayRowCount = entry.kind === "structured" ? rewardDisplayRows(entry.reward).length : 0;
       var baseLabelRadius = displayRowCount >= 2 ? 184 : displayRowCount === 1 ? 220 : 238;
-      var labelRadius = baseLabelRadius + 8 * winnerExpansion;
+      var labelRadius = baseLabelRadius;
       var position = polar(labelRadius, centerAngle);
       // Local positive Y points toward the center button, making the lowest tier
       // rest against the wheel's visual floor on every wedge.
       var rotation = centerAngle + 90;
-      appendSvgShorthand(group, entry, position, rotation, count, winnerExpansion, sliceAngle, labelRadius);
+      // The winning wedge keeps its glow and accent rim but no longer grows: the size change
+      // read as a distortion of the wheel rather than as emphasis.
+      appendSvgShorthand(group, entry, position, rotation, count, 0, sliceAngle, labelRadius);
       dom.rotor.appendChild(group);
     });
 
     dom.rotor.style.transform = "rotate(" + state.rotation + "deg)";
     var selected = winnerId && entries.find(function (entry) { return entry.id === winnerId; });
     dom.wheelDescription.textContent = selected
-      ? "The selected reward is " + entryLabel(selected) + "."
+      ? "The winning reward is " + entryLabel(selected) + "."
       : "A wheel with " + count + (count === 1 ? " equal reward." : " equal rewards.");
   }
 
@@ -1856,7 +1891,7 @@
   }
 
   function renderAll() {
-    renderWheel(state.entries, null, 0);
+    renderWheel(state.entries, null);
     renderWheelIdentity();
     renderSliceList();
     renderPresetList();
@@ -2109,6 +2144,193 @@
     });
   }
 
+  // The spin button is invisible during the reveal, so leaving focus on it would strand the
+  // focus ring on nothing. The plate takes focus instead and hands it back on exit.
+  function focusResult() {
+    if (typeof dom.resultCard.focus === "function") dom.resultCard.focus({ preventScroll: true });
+  }
+
+  function clearSnowTimers() {
+    if (state.snowTimer) {
+      window.clearTimeout(state.snowTimer);
+      state.snowTimer = 0;
+    }
+    if (state.snowStopTimer) {
+      window.clearTimeout(state.snowStopTimer);
+      state.snowStopTimer = 0;
+    }
+  }
+
+  function clearSnow() {
+    clearSnowTimers();
+    dom.snowField.classList.remove("is-active");
+    dom.snowField.replaceChildren();
+  }
+
+  // Fades the field out and only then drops the flakes, so the loop never cuts mid-fall.
+  function stopSnow() {
+    clearSnowTimers();
+    if (!dom.snowField.classList.contains("is-active")) {
+      dom.snowField.replaceChildren();
+      return;
+    }
+    dom.snowField.classList.remove("is-active");
+    state.snowStopTimer = window.setTimeout(function () {
+      state.snowStopTimer = 0;
+      dom.snowField.replaceChildren();
+    }, SNOW_FADE_MS);
+  }
+
+  // The snow is the visual half of the victory cue, so it ends when the music does.
+  function scheduleSnowStop(duration) {
+    if (state.snowStopTimer) {
+      window.clearTimeout(state.snowStopTimer);
+      state.snowStopTimer = 0;
+    }
+    state.snowStopTimer = window.setTimeout(function () {
+      state.snowStopTimer = 0;
+      if (state.phase === "result") stopSnow();
+    }, Math.max(1200, duration || MUSIC_FALLBACK_MS));
+  }
+
+  // The burst is the reaction to winning; the snow is the state you sit in afterwards. Both
+  // draw from the same weighted pool, so what drifts past is still what you actually won.
+  // It loops for as long as the result is up, because the result no longer times out.
+  function startSnow(entry, reducedMotion) {
+    clearSnow();
+    if (reducedMotion) return;
+    state.snowTimer = window.setTimeout(function () {
+      state.snowTimer = 0;
+      if (state.phase !== "result") return;
+      var groups = particleComponents(entry);
+      var pool = groups.primary.concat(groups.optional);
+      if (!pool.length) return;
+      for (var index = 0; index < SNOW_COUNT; index += 1) {
+        var item = weightedParticlePick(pool);
+        var definition = REWARDS[item.type];
+        var flake = document.createElement("img");
+        flake.className = "snow-flake snow-flake--" + (definition.crop || item.type);
+        flake.src = definition.image;
+        flake.alt = "";
+        flake.style.left = (Math.random() * 100).toFixed(2) + "%";
+        flake.style.setProperty("--flake-size", (16 + rewardTierScale(item) * 26).toFixed(0) + "px");
+        flake.style.setProperty("--flake-sway", ((Math.random() - .5) * 90).toFixed(0) + "px");
+        flake.style.setProperty("--flake-turn", ((Math.random() - .5) * 220).toFixed(0) + "deg");
+        flake.style.setProperty("--flake-opacity", (.3 + Math.random() * .4).toFixed(2));
+        flake.style.setProperty("--flake-duration", (7000 + Math.random() * 7000).toFixed(0) + "ms");
+        // Negative delays start the field mid-fall, so snow is already in the air rather
+        // than arriving as one visible wave from the top edge.
+        flake.style.setProperty("--flake-delay", (-Math.random() * 14000).toFixed(0) + "ms");
+        dom.snowField.appendChild(flake);
+      }
+      dom.snowField.classList.add("is-active");
+    }, SNOW_START_MS);
+  }
+
+  function weightedParticlePick(items) {
+    var total = items.reduce(function (sum, item) { return sum + Math.max(1, componentPrecedence(item)); }, 0);
+    var cursor = Math.random() * total;
+    for (var index = 0; index < items.length; index += 1) {
+      cursor -= Math.max(1, componentPrecedence(items[index]));
+      if (cursor <= 0) return items[index];
+    }
+    return items[items.length - 1];
+  }
+
+  function particleGroup(items, count) {
+    if (!items.length || !count) return [];
+    var particles = items.slice(0, Math.min(items.length, count));
+    while (particles.length < count) particles.push(weightedParticlePick(items));
+    return particles;
+  }
+
+  function particleComponents(entry) {
+    if (entry.kind !== "structured") return { primary: [component("custom", 1, entry.label)], optional: [] };
+    var always = (entry.reward.always || []).slice();
+    var options = entry.reward.options || [];
+    var primaryIndex = primaryOptionIndex(entry.reward);
+    if (always.length) {
+      return { primary: always, optional: options.reduce(function (all, branch) { return all.concat(branch); }, []) };
+    }
+    return {
+      primary: primaryIndex >= 0 ? options[primaryIndex].slice() : [],
+      optional: options.reduce(function (all, branch, index) { return index === primaryIndex ? all : all.concat(branch); }, [])
+    };
+  }
+
+  function clearWinnerParticles() {
+    dom.winnerParticles.replaceChildren();
+  }
+
+  // The 60/40 split is category-based: guaranteed/highest-priority rewards dominate the
+  // shower, while every alternate branch still receives at least one visible token.
+  //
+  // Tokens erupt from along the landed wedge's own outer arc rather than from a single
+  // point at the top of the shell, arc up and fall away under a two-stage ease. The count
+  // is deliberately low: the burst has to read as "this is what you won", which it cannot
+  // do when tokens overlap each other and the plate.
+  function createWinnerParticles(entry, sliceCount) {
+    clearWinnerParticles();
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    var groups = particleComponents(entry);
+    var total = PARTICLE_COUNT;
+    var primaryCount = groups.optional.length ? Math.round(total * .6) : total;
+    if (!groups.primary.length) primaryCount = 0;
+    var optionalCount = total - primaryCount;
+    if (!groups.optional.length) optionalCount = 0;
+    if (!primaryCount && groups.optional.length) optionalCount = total;
+    var particles = particleGroup(groups.primary, primaryCount).concat(particleGroup(groups.optional, optionalCount));
+
+    // The landed wedge always sits under the pointer, so its arc spans the top of the
+    // shell. Travel is derived from the shell's measured radius, which is what keeps the
+    // burst inside the reveal area instead of being silently clipped by the circular mask.
+    var shellSize = dom.wheelShell.getBoundingClientRect().width || 600;
+    var unit = shellSize / 600;
+    var radius = shellSize / 2;
+    var halfSlice = Math.min(30, 180 / Math.max(1, sliceCount || 1));
+
+    particles.sort(function () { return Math.random() - .5; }).forEach(function (item, index) {
+      var definition = REWARDS[item.type];
+      var token = document.createElement("img");
+      token.className = "winner-particle winner-particle--" + (definition.crop || item.type);
+      token.src = definition.image;
+      token.alt = "";
+      token.style.setProperty("--particle-size", ((24 + rewardTierScale(item) * 34) * unit).toFixed(0) + "px");
+
+      var emitAngle = -90 + (Math.random() - .5) * 2 * halfSlice;
+      var emitRadians = emitAngle * Math.PI / 180;
+      var emitRadius = 258 + Math.random() * 30;
+      var originX = Math.cos(emitRadians) * emitRadius * unit;
+      var originY = Math.sin(emitRadians) * emitRadius * unit;
+      token.style.left = (50 + (emitRadius * Math.cos(emitRadians)) / 6).toFixed(2) + "%";
+      token.style.top = (50 + (emitRadius * Math.sin(emitRadians)) / 6).toFixed(2) + "%";
+
+      // Fan outward from the rim, then fall. Travel is pulled back until the landing point
+      // sits inside the circular mask, so no token is ever clipped away mid-flight.
+      var spread = (Math.random() - .5) * 1.9;
+      var reach = radius * (.24 + Math.random() * .34);
+      var rise = radius * (.1 + Math.random() * .16);
+      var drop = radius * (.5 + Math.random() * .42);
+      var turn = (Math.random() - .5) * 300;
+      var endX = Math.cos(emitRadians + spread) * reach;
+      var endY = drop;
+      var limit = radius * .9;
+      while (Math.hypot(originX + endX, originY + endY) > limit && Math.abs(endX) + Math.abs(endY) > 1) {
+        endX *= .92;
+        endY *= .92;
+      }
+      token.style.setProperty("--particle-apex-x", (endX * .45).toFixed(0) + "px");
+      token.style.setProperty("--particle-apex-y", (-rise).toFixed(0) + "px");
+      token.style.setProperty("--particle-end-x", endX.toFixed(0) + "px");
+      token.style.setProperty("--particle-end-y", endY.toFixed(0) + "px");
+      token.style.setProperty("--particle-turn-apex", (turn * .3).toFixed(0) + "deg");
+      token.style.setProperty("--particle-turn", turn.toFixed(0) + "deg");
+      token.style.setProperty("--particle-duration", (1400 + Math.random() * 600).toFixed(0) + "ms");
+      token.style.setProperty("--particle-delay", (Math.random() * PARTICLE_STAGGER_MS).toFixed(0) + "ms");
+      dom.winnerParticles.appendChild(token);
+    });
+  }
+
   function hexToRgba(hex, alpha) {
     var numeric = parseInt(hex.slice(1), 16);
     var red = (numeric >> 16) & 255;
@@ -2117,9 +2339,10 @@
     return "rgba(" + red + ", " + green + ", " + blue + ", " + alpha + ")";
   }
 
-  function htmlComponent(item, size) {
+  function htmlComponent(item, size, isHero) {
     var wrapper = document.createElement("span");
-    wrapper.className = "reward-token reward-token--" + (size || "result");
+    wrapper.className = "reward-token reward-token--" + (size || "result") + (isHero ? " reward-token--hero" : "");
+    wrapper.dataset.rewardType = item.type;
     var amount = document.createElement("b");
     amount.textContent = String(item.amount);
     wrapper.appendChild(amount);
@@ -2131,12 +2354,79 @@
     wrapper.appendChild(image);
     var words = document.createElement("span");
     words.textContent = item.type === "custom" ? item.text : (item.amount === 1 ? definition.singular : definition.plural);
-    if (size !== "compact" || item.type === "custom") wrapper.appendChild(words);
+    // "compact" and "or" are icon-led: the art already names the reward, so repeating it in
+    // words is noise. Custom rewards are the exception — their text is the only label there is.
+    if ((size !== "compact" && size !== "or") || item.type === "custom") wrapper.appendChild(words);
     wrapper.setAttribute("aria-label", componentWords(item, false));
     return wrapper;
   }
 
-  function appendHtmlBranch(container, branch, size) {
+  // The hero mirrors the wheel slice's own layout rules — a bare icon for one, the same
+  // 2 / 2+1 / 2x2 cluster up to four, a count beside a single icon beyond that — but at full
+  // size, with none of the slice's shrink-to-fit scaling. No numeral and no label on the art
+  // itself; the wording lives in the helper line underneath.
+  function heroCluster(item) {
+    var definition = REWARDS[item.type];
+    var wrapper = document.createElement("span");
+    // Drives --reward-text, so a count is tinted by its own reward rather than by whatever
+    // else happens to share the slice.
+    wrapper.dataset.rewardType = item.type;
+
+    function icon() {
+      var image = document.createElement("img");
+      image.src = definition.image;
+      image.alt = "";
+      image.className = "hero-icon hero-icon--" + (definition.crop || item.type);
+      return image;
+    }
+
+    if (item.amount > 4 || (item.type !== "custom" && item.amount > 1 && usesNumericRewardDisplay(item))) {
+      wrapper.className = "hero-unit hero-unit--counted";
+      var count = document.createElement("b");
+      count.textContent = String(item.amount);
+      wrapper.appendChild(count);
+      wrapper.appendChild(icon());
+    } else {
+      var total = item.type === "custom" ? 1 : item.amount;
+      wrapper.className = "hero-unit hero-unit--cluster hero-cluster--" + total;
+      for (var index = 0; index < total; index += 1) wrapper.appendChild(icon());
+    }
+    wrapper.setAttribute("aria-label", componentWords(item, false));
+    return wrapper;
+  }
+
+  function appendHeroBranch(container, branch) {
+    sortedComponents(branch).forEach(function (item, index) {
+      if (index) {
+        var plus = document.createElement("span");
+        plus.className = "hero-plus";
+        plus.textContent = "+";
+        container.appendChild(plus);
+      }
+      container.appendChild(heroCluster(item));
+    });
+  }
+
+  // Only custom rewards get a helper line. For catalogue rewards the hero art already says
+  // both which reward and how many, so a caption under it just restates the picture.
+  function appendHelperBranch(container, branch) {
+    var custom = sortedComponents(branch).filter(function (item) { return item.type === "custom"; });
+    custom.forEach(function (item, index) {
+      if (index) {
+        var plus = document.createElement("span");
+        plus.className = "reward-plus";
+        plus.textContent = "+";
+        container.appendChild(plus);
+      }
+      var words = document.createElement("span");
+      words.className = "result-helper__text";
+      words.textContent = item.text;
+      container.appendChild(words);
+    });
+    return custom.length;
+  }
+
+  function appendHtmlBranch(container, branch, size, emphasizeHighest) {
     sortedComponents(branch).forEach(function (item, index) {
       if (index) {
         var plus = document.createElement("span");
@@ -2144,38 +2434,84 @@
         plus.textContent = "+";
         container.appendChild(plus);
       }
-      container.appendChild(htmlComponent(item, size));
+      container.appendChild(htmlComponent(item, size, Boolean(emphasizeHighest && index === 0)));
     });
   }
 
   function renderResultCard(entry) {
     dom.resultPrimary.replaceChildren();
     dom.resultAlternatives.replaceChildren();
-    dom.resultCard.setAttribute("aria-label", "Selected: " + entryLabel(entry));
-    if (entry.kind !== "structured") {
-      dom.resultPrimary.appendChild(htmlComponent(component("custom", 1, entry.label), "result"));
-    } else {
-      appendHtmlBranch(dom.resultPrimary, primaryComponents(entry.reward), "result");
+    dom.resultCard.setAttribute("aria-label", "Winning reward: " + entryLabel(entry));
+
+    var headline = entry.kind === "structured"
+      ? primaryComponents(entry.reward)
+      : [component("custom", 1, entry.label)];
+
+    var hero = document.createElement("div");
+    hero.className = "result-hero";
+    appendHeroBranch(hero, headline);
+    dom.resultPrimary.appendChild(hero);
+
+    var helper = document.createElement("p");
+    helper.className = "result-helper";
+    if (appendHelperBranch(helper, headline)) dom.resultPrimary.appendChild(helper);
+
+    if (entry.kind === "structured") {
+      // The plate carries only the winning slice's own reward. What could have been won
+      // stays legible on the dimmed wheel behind it, so nothing competes with this.
       var primaryIndex = primaryOptionIndex(entry.reward);
       (entry.reward.options || []).forEach(function (branch, index) {
         if (index === primaryIndex) return;
         var line = document.createElement("p");
         line.className = "result-alternative";
-        var prefix = document.createElement("span");
-        prefix.textContent = "Alternative: Craft ";
-        line.appendChild(prefix);
-        appendHtmlBranch(line, branch, "alternative");
-        if (primaryIndex >= 0) {
-          var instead = document.createElement("span");
-          instead.textContent = " instead of ";
-          line.appendChild(instead);
-          appendHtmlBranch(line, entry.reward.options[primaryIndex], "alternative");
-        }
-        line.appendChild(document.createTextNode("."));
+        var marker = document.createElement("span");
+        marker.className = "result-alternative__marker";
+        marker.textContent = "or";
+        line.appendChild(marker);
+        appendHtmlBranch(line, branch, "or");
+        line.setAttribute("aria-label", "Alternative: " + branch.map(function (item) {
+          return componentWords(item, false);
+        }).join(" and "));
         dom.resultAlternatives.appendChild(line);
       });
     }
+
     dom.resultCard.setAttribute("aria-hidden", "false");
+    fitResultCard();
+  }
+
+  // A four-icon cluster per component, several components wide, can outgrow the plate. The
+  // plate is a fixed share of the wheel by design, so the contents scale to it rather than
+  // the other way round.
+  function fitResultCard() {
+    dom.resultCard.style.removeProperty("--result-fit");
+    var available = dom.resultCard.clientHeight - 48;
+    var widthAvailable = dom.resultCard.clientWidth - 60;
+    if (available <= 0 || widthAvailable <= 0) return;
+
+    function overflowRatio() {
+      var hero = dom.resultPrimary.querySelector(".result-hero");
+      var content = dom.resultPrimary.scrollHeight + dom.resultAlternatives.scrollHeight;
+      // The hero row is measured directly: as a nowrap flex row it can be wider than the
+      // column that holds it, and that overflow is exactly what needs scaling.
+      var widest = Math.max(
+        dom.resultPrimary.scrollWidth,
+        dom.resultAlternatives.scrollWidth,
+        hero ? hero.scrollWidth : 0
+      );
+      if (!content || !widest) return 1;
+      return Math.min(1, available / content, widthAvailable / widest);
+    }
+
+    // Two passes: not everything in the plate scales with the factor (flex gaps round, the
+    // "+" carries its own metrics), so one pass can leave a few pixels of overhang. The
+    // second pass measures what the first actually produced and closes the gap.
+    var fit = overflowRatio();
+    if (fit >= 1) return;
+    dom.resultCard.style.setProperty("--result-fit", fit.toFixed(3));
+    var refine = overflowRatio();
+    if (refine < 1) fit *= refine;
+    dom.resultCard.style.setProperty("--result-fit", Math.max(.2, fit).toFixed(3));
   }
 
   function armSpin() {
@@ -2219,7 +2555,7 @@
     dom.spinButton.disabled = false;
     dom.spinButton.setAttribute("aria-label", "Wheel spinning");
     dom.spinButton.focus();
-    renderWheel(snapshot, null, 0);
+    renderWheel(snapshot, null);
     emitSoundEvent("spinStart", { entryCount: snapshot.length, rigged: forcedIndex >= 0 });
 
     var finalRotation;
@@ -2243,44 +2579,84 @@
     setRotation(finalRotation);
     document.body.classList.add("has-winner");
     document.body.style.setProperty("--winner-glow", hexToRgba(colorFor(winner), 0.52));
+    document.body.style.setProperty("--winner-accent", accentFor(winner));
     emitSoundEvent("winnerLand", { entry: cloneEntries([winner], false)[0], index: winnerIndex });
 
-    await animateValue(
-      0,
-      1,
-      reducedMotion ? 170 : REVEAL_DURATION,
-      reducedMotion ? easeOutCubic : easeOutBack,
-      function (value) { renderWheel(snapshot, winner.id, value); }
-    );
-
-    renderWheel(snapshot, winner.id, 1);
+    // A brief beat to register the stop, then the reveal takes over immediately.
+    await delay(reducedMotion ? 60 : LANDING_HOLD_MS);
+    // The losing slices desaturate rather than being covered, so the wheel stays on screen
+    // and the result reads as coming out of the slice that produced it.
+    document.body.classList.add("is-revealing");
+    renderWheel(snapshot, winner.id);
     renderResultCard(winner);
     clearRigging();
     state.phase = "result";
-    document.body.classList.add("is-result");
     dom.spinButton.setAttribute("aria-label", "Dismiss result");
-    dom.resultAnnouncement.textContent = "Selected reward: " + entryLabel(winner) + ". Click anywhere or press any key to return to setup.";
+    // The burst fires from the wedge first, then the plate unfurls out of it — the reward
+    // reads as coming from the slice rather than arriving on top of it.
+    createWinnerParticles(winner, snapshot.length);
+    emitSoundEvent("winnerReveal", { entry: cloneEntries([winner], false)[0], index: winnerIndex });
+    if (!reducedMotion) await delay(PLATE_UNFURL_DELAY_MS);
+    if (state.phase !== "result") return;
+    document.body.classList.add("is-result");
+    focusResult();
+    startSnow(winner, reducedMotion);
+    audioController.playMusic(0).then(function (musicDuration) {
+      if (state.phase === "result") scheduleSnowStop(musicDuration || MUSIC_FALLBACK_MS);
+    });
+    dom.resultAnnouncement.textContent = "Winning reward: " + entryLabel(winner) + ". Click anywhere or press any key to return to setup.";
   }
 
-  function exitResult() {
+  // The exit runs the reveal backwards: the plate folds back toward the wedge it came from,
+  // the wedge contracts, and the rotor eases to zero along the shorter arc instead of
+  // teleporting there. "exiting" blocks re-entry while that plays out.
+  async function exitResult() {
     if (state.phase !== "result") return;
     var winner = state.spinSnapshot && state.spinSnapshot[state.winnerIndex];
+    var reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    state.phase = "exiting";
+    stopSnow();
+    clearWinnerParticles();
+    emitSoundEvent("exitResult", { entry: winner ? cloneEntries([winner], false)[0] : null });
+    document.body.classList.remove("is-result");
+
+    if (!reducedMotion) {
+      await delay(EXIT_PLATE_MS);
+      document.body.classList.remove("is-revealing");
+      // Dropped off the existing nodes so the slices ease back to full colour across the
+      // settle. Waiting for the rebuild at the end of exit would restore them in one frame.
+      dom.rotor.querySelectorAll(".wheel-slice").forEach(function (group) {
+        group.classList.remove("is-dimmed", "is-winner");
+      });
+      var settleFrom = state.rotation;
+      var offset = normalizeAngle(settleFrom);
+      var settleTo = offset > 180 ? settleFrom + (360 - offset) : settleFrom - offset;
+      await animateValue(0, 1, EXIT_SETTLE_MS, easeOutCubic, function (value) {
+        setRotation(settleFrom + (settleTo - settleFrom) * value);
+      });
+    }
+
     state.phase = "setup";
     state.rotation = 0;
     state.spinSnapshot = null;
     state.winnerIndex = -1;
     state.spinMotion = null;
-    document.body.classList.remove("is-result", "has-winner", "is-spinning");
+    clearSnow();
+    document.body.classList.remove("is-result", "is-revealing", "has-winner", "is-spinning");
     document.body.style.removeProperty("--winner-glow");
+    document.body.style.removeProperty("--winner-accent");
     setCinematic(false);
-    renderWheel(state.entries, null, 0);
+    renderWheel(state.entries, null);
     syncControls();
     dom.spinButton.setAttribute("aria-label", "Spin the wheel");
     dom.resultAnnouncement.textContent = "";
-    dom.resultCard.setAttribute("aria-hidden", "true");
-    emitSoundEvent("exitResult", { entry: winner ? cloneEntries([winner], false)[0] : null });
+    // Handed back only once focus has somewhere visible to land, so the plate is never
+    // aria-hidden while it still holds focus.
+    window.requestAnimationFrame(function () {
+      dom.spinButton.focus();
+      dom.resultCard.setAttribute("aria-hidden", "true");
+    });
     setStatus("Returned to setup. Your wheel is unchanged.");
-    window.requestAnimationFrame(function () { dom.spinButton.focus(); });
   }
 
   Object.keys(REWARDS).filter(function (key) { return key !== "custom"; }).forEach(function (key) {
