@@ -69,21 +69,35 @@
     nr: "#a9c3cc",
     custom: "#d8d2ff"
   };
-  var SHADE_RAMP = [
-    { toward: "#000000", amount: .42 }, // deep
-    { toward: "#000000", amount: .15 }, // medium
-    { toward: "#ffffff", amount: .22 }, // light
-    { toward: "#6b7280", amount: .45 }  // muted
-  ];
   var GENERIC_ICON_KEYS = ["condemned", "eldlich", "genex"];
+  // Each theme also carries the four stops of its rim metal, painted light-to-shadow around
+  // the wheel. The rim is where a wheel's identity actually lives, so it runs at full chroma
+  // while the slice faces underneath stay deep — see PRESET_PALETTES.
   var PRESET_THEMES = {
-    winner: { image: "Winner_Icon.png", primary: "#f3c758", secondary: "#d87538", deep: "#422716" },
-    oneOne: { image: "1-1 icon.png", primary: "#72dfff", secondary: "#5587c8", deep: "#132d43" },
-    farfa: { image: "Farfa_Icon.jpg", primary: "#bc54e6", secondary: "#e29a48", deep: "#3a174f" },
-    condemned: { image: "Condemned_Darklord-Icon-Master_Duel.png", primary: "#ee729a", secondary: "#b8324d", deep: "#3b1728" },
-    eldlich: { image: "Eldlich_the_Golden_Lord-Icon-Master_Duel.png", primary: "#edbd43", secondary: "#7442a8", deep: "#34230f" },
-    genex: { image: "Genex_Controller-Icon-Master_Duel.png", primary: "#64c996", secondary: "#66527e", deep: "#17201e" }
+    winner: { image: "Winner_Icon.png", primary: "#f3c758", secondary: "#d87538", deep: "#422716", rim: ["#f6e0a0", "#c9922f", "#7a5416", "#f0d489"] },
+    oneOne: { image: "1-1 icon.png", primary: "#72dfff", secondary: "#5587c8", deep: "#132d43", rim: ["#dff4ff", "#7fb8d8", "#35597a", "#cfe8f6"] },
+    farfa: { image: "Farfa_Icon.jpg", primary: "#bc54e6", secondary: "#e29a48", deep: "#3a174f", rim: ["#e8c78a", "#9a6ac4", "#3c2350", "#d9a86a"] },
+    condemned: { image: "Condemned_Darklord-Icon-Master_Duel.png", primary: "#ee729a", secondary: "#b8324d", deep: "#3b1728", rim: ["#c9d2dd", "#7d8794", "#3a4049", "#aeb8c5"] },
+    eldlich: { image: "Eldlich_the_Golden_Lord-Icon-Master_Duel.png", primary: "#edbd43", secondary: "#7442a8", deep: "#34230f", rim: ["#c9d2dd", "#7d8794", "#3a4049", "#aeb8c5"] },
+    genex: { image: "Genex_Controller-Icon-Master_Duel.png", primary: "#64c996", secondary: "#66527e", deep: "#17201e", rim: ["#c9d2dd", "#7d8794", "#3a4049", "#aeb8c5"] }
   };
+
+  // Ordered value ramps, richest stop first. A wheel's distinct reward recipes are ranked by
+  // reward precedence and assigned these stops in order, so the best outcome always lands on
+  // the richest colour and the worst on the dimmest — automatically, even after an edit.
+  //
+  // Every face sits in the deep-to-mid band on purpose: the reward art (gold packs, UR/SR
+  // gems) is bright and sits on top of the slice, so the theme's bright note is spent on the
+  // rim instead of the fill. It also leaves the losing slices somewhere to fall when they
+  // desaturate for a result.
+  var PRESET_PALETTES = {
+    winner: ["#d4661c", "#8a5a18", "#3a2712"],                                   // molten orange -> chocolate
+    oneOne: ["#2c8fa8", "#2f4a86", "#1a2b3c"],                                   // glacier teal -> slate
+    farfa: ["#6a2a8c", "#a05a18", "#8a3340", "#4a2a6b", "#2e2038"]               // violet / amber / wine / grape
+  };
+  // Every custom wheel shares one jewel rotation, so a user-built wheel reads as deliberate
+  // without needing a palette of its own.
+  var DEFAULT_PALETTE = ["#6a2a8c", "#175f66", "#8a2f3f", "#1e6047", "#24417e", "#9a6a17"];
   var BUILTIN_PRESETS = {
     winner: { rank: 0, name: "Winner's Wheel", iconKey: "winner" },
     oneOne: { rank: 1, name: "1-1 Wheel", iconKey: "oneOne" },
@@ -516,15 +530,9 @@
       if (seenIds.has(id)) id = createId("entry");
       seenIds.add(id);
 
-      var colorFamily = typeof rawEntry.colorFamily === "string" && COLOR_FAMILIES[rawEntry.colorFamily] ? rawEntry.colorFamily : null;
-      var colorShade = Number(rawEntry.colorShade);
-      var visualSignature = typeof rawEntry.visualSignature === "string" ? rawEntry.visualSignature : null;
       var entry = reward
         ? { id: id, kind: "structured", reward: reward }
         : { id: id, kind: "custom", label: label, presetKind: typeof rawEntry.presetKind === "string" ? rawEntry.presetKind : null };
-      if (colorFamily) entry.colorFamily = colorFamily;
-      if (Number.isInteger(colorShade) && colorShade >= 0 && colorShade < 240) entry.colorShade = colorShade;
-      if (visualSignature) entry.visualSignature = visualSignature;
       entries.push(entry);
     });
 
@@ -568,7 +576,6 @@
     if (!state.storageEnabled) {
       initialNotice = "Browser storage is unavailable. Changes will last for this session only.";
       seedDefaultPresets(0);
-      ensureAllVisualAssignments();
       return;
     }
 
@@ -576,7 +583,6 @@
       var raw = window.localStorage.getItem(STORAGE_KEY);
       if (!raw) {
         seedDefaultPresets(0);
-        ensureAllVisualAssignments();
         persistState();
         return;
       }
@@ -621,13 +627,11 @@
       }
       seedDefaultPresets(Number(envelope.defaultSeedVersion) || 0);
       state.draftIdentity = sanitizeDraftIdentity(envelope.draft && envelope.draft.identity, state.presets);
-      ensureAllVisualAssignments();
       persistState();
     } catch (error) {
       state.entries = [];
       state.presets = [];
       seedDefaultPresets(0);
-      ensureAllVisualAssignments();
       initialNotice = "Saved wheel data was unreadable. A blank wheel was opened safely.";
     }
   }
@@ -978,88 +982,90 @@
     return seen;
   }
 
-  function entryColorFamily(entry) {
-    var types = entryTopTypes(entry);
-    return types.length && COLOR_FAMILIES[types[0]] ? types[0] : "custom";
-  }
-
   function entryTextFamily(entry) {
     var types = entryTopTypes(entry);
     return types.length > 1 && COLOR_FAMILIES[types[1]] ? types[1] : null;
   }
 
-  function familyShadeColor(anchor, index) {
-    var cycle = ((index % SHADE_RAMP.length) + SHADE_RAMP.length) % SHADE_RAMP.length;
-    var lap = Math.floor(index / SHADE_RAMP.length);
-    var step = SHADE_RAMP[cycle];
-    var color = mixHex(anchor, step.toward, step.amount);
-    if (lap > 0) {
-      // Rare case: more unique recipes share a family than the ramp has steps.
-      // Nudge further along the same axis each extra lap so they stay distinguishable.
-      var counter = step.toward === "#ffffff" ? "#000000" : "#ffffff";
-      color = mixHex(color, counter, Math.min(.35, .09 * lap));
+  function weighComponents(items) {
+    return items.reduce(function (total, item) {
+      return total + item.amount * (REWARDS[item.type] || REWARDS.custom).precedence;
+    }, 0);
+  }
+
+  // How good an entry is, used to order a wheel's distinct recipes onto its palette.
+  //
+  // The leading reward's precedence sets the tier, then the weight of what the entry
+  // actually pays out breaks ties — which is why "SR2 and NR4" outranks "SR3 or NR3": an
+  // OR branch only ever hands over its best arm, so primaryComponents is the real payout.
+  // Depth is the last resort, weighing every branch so two entries that pay the same
+  // primary ("SR1 or NR2" against "SR1 or NR3") still sort by their consolation arm
+  // instead of falling back to an arbitrary tiebreak.
+  function entryRank(entry) {
+    if (entry.kind !== "structured") {
+      return { precedence: REWARDS.custom.precedence, weight: REWARDS.custom.precedence, depth: 0 };
     }
-    return color;
+    var items = primaryComponents(entry.reward);
+    var lead = items[0];
+    var everything = (entry.reward.always || []).slice();
+    (entry.reward.options || []).forEach(function (branch) { everything = everything.concat(branch); });
+    return {
+      precedence: lead ? (REWARDS[lead.type] || REWARDS.custom).precedence : 0,
+      weight: weighComponents(items),
+      depth: weighComponents(everything)
+    };
   }
 
-  function ensureVisualAssignments(entries) {
-    var groups = [];
-    var bySignature = new Map();
-    entries.forEach(function (entry) {
-      var signature = entrySignature(entry);
-      if (!bySignature.has(signature)) {
-        var group = { signature: signature, family: entryColorFamily(entry), entries: [] };
-        bySignature.set(signature, group);
-        groups.push(group);
-      }
-      bySignature.get(signature).entries.push(entry);
-    });
-
-    var usedShadesByFamily = new Map();
-    groups.forEach(function (group) {
-      var used = usedShadesByFamily.get(group.family);
-      if (!used) {
-        used = new Set();
-        usedShadesByFamily.set(group.family, used);
-      }
-      var retained = group.entries.find(function (entry) {
-        return entry.visualSignature === group.signature && entry.colorFamily === group.family
-          && Number.isInteger(entry.colorShade) && entry.colorShade >= 0 && !used.has(entry.colorShade);
-      });
-      var shade = retained ? retained.colorShade : -1;
-      if (shade < 0) {
-        for (var candidate = 0; candidate < 240; candidate += 1) {
-          if (!used.has(candidate)) {
-            shade = candidate;
-            break;
-          }
-        }
-      }
-      if (shade < 0) shade = hashString(group.signature) % 240;
-      used.add(shade);
-      group.entries.forEach(function (entry) {
-        entry.colorFamily = group.family;
-        entry.colorShade = shade;
-        entry.visualSignature = group.signature;
-      });
-    });
+  // The palette a wheel paints with follows the loaded preset. Built-ins get their own
+  // hardcoded ramp; anything else — including an unsaved draft — shares the jewel rotation.
+  function activePalette() {
+    var presetId = state.draftIdentity && state.draftIdentity.presetId;
+    var preset = presetId && state.presets.find(function (candidate) { return candidate.id === presetId; });
+    var key = preset && preset.builtinKey;
+    return (key && PRESET_PALETTES[key]) || DEFAULT_PALETTE;
   }
 
-  function ensureAllVisualAssignments() {
-    var allEntries = state.entries.slice();
-    state.presets.forEach(function (preset) { allEntries = allEntries.concat(preset.entries); });
-    // One shared pass keeps identical content visually identical across the draft and every saved wheel.
-    ensureVisualAssignments(allEntries);
+  function paletteColor(palette, index) {
+    if (index < palette.length) return palette[index];
+    // More distinct recipes than the ramp has stops: keep cycling, but sink each extra lap
+    // further into shadow so a later recipe never reads as richer than an earlier one.
+    var lap = Math.floor(index / palette.length);
+    return mixHex(palette[index % palette.length], "#0b0f18", Math.min(.55, .22 * lap));
+  }
+
+  // Stop assignment is derived from the draft's contents rather than stored on the entries,
+  // so it can never go stale: rank the distinct recipes, hand out stops top-down.
+  var stopCache = { fingerprint: null, stops: new Map() };
+
+  function stopIndexFor(entry) {
+    var palette = activePalette();
+    var signatures = state.entries.map(entrySignature);
+    var fingerprint = palette.join(",") + "|" + signatures.join("~");
+    if (stopCache.fingerprint !== fingerprint) {
+      var seen = new Map();
+      state.entries.forEach(function (candidate, index) {
+        var signature = signatures[index];
+        if (seen.has(signature)) return;
+        seen.set(signature, { signature: signature, rank: entryRank(candidate) });
+      });
+      var ordered = Array.from(seen.values()).sort(function (left, right) {
+        if (left.rank.precedence !== right.rank.precedence) return right.rank.precedence - left.rank.precedence;
+        if (left.rank.weight !== right.rank.weight) return right.rank.weight - left.rank.weight;
+        if (left.rank.depth !== right.rank.depth) return right.rank.depth - left.rank.depth;
+        return left.signature < right.signature ? -1 : 1;
+      });
+      stopCache = { fingerprint: fingerprint, stops: new Map() };
+      ordered.forEach(function (item, index) { stopCache.stops.set(item.signature, index); });
+    }
+    var stop = stopCache.stops.get(entrySignature(entry));
+    return Number.isInteger(stop) ? stop : 0;
   }
 
   function entryVisual(entry) {
     var signature = entrySignature(entry);
-    var retained = entry.visualSignature === signature && COLOR_FAMILIES[entry.colorFamily]
-      && Number.isInteger(entry.colorShade) && entry.colorShade >= 0;
-    var family = retained ? entry.colorFamily : entryColorFamily(entry);
-    var shade = retained ? entry.colorShade : hashString(signature) % SHADE_RAMP.length;
-    var anchor = COLOR_FAMILIES[family] || COLOR_FAMILIES.custom;
-    var base = familyShadeColor(anchor, shade);
+    var palette = activePalette();
+    var stop = stopIndexFor(entry);
+    var base = paletteColor(palette, stop);
     var textFamily = entryTextFamily(entry);
     var textColor = textFamily ? (TEXT_ACCENTS[textFamily] || "#ffffff") : "#ffffff";
     var baseStops = [
@@ -1067,11 +1073,10 @@
       { offset: 58, color: base },
       { offset: 100, color: mixHex(base, "#000000", .12) }
     ];
-    var baseCss = baseStops.map(function (stop) { return stop.color + " " + stop.offset + "%"; }).join(", ");
+    var baseCss = baseStops.map(function (item) { return item.color + " " + item.offset + "%"; }).join(", ");
     return {
       signature: signature,
-      family: family,
-      shade: shade,
+      stop: stop,
       base: base,
       textColor: textColor,
       angle: 135,
@@ -1219,8 +1224,23 @@
     var gradientDefinitions = svgElement("defs");
     dom.rotor.appendChild(gradientDefinitions);
     var sliceAngle = 360 / count;
+    // Identical recipes share a colour by design, but two of them side by side would merge
+    // into one wide wedge. Lift every wedge that repeats its neighbour just enough to keep
+    // the seam readable, checking the wrap-around pair too.
+    var visuals = entries.map(entryVisual);
+    visuals.forEach(function (visual, index) {
+      var previous = visuals[(index - 1 + count) % count];
+      if (index === 0 || previous.base !== visual.base) return;
+      var lifted = mixHex(visual.base, "#ffffff", .07);
+      visual.base = lifted;
+      visual.stops = [
+        { offset: 0, color: mixHex(lifted, "#ffffff", .06) },
+        { offset: 58, color: lifted },
+        { offset: 100, color: mixHex(lifted, "#000000", .12) }
+      ];
+    });
     entries.forEach(function (entry, index) {
-      var visual = entryVisual(entry);
+      var visual = visuals[index];
       var gradientId = "entry-gradient-" + index;
       var gradient = svgElement("linearGradient", {
         id: gradientId,
@@ -1468,6 +1488,9 @@
     document.body.style.setProperty("--preset-primary", theme.primary);
     document.body.style.setProperty("--preset-secondary", theme.secondary);
     document.body.style.setProperty("--preset-deep", theme.deep);
+    theme.rim.forEach(function (stop, index) {
+      document.body.style.setProperty("--rim-" + (index + 1), stop);
+    });
   }
 
   function presetDisplayOrder() {
@@ -1837,7 +1860,6 @@
   }
 
   function commitChange(message) {
-    ensureAllVisualAssignments();
     persistState();
     renderAll();
     if (message) setStatus(message);

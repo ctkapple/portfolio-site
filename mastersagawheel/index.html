@@ -87,6 +87,14 @@
               <stop offset="0.72" stop-color="#090e1a"/>
               <stop offset="1" stop-color="#050811"/>
             </radialGradient>
+            <!-- The rim metal. Its four stops are themed per preset from --rim-1..4, so the
+                 wheel's identity reads off the frame rather than off the slice faces. -->
+            <linearGradient id="wheel-rim-metal" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="var(--rim-1)"/>
+              <stop offset="0.34" stop-color="var(--rim-2)"/>
+              <stop offset="0.68" stop-color="var(--rim-3)"/>
+              <stop offset="1" stop-color="var(--rim-4)"/>
+            </linearGradient>
             <filter id="slice-glow" x="-30%" y="-30%" width="160%" height="160%">
               <feGaussianBlur stdDeviation="7" result="blur"/>
               <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>

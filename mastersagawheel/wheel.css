@@ -14,6 +14,11 @@
   --preset-primary: #6bd4a2;
   --preset-secondary: #5e4f80;
   --preset-deep: #151a22;
+  /* Rim metal stops, light-to-shadow. Overwritten per preset by renderWheelIdentity. */
+  --rim-1: #c9d2dd;
+  --rim-2: #7d8794;
+  --rim-3: #3a4049;
+  --rim-4: #aeb8c5;
   --radius: 18px;
   /* Per-reward text colours. The "Add rewards" chips and every numeral on the result plate
      read from these, so a reward is named in the same colour everywhere it appears. */
@@ -315,15 +320,18 @@ summary:focus-visible {
 
 .wheel__inner-ring {
   fill: none;
-  stroke: color-mix(in srgb, var(--preset-primary) 30%, rgba(225, 236, 255, .18));
+  stroke: color-mix(in srgb, var(--rim-3) 62%, rgba(225, 236, 255, .16));
   stroke-width: 2;
 }
 
+/* Formerly a flat tint of --preset-primary, which read as the same grey on every wheel.
+   The rim is now a real four-stop metal, so a preset is recognisable from the frame alone
+   even while the slice faces stay deep enough for the reward art to sit on top of them. */
 .wheel__rim {
   fill: none;
-  stroke: color-mix(in srgb, var(--preset-primary) 42%, rgba(184, 203, 235, .26));
+  stroke: url(#wheel-rim-metal);
   stroke-width: 9;
-  filter: drop-shadow(0 0 9px color-mix(in srgb, var(--preset-secondary) 42%, transparent));
+  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--preset-primary) 34%, transparent));
 }
 
 .wheel-pointer {
