@@ -4,7 +4,7 @@
   var SVG_NS = "http://www.w3.org/2000/svg";
   var STORAGE_KEY = "selection-wheel:v1";
   var AUDIO_PREFERENCE_KEY = "selection-wheel:audio:v1";
-  var STORAGE_VERSION = 5;
+  var STORAGE_VERSION = 6;
   var DEFAULT_SEED_VERSION = 2;
   var MAX_ENTRIES = 60;
   var MAX_LABEL_LENGTH = 48;
@@ -38,7 +38,6 @@
 
   var REWARDS = {
     ur: { label: "UR", singular: "UR", plural: "UR", image: "UR_Craft_Asset.png", color: "#bd4fe2", precedence: 90 },
-    gems: { label: "?", singular: "?", plural: "?", image: "Master_Duel_Gem.png", color: "#766cff", precedence: 85 },
     packs: { label: "Secret Packs", singular: "Secret Pack", plural: "Secret Packs", shortSingular: "Pack", shortPlural: "Packs", image: "The_Masters_Saga-Pack-Master_Duel.png", color: "#dfa735", precedence: 80, crop: "pack" },
     bans: { label: "Bans", singular: "Ban", plural: "Bans", image: "Ban_Asset.png", color: "#dd453e", precedence: 70 },
     sr: { label: "SR", singular: "SR", plural: "SR", image: "SR_Craft_asset.png", color: "#e6bc3f", precedence: 60 },
@@ -52,7 +51,6 @@
   // different reward types never read as the same slice color.
   var COLOR_FAMILIES = {
     ur: "#bd4fe2",
-    gems: "#766cff",
     packs: "#d9781f",
     bans: "#dd453e",
     sr: "#e6bc3f",
@@ -63,7 +61,6 @@
   };
   var TEXT_ACCENTS = {
     ur: "#e9a6ff",
-    gems: "#b3aeff",
     packs: "#ffb15c",
     bans: "#ff8f86",
     sr: "#ffe27a",
@@ -107,7 +104,10 @@
     emptyWheel: document.getElementById("empty-wheel"),
     customForm: document.getElementById("custom-entry-form"),
     customLabel: document.getElementById("custom-label"),
+    customGemSubmit: document.getElementById("custom-gem-submit"),
     sharedQuantity: document.getElementById("shared-quantity"),
+    rewardSource: document.getElementById("reward-source"),
+    rewardSourceRail: document.getElementById("reward-source-rail"),
     sliceList: document.getElementById("slice-list"),
     newWheelButton: document.getElementById("new-wheel-button"),
     presetList: document.getElementById("preset-list"),
@@ -118,9 +118,10 @@
     newWheelCancel: document.getElementById("new-wheel-cancel"),
     riggedToggle: document.getElementById("rigged-toggle"),
     riggedWinner: document.getElementById("rigged-winner"),
+    adminToggle: document.getElementById("admin-toggle"),
+    adminPopover: document.getElementById("admin-popover"),
     editorStatus: document.getElementById("editor-status"),
     confirmDialog: document.getElementById("confirm-dialog"),
-    confirmTitle: document.getElementById("confirm-title"),
     confirmMessage: document.getElementById("confirm-message"),
     confirmAction: document.getElementById("confirm-action"),
     resultAnnouncement: document.getElementById("result-announcement"),
@@ -134,24 +135,12 @@
     rewardDialog: document.getElementById("reward-dialog"),
     composerHeading: document.getElementById("composer-heading"),
     composerClose: document.getElementById("composer-close"),
-    componentType: document.getElementById("component-type"),
-    componentTarget: document.getElementById("component-target"),
-    componentCustomField: document.getElementById("component-custom-field"),
-    componentCustomText: document.getElementById("component-custom-text"),
-    componentAdd: document.getElementById("component-add"),
-    alwaysComponents: document.getElementById("always-components"),
-    alternativeList: document.getElementById("alternative-list"),
-    addAlternative: document.getElementById("add-alternative"),
-    composerPreview: document.getElementById("composer-preview"),
     composerValidation: document.getElementById("composer-validation"),
     composerReset: document.getElementById("composer-reset"),
     composerSubmit: document.getElementById("composer-submit"),
     composerSimple: document.getElementById("composer-simple"),
-    composerSimpleCustom: document.getElementById("composer-simple-custom"),
-    composerSimpleCustomAdd: document.getElementById("composer-simple-custom-add"),
-    composerSimpleNote: document.getElementById("composer-simple-note"),
+    composerSourceMount: document.getElementById("composer-source-mount"),
     simpleExpression: document.getElementById("simple-expression"),
-    composerAdvanced: document.getElementById("composer-advanced"),
     wheelIdentityIcon: document.getElementById("wheel-identity-icon"),
     wheelIdentityName: document.getElementById("wheel-identity-name"),
     soundToggle: document.getElementById("sound-toggle")
@@ -177,7 +166,9 @@
     soundEnabled: true,
     composer: { always: [], options: [] },
     simpleComposer: { tokens: [], relations: [null, null] },
+    composerEditIndex: null,
     editingEntryId: null,
+    composerUnsupported: false,
     draftIdentity: { presetId: null, name: "Custom Wheel", iconKey: "genex" }
   };
 
@@ -573,7 +564,7 @@
         return;
       }
       var envelope = JSON.parse(raw);
-      if (!envelope || [1, 2, 3, 4, STORAGE_VERSION].indexOf(envelope.version) < 0) {
+      if (!envelope || [1, 2, 3, 4, 5, STORAGE_VERSION].indexOf(envelope.version) < 0) {
         seedDefaultPresets(0);
         initialNotice = "Saved wheel data could not be restored. A blank wheel was opened safely.";
         return;
@@ -749,7 +740,7 @@
   }
 
   function rewardTierScale(item) {
-    var scales = { ur: 1, gems: .94, packs: .84, bans: .81, sr: .78, r: .67, n: .58, nr: .5, custom: .94 };
+    var scales = { ur: 1, packs: .84, bans: .81, sr: .78, r: .67, n: .58, nr: .5, custom: .94 };
     return scales[item.type] || .66;
   }
 
@@ -766,10 +757,10 @@
       return { kind: "custom-icon", item: item, width: customIconSize, height: customIconSize, iconSize: customIconSize };
     }
 
+    var iconSize = unit * .84;
+    var fontSize = Math.max(8, unit * .54);
+    var numberWidth = fontSize * (String(item.amount).length * .74 + .45);
     if (usesNumericRewardDisplay(item)) {
-      var iconSize = unit * .84;
-      var fontSize = Math.max(8, unit * .54);
-      var numberWidth = fontSize * (String(item.amount).length * .74 + .45);
       return { kind: "number", item: item, width: numberWidth + iconSize + 4, height: Math.max(iconSize, fontSize), iconSize: iconSize, fontSize: fontSize, numberWidth: numberWidth };
     }
 
@@ -1540,6 +1531,11 @@
   function syncControls() {
     var count = state.entries.length;
     var atLimit = count >= MAX_ENTRIES;
+    var builderOpen = Boolean(dom.rewardDialog && dom.rewardDialog.open);
+    var composerTarget = builderOpen ? composerTargetInfo() : null;
+    var sourceDisabled = builderOpen
+      ? state.composerUnsupported || (!state.editingEntryId && atLimit) || !composerTarget.accepts
+      : atLimit;
     dom.spinButton.disabled = count === 0;
     dom.spinCount.textContent = count ? count + (count === 1 ? " reward" : " rewards") : "No rewards";
     dom.entryTotal.textContent = count + " / " + MAX_ENTRIES;
@@ -1549,28 +1545,46 @@
     document.querySelectorAll("[data-reward]").forEach(function (button) {
       var definition = REWARDS[button.dataset.reward];
       var name = quantity === 1 ? (definition.shortSingular || definition.singular) : (definition.shortPlural || definition.plural);
-      button.disabled = atLimit;
-      button.querySelector("span").textContent = button.dataset.reward === "gems" ? "?" : quantity + " " + name;
-      button.setAttribute("aria-label", button.dataset.reward === "gems"
-        ? "Add one mystery gem wheel reward"
-        : "Add one " + quantity + " " + name + " wheel reward");
+      var action = rewardSourceActionLabel(quantity + " " + name, composerTarget, builderOpen);
+      button.disabled = sourceDisabled;
+      button.querySelector("span").textContent = String(quantity);
+      button.setAttribute("aria-label", action);
+      button.title = action;
     });
-    document.querySelectorAll("[data-composer-reward]").forEach(function (button) {
-      var definition = REWARDS[button.dataset.composerReward];
-      var name = quantity === 1 ? (definition.shortSingular || definition.singular) : (definition.shortPlural || definition.plural);
-      button.querySelector("span").textContent = button.dataset.composerReward === "gems" ? "?" : quantity + " " + name;
-      button.setAttribute("aria-label", button.dataset.composerReward === "gems"
-        ? "Use one mystery gem reward in the combined reward"
-        : "Use " + quantity + " " + name + " in the combined reward");
-    });
-    var customAddButton = dom.customForm.querySelector("button[type='submit']");
-    customAddButton.disabled = atLimit;
-    dom.composerSubmit.disabled = atLimit && !state.editingEntryId;
+    var customTextReady = Boolean(cleanText(dom.customLabel.value, MAX_LABEL_LENGTH));
+    var customAction = rewardSourceActionLabel("named custom reward", composerTarget, builderOpen);
+    dom.customGemSubmit.disabled = sourceDisabled || !customTextReady;
+    dom.customGemSubmit.querySelector("span").textContent = String(quantity);
+    dom.customGemSubmit.setAttribute("aria-label", customTextReady ? customAction : "Enter custom reward text first");
+    dom.customGemSubmit.title = customTextReady ? customAction : "Enter custom reward text first";
+    dom.composerSubmit.disabled = state.composerUnsupported || (atLimit && !state.editingEntryId);
     renderRiggedControls();
+  }
+
+  function rewardSourceActionLabel(reward, target, builderOpen) {
+    if (!builderOpen) return "Add one " + reward + " wheel reward";
+    if (!target || !target.accepts) return target && target.message ? target.message : "Choose a component first";
+    return target.mode === "edit"
+      ? "Replace component " + (target.index + 1) + " with " + reward
+      : "Add " + reward + " to component " + (target.index + 1);
   }
 
   function blankSimpleComposer() {
     return { tokens: [], relations: [null, null] };
+  }
+
+  function composerTargetInfo() {
+    var simple = state.simpleComposer;
+    if (!simple || state.composerUnsupported) return { accepts: false, message: "This reward cannot be edited here" };
+    if (Number.isInteger(state.composerEditIndex) && simple.tokens[state.composerEditIndex]) {
+      return { accepts: true, mode: "edit", index: state.composerEditIndex };
+    }
+    var nextIndex = simple.tokens.length;
+    if (nextIndex >= 3) return { accepts: false, message: "Three components maximum" };
+    if (nextIndex > 0 && !simple.relations[nextIndex - 1]) {
+      return { accepts: false, message: "Choose AND or OR to continue" };
+    }
+    return { accepts: true, mode: "append", index: nextIndex };
   }
 
   function rewardToSimple(reward) {
@@ -1610,92 +1624,58 @@
     if (reward) state.composer = reward;
   }
 
-  function syncSimpleFromAdvanced() {
-    state.simpleComposer = rewardToSimple(composerReward());
-    if (!state.simpleComposer) dom.composerAdvanced.open = true;
-  }
-
-  function simpleRewardNode(item) {
-    var wrapper = document.createElement("span");
-    wrapper.className = "simple-slot__reward";
+  function simpleRewardButton(item, index) {
+    var button = document.createElement("button");
+    button.type = "button";
+    button.className = "simple-slot__select";
+    button.dataset.simpleSelect = String(index);
+    button.setAttribute("aria-label", "Edit component " + (index + 1) + ": " + componentWords(item, false));
+    button.title = "Edit " + componentWords(item, false);
     var image = document.createElement("img");
     image.src = REWARDS[item.type].image;
     image.alt = "";
     image.dataset.crop = REWARDS[item.type].crop || item.type;
-    wrapper.appendChild(image);
-    var label = document.createElement("b");
-    label.textContent = item.type === "custom" ? item.text : REWARDS[item.type].label;
-    wrapper.appendChild(label);
-    return wrapper;
+    var amount = document.createElement("b");
+    amount.className = "simple-slot__quantity";
+    amount.textContent = String(item.amount);
+    button.append(amount, image);
+    return button;
   }
 
   function renderSimpleComposer() {
     dom.simpleExpression.replaceChildren();
     var simple = state.simpleComposer;
     var compatible = Boolean(simple);
+    var target = composerTargetInfo();
     dom.composerSimple.classList.toggle("is-incompatible", !compatible);
-    document.querySelectorAll("[data-composer-reward]").forEach(function (button) {
-      button.disabled = !compatible || simple.tokens.length >= 3;
-    });
-    dom.composerSimpleCustom.disabled = !compatible || simple.tokens.length >= 3;
-    dom.composerSimpleCustomAdd.disabled = !compatible || simple.tokens.length >= 3;
-
-    if (!compatible) {
-      dom.composerSimpleNote.textContent = "This reward uses a more complex saved structure. Edit it under Advanced structure without losing any rewards.";
-    } else if (!simple.tokens.length) {
-      dom.composerSimpleNote.textContent = "Choose the first reward above.";
-    } else if (simple.tokens.length >= 3) {
-      dom.composerSimpleNote.textContent = "All three reward slots are filled.";
-    } else if (!simple.relations[simple.tokens.length - 1]) {
-      dom.composerSimpleNote.textContent = "Choose AND or OR before adding the next reward.";
-    } else {
-      dom.composerSimpleNote.textContent = "Choose the next reward above.";
-    }
+    dom.composerSimple.classList.toggle("has-editing", Number.isInteger(state.composerEditIndex));
 
     for (let index = 0; index < 3; index += 1) {
       var item = compatible ? simple.tokens[index] : null;
       var slot = document.createElement("div");
       slot.className = "simple-slot";
+      slot.dataset.slotIndex = String(index);
       if (item) slot.classList.add("is-filled");
-      else if (compatible && (index === 0 || Boolean(simple.tokens[index - 1]))) slot.classList.add("is-active");
-      var number = document.createElement("span");
-      number.className = "simple-slot__number";
-      number.textContent = String(index + 1).padStart(2, "0");
-      slot.appendChild(number);
+      else if (compatible && target.accepts && target.mode === "append" && target.index === index) slot.classList.add("is-active");
+      else slot.classList.add("is-locked");
       if (item) {
         slot.style.setProperty("--token-color", componentVisualColors(item)[0].color);
-        slot.appendChild(simpleRewardNode(item));
-        var controls = document.createElement("span");
-        controls.className = "simple-slot__controls";
-        if (item.type !== "custom") {
-          var type = document.createElement("select");
-          type.className = "simple-slot__type";
-          type.dataset.simpleType = String(index);
-          type.setAttribute("aria-label", "Reward type for " + componentWords(item, false));
-          Object.keys(REWARDS).filter(function (key) { return key !== "custom"; }).forEach(function (key) {
-            var option = document.createElement("option");
-            option.value = key;
-            option.textContent = REWARDS[key].label;
-            option.selected = key === item.type;
-            type.appendChild(option);
-          });
-          controls.appendChild(type);
-        }
-        var amount = document.createElement("input");
-        amount.type = "number";
-        amount.min = "1";
-        amount.max = "999";
-        amount.value = String(item.amount);
-        amount.className = "simple-slot__amount";
-        amount.dataset.simpleAmount = String(index);
-        amount.setAttribute("aria-label", "Quantity for " + componentWords(item, false));
-        controls.append(amount, makeButton("mini-icon mini-icon--remove", "×", "Remove " + componentWords(item, false), "simple-remove"));
-        controls.lastChild.dataset.simpleIndex = String(index);
-        slot.appendChild(controls);
+        if (state.composerEditIndex === index) slot.classList.add("is-editing");
+        slot.appendChild(simpleRewardButton(item, index));
+        var remove = makeButton("mini-icon mini-icon--remove simple-slot__remove", "×", "Remove " + componentWords(item, false), "simple-remove");
+        remove.dataset.simpleIndex = String(index);
+        slot.appendChild(remove);
       } else {
+        var number = document.createElement("span");
+        number.className = "simple-slot__number";
+        number.textContent = String(index + 1).padStart(2, "0");
+        slot.appendChild(number);
         var empty = document.createElement("span");
         empty.className = "simple-slot__empty";
-        empty.textContent = compatible && (index === 0 || simple.tokens[index - 1]) ? "Choose a reward" : "Next reward";
+        empty.textContent = slot.classList.contains("is-active") ? "+" : "×";
+        slot.setAttribute("aria-label", slot.classList.contains("is-active")
+          ? "Component " + (index + 1) + " is ready for a reward"
+          : "Component " + (index + 1) + " is locked");
         slot.appendChild(empty);
       }
       dom.simpleExpression.appendChild(slot);
@@ -1704,9 +1684,7 @@
         var relation = document.createElement("div");
         relation.className = "simple-relation";
         relation.hidden = !compatible || !simple.tokens[index];
-        var prompt = document.createElement("span");
-        prompt.textContent = "Combine with";
-        relation.appendChild(prompt);
+        relation.setAttribute("aria-label", "Connector after component " + (index + 1));
         ["and", "or"].forEach(function (kind) {
           var button = document.createElement("button");
           button.type = "button";
@@ -1714,6 +1692,9 @@
           button.dataset.relationIndex = String(index);
           button.dataset.relation = kind;
           button.textContent = kind.toUpperCase();
+          button.setAttribute("aria-label", kind === "and"
+            ? "Make the next component guaranteed"
+            : "Make the next component an alternative");
           relation.appendChild(button);
         });
         dom.simpleExpression.appendChild(relation);
@@ -1737,122 +1718,54 @@
     return "";
   }
 
-  function createComponentRow(item, zone, branchIndex, itemIndex) {
-    var row = document.createElement("div");
-    row.className = "component-row";
-    row.dataset.zone = zone;
-    row.dataset.branchIndex = String(branchIndex);
-    row.dataset.itemIndex = String(itemIndex);
+  function applyComposerComponent(item) {
+    var target = composerTargetInfo();
+    if (!target.accepts) return false;
+    if (target.mode === "edit") state.simpleComposer.tokens[target.index] = item;
+    else state.simpleComposer.tokens.push(item);
+    state.composerEditIndex = target.mode === "edit" ? target.index : null;
+    updateComposerFromSimple();
+    renderComposer();
+    return true;
+  }
 
-    var amount = document.createElement("input");
-    amount.type = "number";
-    amount.min = "1";
-    amount.max = "999";
-    amount.value = String(item.amount);
-    amount.className = "component-row__amount";
-    amount.dataset.field = "amount";
-    amount.setAttribute("aria-label", "Component amount");
+  function selectComposerComponent(index) {
+    var item = state.simpleComposer && state.simpleComposer.tokens[index];
+    if (!item) return;
+    state.composerEditIndex = index;
+    state.quantity = item.amount;
+    dom.customLabel.value = item.type === "custom" ? item.text : "";
+    persistState();
+    renderComposer();
+    window.requestAnimationFrame(function () { dom.sharedQuantity.focus(); });
+  }
 
-    var type = document.createElement("select");
-    type.className = "component-row__type";
-    type.dataset.field = "type";
-    type.setAttribute("aria-label", "Component type");
-    Object.keys(REWARDS).forEach(function (key) {
-      var option = document.createElement("option");
-      option.value = key;
-      option.textContent = REWARDS[key].label;
-      option.selected = key === item.type;
-      type.appendChild(option);
-    });
+  function moveRewardSourceTo(target) {
+    if (dom.rewardSource && target && dom.rewardSource.parentElement !== target) target.appendChild(dom.rewardSource);
+  }
 
-    row.append(amount, type);
-    if (item.type === "custom") {
-      var text = document.createElement("input");
-      text.type = "text";
-      text.maxLength = MAX_LABEL_LENGTH;
-      text.value = item.text || "";
-      text.className = "component-row__text";
-      text.dataset.field = "text";
-      text.setAttribute("aria-label", "Custom component text");
-      row.appendChild(text);
-    }
-    var controls = document.createElement("span");
-    controls.className = "component-row__actions";
-    controls.append(
-      makeButton("mini-icon", "↑", "Move component up", "component-up"),
-      makeButton("mini-icon", "↓", "Move component down", "component-down"),
-      makeButton("mini-icon mini-icon--remove", "×", "Remove component", "component-remove")
-    );
-    controls.children[0].disabled = itemIndex === 0;
-    var source = zone === "always" ? state.composer.always : state.composer.options[branchIndex];
-    controls.children[1].disabled = itemIndex === source.length - 1;
-    row.appendChild(controls);
-    return row;
+  function restoreRewardSource() {
+    moveRewardSourceTo(dom.rewardSourceRail);
   }
 
   function renderComposer() {
     renderSimpleComposer();
-    dom.alwaysComponents.replaceChildren();
-    if (!state.composer.always.length) dom.alwaysComponents.appendChild(emptyComposerNote("No always-received components."));
-    state.composer.always.forEach(function (item, index) { dom.alwaysComponents.appendChild(createComponentRow(item, "always", -1, index)); });
-
-    dom.alternativeList.replaceChildren();
-    state.composer.options.forEach(function (branch, branchIndex) {
-      var card = document.createElement("section");
-      card.className = "alternative-card";
-      card.dataset.branchIndex = String(branchIndex);
-      var heading = document.createElement("div");
-      heading.className = "alternative-card__heading";
-      var label = document.createElement("b");
-      label.textContent = "Option " + (branchIndex + 1);
-      var actions = document.createElement("span");
-      actions.append(
-        makeButton("mini-icon", "↑", "Move option up", "branch-up"),
-        makeButton("mini-icon", "↓", "Move option down", "branch-down"),
-        makeButton("mini-icon mini-icon--remove", "×", "Remove option", "branch-remove")
-      );
-      actions.children[0].disabled = branchIndex === 0;
-      actions.children[1].disabled = branchIndex === state.composer.options.length - 1;
-      heading.append(label, actions);
-      card.appendChild(heading);
-      if (!branch.length) card.appendChild(emptyComposerNote("Add a component to this option."));
-      branch.forEach(function (item, itemIndex) { card.appendChild(createComponentRow(item, "option", branchIndex, itemIndex)); });
-      dom.alternativeList.appendChild(card);
-    });
-    if (!state.composer.options.length) dom.alternativeList.appendChild(emptyComposerNote("No alternatives. Add two or more to create an OR choice."));
-
-    dom.componentTarget.replaceChildren();
-    var alwaysOption = document.createElement("option");
-    alwaysOption.value = "always";
-    alwaysOption.textContent = "Always receive";
-    dom.componentTarget.appendChild(alwaysOption);
-    state.composer.options.forEach(function (_branch, index) {
-      var option = document.createElement("option");
-      option.value = "option:" + index;
-      option.textContent = "Option " + (index + 1);
-      dom.componentTarget.appendChild(option);
-    });
-
-    var reward = composerReward();
-    dom.composerPreview.textContent = reward.always.length || reward.options.length ? rewardDescription(reward) : "Add a component to begin.";
-    var validation = composerValidationMessage();
+    var validation = state.composerUnsupported
+      ? "This saved reward uses more than the three visible components this builder supports."
+      : composerValidationMessage();
     dom.composerValidation.textContent = validation;
     dom.composerSubmit.disabled = Boolean(validation);
+    dom.composerReset.disabled = state.composerUnsupported;
     dom.composerSubmit.textContent = state.editingEntryId ? "Update wheel reward" : "Add reward to wheel";
-  }
-
-  function emptyComposerNote(text) {
-    var note = document.createElement("p");
-    note.className = "composer-empty";
-    note.textContent = text;
-    return note;
+    syncControls();
   }
 
   function resetComposer(close) {
     state.composer = { always: [], options: [] };
     state.simpleComposer = blankSimpleComposer();
+    state.composerEditIndex = null;
     state.editingEntryId = null;
-    dom.componentCustomText.value = "";
+    state.composerUnsupported = false;
     renderComposer();
     if (close) {
       if (dom.rewardDialog && dom.rewardDialog.open) dom.rewardDialog.close();
@@ -1863,8 +1776,10 @@
 
   function handleRewardDialogClose() {
     // Closing by Escape or the × button must leave the saved entry untouched.
+    restoreRewardSource();
     resetComposer(false);
     dom.composerToggle.setAttribute("aria-expanded", "false");
+    window.requestAnimationFrame(function () { dom.composerToggle.focus(); });
   }
 
   function openComposer(entry) {
@@ -1874,21 +1789,22 @@
         : { always: [component("custom", 1, entry.label)], options: [] };
       state.simpleComposer = rewardToSimple(state.composer);
       state.editingEntryId = entry.id;
-      dom.composerAdvanced.open = !state.simpleComposer;
-      dom.composerHeading.textContent = "Edit wheel reward";
+      state.composerUnsupported = !state.simpleComposer;
     } else {
       state.editingEntryId = null;
       state.simpleComposer = blankSimpleComposer();
-      dom.composerAdvanced.open = false;
-      dom.composerHeading.textContent = "Build one wheel reward";
+      state.composer = { always: [], options: [] };
+      state.composerUnsupported = false;
     }
+    state.composerEditIndex = null;
+    moveRewardSourceTo(dom.composerSourceMount);
     dom.composer.hidden = false;
     dom.composerToggle.setAttribute("aria-expanded", "true");
     renderComposer();
     if (dom.rewardDialog && typeof dom.rewardDialog.showModal === "function") dom.rewardDialog.showModal();
+    syncControls();
     window.requestAnimationFrame(function () {
-      var simpleAmount = dom.simpleExpression.querySelector("[data-simple-amount]");
-      (simpleAmount || dom.componentType).focus();
+      dom.sharedQuantity.focus();
     });
   }
 
@@ -1932,7 +1848,6 @@
       return Promise.resolve(window.confirm(options.message));
     }
 
-    dom.confirmTitle.textContent = options.title;
     dom.confirmMessage.textContent = options.message;
     dom.confirmAction.textContent = options.confirmLabel || "Confirm";
     dom.confirmDialog.returnValue = "";
@@ -1965,6 +1880,7 @@
   }
 
   function setCinematic(active) {
+    if (active) setAdminPopoverOpen(false, false);
     document.body.classList.toggle("is-cinematic", active);
     document.querySelectorAll(".setup-only").forEach(function (element) {
       if (active) {
@@ -1975,6 +1891,23 @@
         element.removeAttribute("aria-hidden");
       }
     });
+  }
+
+  function setAdminPopoverOpen(open, returnFocus) {
+    if (!dom.adminPopover || !dom.adminToggle) return;
+    var shouldOpen = Boolean(open) && state.phase === "setup";
+    dom.adminPopover.hidden = !shouldOpen;
+    dom.adminToggle.setAttribute("aria-expanded", String(shouldOpen));
+    if (shouldOpen) {
+      window.requestAnimationFrame(function () {
+        var focusTarget = !dom.riggedWinner.disabled
+          ? dom.riggedWinner
+          : (!dom.riggedToggle.disabled ? dom.riggedToggle : dom.adminPopover);
+        focusTarget.focus();
+      });
+    } else if (returnFocus) {
+      window.requestAnimationFrame(function () { dom.adminToggle.focus(); });
+    }
   }
 
   function setRotation(value) {
@@ -2668,21 +2601,18 @@
     setStatus("Returned to setup. Your wheel is unchanged.");
   }
 
-  Object.keys(REWARDS).filter(function (key) { return key !== "custom"; }).forEach(function (key) {
-    var option = document.createElement("option");
-    option.value = key;
-    option.textContent = REWARDS[key].label;
-    dom.componentType.appendChild(option);
-  });
-  var customTypeOption = document.createElement("option");
-  customTypeOption.value = "custom";
-  customTypeOption.textContent = REWARDS.custom.label;
-  dom.componentType.appendChild(customTypeOption);
-
   document.querySelectorAll("[data-reward]").forEach(function (button) {
     button.addEventListener("click", function () {
       var type = button.dataset.reward;
-      var entry = structuredEntry([component(type, state.quantity)], []);
+      var item = component(type, state.quantity);
+      if (dom.rewardDialog.open) {
+        if (applyComposerComponent(item) && item.type !== "custom") {
+          dom.customLabel.value = "";
+          syncControls();
+        }
+        return;
+      }
+      var entry = structuredEntry([item], []);
       if (addEntry(entry)) {
         commitChange(entryLabel(entry) + " added as one wheel reward.");
       }
@@ -2694,6 +2624,15 @@
     if (Number.isInteger(quantity) && quantity >= 1 && quantity <= MAX_ENTRIES) {
       state.quantity = quantity;
       persistState();
+      if (dom.rewardDialog.open && Number.isInteger(state.composerEditIndex)) {
+        var selected = state.simpleComposer.tokens[state.composerEditIndex];
+        if (selected) {
+          selected.amount = quantity;
+          updateComposerFromSimple();
+          renderComposer();
+          return;
+        }
+      }
       syncControls();
     }
   });
@@ -2704,6 +2643,15 @@
       state.quantity = 1;
       setStatus("Quantity reset to 1. Use a whole number from 1 to " + MAX_ENTRIES + ".", "warning");
       persistState();
+      if (dom.rewardDialog.open && Number.isInteger(state.composerEditIndex)) {
+        var selected = state.simpleComposer.tokens[state.composerEditIndex];
+        if (selected) {
+          selected.amount = 1;
+          updateComposerFromSimple();
+          renderComposer();
+          return;
+        }
+      }
       syncControls();
     }
   });
@@ -2716,11 +2664,25 @@
       dom.customLabel.focus();
       return;
     }
-    if (!addEntry({ id: createId("entry"), kind: "custom", label: label, presetKind: null })) return;
+    var item = component("custom", state.quantity, label);
+    if (dom.rewardDialog.open) {
+      var wasEditingComponent = Number.isInteger(state.composerEditIndex);
+      if (applyComposerComponent(item)) {
+        if (!wasEditingComponent) {
+          dom.customLabel.value = "";
+          syncControls();
+        }
+        dom.customLabel.focus();
+      }
+      return;
+    }
+    var entry = structuredEntry([item], []);
+    if (!addEntry(entry)) return;
     dom.customLabel.value = "";
-    commitChange(label + " added as one wheel reward.");
+    commitChange(entryLabel(entry) + " added as one wheel reward.");
     dom.customLabel.focus();
   });
+  dom.customLabel.addEventListener("input", syncControls);
 
   dom.composerToggle.addEventListener("click", function () {
     if (!dom.rewardDialog.open) openComposer(null);
@@ -2728,49 +2690,19 @@
   });
   dom.composerClose.addEventListener("click", function () { resetComposer(true); });
   dom.composerReset.addEventListener("click", function () { resetComposer(false); });
-  document.querySelectorAll("[data-composer-reward]").forEach(function (button) {
-    button.addEventListener("click", function () {
-      if (!state.simpleComposer || state.simpleComposer.tokens.length >= 3) return;
-      var nextIndex = state.simpleComposer.tokens.length;
-      if (nextIndex > 0 && !state.simpleComposer.relations[nextIndex - 1]) {
-        setStatus("Choose AND or OR before adding the next reward.", "warning");
-        return;
-      }
-      state.simpleComposer.tokens.push(component(button.dataset.composerReward, state.quantity));
-      updateComposerFromSimple();
-      renderComposer();
-    });
-  });
-  dom.composerSimpleCustomAdd.addEventListener("click", function () {
-    if (!state.simpleComposer || state.simpleComposer.tokens.length >= 3) return;
-    var text = cleanText(dom.composerSimpleCustom.value, MAX_LABEL_LENGTH);
-    if (!text) {
-      setStatus("Enter custom reward text first.", "warning");
-      dom.composerSimpleCustom.focus();
-      return;
-    }
-    var nextIndex = state.simpleComposer.tokens.length;
-    if (nextIndex > 0 && !state.simpleComposer.relations[nextIndex - 1]) {
-      setStatus("Choose AND or OR before adding the next reward.", "warning");
-      return;
-    }
-    state.simpleComposer.tokens.push(component("custom", state.quantity, text));
-    dom.composerSimpleCustom.value = "";
-    updateComposerFromSimple();
-    renderComposer();
-  });
-  dom.composerSimpleCustom.addEventListener("keydown", function (event) {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      dom.composerSimpleCustomAdd.click();
-    }
-  });
   dom.simpleExpression.addEventListener("click", function (event) {
     var relationButton = event.target.closest("[data-relation-index]");
     if (relationButton && state.simpleComposer) {
       state.simpleComposer.relations[Number(relationButton.dataset.relationIndex)] = relationButton.dataset.relation;
+      state.composerEditIndex = null;
+      dom.customLabel.value = "";
       updateComposerFromSimple();
       renderComposer();
+      return;
+    }
+    var selectButton = event.target.closest("[data-simple-select]");
+    if (selectButton && state.simpleComposer) {
+      selectComposerComponent(Number(selectButton.dataset.simpleSelect));
       return;
     }
     var removeButton = event.target.closest("[data-action='simple-remove']");
@@ -2780,139 +2712,15 @@
     if (removeIndex === 0) state.simpleComposer.relations.shift();
     else state.simpleComposer.relations.splice(removeIndex - 1, 1);
     while (state.simpleComposer.relations.length < 2) state.simpleComposer.relations.push(null);
+    state.composerEditIndex = null;
+    dom.customLabel.value = "";
     updateComposerFromSimple();
     renderComposer();
   });
-  dom.simpleExpression.addEventListener("input", function (event) {
-    if (!event.target.dataset.simpleAmount || !state.simpleComposer) return;
-    var item = state.simpleComposer.tokens[Number(event.target.dataset.simpleAmount)];
-    var amount = Number(event.target.value);
-    if (!item || !Number.isInteger(amount) || amount < 1 || amount > 999) return;
-    item.amount = amount;
-    updateComposerFromSimple();
-    var reward = composerReward();
-    dom.composerPreview.textContent = rewardDescription(reward) || "Add a component to begin.";
-    var validation = composerValidationMessage();
-    dom.composerValidation.textContent = validation;
-    dom.composerSubmit.disabled = Boolean(validation);
-  });
-  dom.simpleExpression.addEventListener("change", function (event) {
-    if (event.target.dataset.simpleType && state.simpleComposer) {
-      var typeItem = state.simpleComposer.tokens[Number(event.target.dataset.simpleType)];
-      if (!typeItem || !REWARDS[event.target.value] || event.target.value === "custom") return;
-      typeItem.type = event.target.value;
-      delete typeItem.text;
-      updateComposerFromSimple();
-      renderComposer();
-      return;
-    }
-    if (!event.target.dataset.simpleAmount || !state.simpleComposer) return;
-    var item = state.simpleComposer.tokens[Number(event.target.dataset.simpleAmount)];
-    var amount = Number(event.target.value);
-    if (item && Number.isInteger(amount) && amount >= 1 && amount <= 999) return;
-    if (item) event.target.value = String(item.amount);
-    setStatus("Combined reward quantities must be whole numbers from 1 to 999.", "warning");
-  });
-  dom.componentType.addEventListener("change", function () {
-    dom.componentCustomField.hidden = dom.componentType.value !== "custom";
-    if (!dom.componentCustomField.hidden) dom.componentCustomText.focus();
-  });
-  dom.addAlternative.addEventListener("click", function () {
-    state.composer.options.push([]);
-    syncSimpleFromAdvanced();
-    renderComposer();
-    dom.componentTarget.value = "option:" + (state.composer.options.length - 1);
-  });
-  dom.componentAdd.addEventListener("click", function () {
-    var type = dom.componentType.value;
-    var text = type === "custom" ? cleanText(dom.componentCustomText.value, MAX_LABEL_LENGTH) : "";
-    if (type === "custom" && !text) {
-      setStatus("Enter custom component text first.", "warning");
-      dom.componentCustomText.focus();
-      return;
-    }
-    var item = component(type, state.quantity, text);
-    if (dom.componentTarget.value === "always") state.composer.always.push(item);
-    else {
-      var branchIndex = Number(dom.componentTarget.value.split(":")[1]);
-      if (state.composer.options[branchIndex]) state.composer.options[branchIndex].push(item);
-    }
-    if (type === "custom") dom.componentCustomText.value = "";
-    syncSimpleFromAdvanced();
-    renderComposer();
-  });
-
-  dom.composer.addEventListener("input", function (event) {
-    var row = event.target.closest(".component-row");
-    if (!row || !event.target.dataset.field) return;
-    var source = row.dataset.zone === "always" ? state.composer.always : state.composer.options[Number(row.dataset.branchIndex)];
-    var item = source && source[Number(row.dataset.itemIndex)];
-    if (!item) return;
-    if (event.target.dataset.field === "amount") {
-      var amount = Number(event.target.value);
-      if (Number.isInteger(amount) && amount >= 1 && amount <= 999) item.amount = amount;
-    } else if (event.target.dataset.field === "text") {
-      item.text = cleanText(event.target.value, MAX_LABEL_LENGTH);
-    }
-    syncSimpleFromAdvanced();
-    renderSimpleComposer();
-    var reward = composerReward();
-    dom.composerPreview.textContent = rewardDescription(reward) || "Add a component to begin.";
-    var validation = composerValidationMessage();
-    dom.composerValidation.textContent = validation;
-    dom.composerSubmit.disabled = Boolean(validation);
-  });
-
-  dom.composer.addEventListener("change", function (event) {
-    var row = event.target.closest(".component-row");
-    if (!row || event.target.dataset.field !== "type") return;
-    var source = row.dataset.zone === "always" ? state.composer.always : state.composer.options[Number(row.dataset.branchIndex)];
-    var item = source && source[Number(row.dataset.itemIndex)];
-    if (!item) return;
-    item.type = event.target.value;
-    if (item.type === "custom" && !item.text) item.text = "Custom reward";
-    else if (item.type !== "custom") delete item.text;
-    syncSimpleFromAdvanced();
-    renderComposer();
-  });
-
-  dom.composer.addEventListener("click", function (event) {
-    var button = event.target.closest("[data-action]");
-    if (!button) return;
-    var action = button.dataset.action;
-    var branchCard = button.closest(".alternative-card");
-    if (action.indexOf("branch-") === 0 && branchCard) {
-      var branchIndex = Number(branchCard.dataset.branchIndex);
-      if (action === "branch-remove") state.composer.options.splice(branchIndex, 1);
-      else {
-        var branchTarget = action === "branch-up" ? branchIndex - 1 : branchIndex + 1;
-        if (branchTarget >= 0 && branchTarget < state.composer.options.length) {
-          var branch = state.composer.options.splice(branchIndex, 1)[0];
-          state.composer.options.splice(branchTarget, 0, branch);
-        }
-      }
-      syncSimpleFromAdvanced();
-      renderComposer();
-      return;
-    }
-    var row = button.closest(".component-row");
-    if (!row || action.indexOf("component-") !== 0) return;
-    var source = row.dataset.zone === "always" ? state.composer.always : state.composer.options[Number(row.dataset.branchIndex)];
-    var index = Number(row.dataset.itemIndex);
-    if (action === "component-remove") source.splice(index, 1);
-    else {
-      var target = action === "component-up" ? index - 1 : index + 1;
-      if (target >= 0 && target < source.length) {
-        var item = source.splice(index, 1)[0];
-        source.splice(target, 0, item);
-      }
-    }
-    syncSimpleFromAdvanced();
-    renderComposer();
-  });
-
   dom.composerSubmit.addEventListener("click", function () {
-    var validation = composerValidationMessage();
+    var validation = state.composerUnsupported
+      ? "This saved reward cannot be edited in the three-component builder."
+      : composerValidationMessage();
     if (validation) {
       dom.composerValidation.textContent = validation;
       return;
@@ -2921,7 +2729,7 @@
     if (state.editingEntryId) {
       var index = state.entries.findIndex(function (entry) { return entry.id === state.editingEntryId; });
       if (index >= 0) state.entries[index] = { id: state.editingEntryId, kind: "structured", reward: reward };
-      commitChange("Structured reward updated.");
+      commitChange("Wheel reward updated.");
     } else {
       var entry = structuredEntry(reward.always, reward.options);
       if (!addEntry(entry)) return;
@@ -2937,10 +2745,11 @@
       var label = entryLabel(chosenEntry);
       var matches = state.entries.filter(function (entry) { return entryLabel(entry) === label; });
       state.riggedTargetId = matches[randomIndex(matches.length)].id;
+      state.riggedEnabled = true;
     } else {
       state.riggedTargetId = null;
+      state.riggedEnabled = false;
     }
-    if (!state.riggedTargetId) state.riggedEnabled = false;
     renderSliceList();
     syncControls();
   });
@@ -3015,8 +2824,7 @@
   dom.newWheelButton.addEventListener("click", async function (event) {
     event.preventDefault();
     var canReplace = !isDraftDirty() || await requestConfirmation({
-      title: "Start a new wheel?",
-      message: "Starting a new wheel will replace the rewards currently on the wheel.",
+      message: "Any unsaved progress will be lost",
       confirmLabel: "New wheel"
     });
     if (!canReplace) return;
@@ -3075,8 +2883,7 @@
 
     if (action === "load") {
       var canLoad = !isDraftDirty() || await requestConfirmation({
-        title: "Replace current wheel?",
-        message: "Loading “" + preset.name + "” will replace the rewards currently on the wheel.",
+        message: "Any unsaved progress will be lost",
         confirmLabel: "Load preset"
       });
       if (!canLoad) return;
@@ -3137,8 +2944,7 @@
         return;
       }
       var shouldDelete = !preset.entries.length || await requestConfirmation({
-        title: "Delete saved wheel?",
-        message: "Delete “" + preset.name + "”? This cannot be undone.",
+        message: "This wheel will be permanently deleted.",
         confirmLabel: "Delete"
       });
       if (!shouldDelete) return;
@@ -3162,10 +2968,16 @@
     audioController.setEnabled(state.soundEnabled);
     syncSoundToggle();
   });
+  dom.adminToggle.addEventListener("click", function () {
+    setAdminPopoverOpen(dom.adminPopover.hidden, false);
+  });
   dom.confirmDialog.addEventListener("close", handleDialogClose);
   dom.rewardDialog.addEventListener("close", handleRewardDialogClose);
 
   window.addEventListener("click", function (event) {
+    if (!dom.adminPopover.hidden && !event.target.closest(".utility-chips--left")) {
+      setAdminPopoverOpen(false, false);
+    }
     if (isUtilityControl(event.target)) return;
     if (state.phase === "result") {
       // Consume the dismissal click before setup returns so it cannot click through into a newly visible control.
@@ -3183,6 +2995,12 @@
 
   window.addEventListener("keydown", function (event) {
     var keyId = event.code || event.key;
+    if (!dom.adminPopover.hidden && event.key === "Escape") {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      setAdminPopoverOpen(false, true);
+      return;
+    }
     if (isUtilityControl(event.target)) return;
     if (state.phase === "armed") {
       if (event.key === "Escape") {

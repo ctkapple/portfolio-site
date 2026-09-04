@@ -29,51 +29,37 @@
           <output class="entry-total" id="entry-total">0 / 60</output>
         </div>
 
-        <div class="quantity-row">
-          <label class="field quantity-field">
-            <span>Quantity</span>
-            <input id="shared-quantity" name="quantity" type="number" min="1" max="60" step="1" value="1" inputmode="numeric" required>
-          </label>
-        </div>
+        <div id="reward-source-rail">
+          <div class="reward-source" id="reward-source">
+            <div class="quantity-row">
+              <label class="field quantity-field">
+                <span>Quantity</span>
+                <input id="shared-quantity" name="quantity" type="number" min="1" max="60" step="1" value="1" inputmode="numeric" required>
+              </label>
+            </div>
 
-        <div class="tier-chips" aria-label="Quick rewards">
-          <button class="tier-chip tier-chip--ur" type="button" data-reward="ur"><img src="UR_Craft_Asset.png" alt=""><span>1 UR</span></button>
-          <button class="tier-chip tier-chip--packs" type="button" data-reward="packs"><img src="The_Masters_Saga-Pack-Master_Duel.png" alt=""><span>1 Pack</span></button>
-          <button class="tier-chip tier-chip--bans" type="button" data-reward="bans"><img src="Ban_Asset.png" alt=""><span>1 Ban</span></button>
-          <button class="tier-chip tier-chip--sr" type="button" data-reward="sr"><img src="SR_Craft_asset.png" alt=""><span>1 SR</span></button>
-          <button class="tier-chip tier-chip--r" type="button" data-reward="r"><img src="R_Craft_asset.png" alt=""><span>1 R</span></button>
-          <button class="tier-chip tier-chip--n" type="button" data-reward="n"><img src="N_Craft_asset.png" alt=""><span>1 N</span></button>
-          <button class="tier-chip tier-chip--nr" type="button" data-reward="nr"><img src="N_R_Craft_asset.png" alt=""><span>1 N/R</span></button>
-          <button class="tier-chip tier-chip--gems" type="button" data-reward="gems"><img src="Master_Duel_Gem.png" alt=""><span>?</span></button>
-        </div>
+            <div class="tier-chips" aria-label="Reward choices">
+              <button class="tier-chip tier-chip--ur" type="button" data-reward="ur"><img src="UR_Craft_Asset.png" alt=""><span>1</span></button>
+              <button class="tier-chip tier-chip--packs" type="button" data-reward="packs"><img src="The_Masters_Saga-Pack-Master_Duel.png" alt=""><span>1</span></button>
+              <button class="tier-chip tier-chip--bans" type="button" data-reward="bans"><img src="Ban_Asset.png" alt=""><span>1</span></button>
+              <button class="tier-chip tier-chip--sr" type="button" data-reward="sr"><img src="SR_Craft_asset.png" alt=""><span>1</span></button>
+              <button class="tier-chip tier-chip--r" type="button" data-reward="r"><img src="R_Craft_asset.png" alt=""><span>1</span></button>
+              <button class="tier-chip tier-chip--n" type="button" data-reward="n"><img src="N_Craft_asset.png" alt=""><span>1</span></button>
+              <button class="tier-chip tier-chip--nr" type="button" data-reward="nr"><img src="N_R_Craft_asset.png" alt=""><span>1</span></button>
+              <button class="tier-chip tier-chip--custom" id="custom-gem-submit" type="submit" form="custom-entry-form" disabled aria-label="Add custom reward" title="Enter custom reward text first"><img src="Master_Duel_Gem.png" alt=""><span>1</span></button>
+            </div>
 
-        <form class="custom-entry" id="custom-entry-form">
-          <label class="field field--label">
-            <span>Custom Reward</span>
-            <input id="custom-label" name="label" type="text" maxlength="48" autocomplete="off" placeholder="eg. legacy craft" required>
-          </label>
-          <button class="add-button add-button--gem" type="submit" aria-label="Add custom reward" title="Add custom reward"><img src="Master_Duel_Gem.png" alt=""></button>
-        </form>
+            <form class="custom-entry" id="custom-entry-form">
+              <label class="field field--label">
+                <span>Custom Reward</span>
+                <input id="custom-label" name="label" type="text" maxlength="48" autocomplete="off" placeholder="eg. legacy craft" required>
+              </label>
+            </form>
+          </div>
+        </div>
 
         <button class="composer-toggle" id="composer-toggle" type="button" aria-expanded="false" aria-controls="entry-composer">Advanced Reward Builder</button>
       </section>
-
-      <details class="editor-section admin-card" id="admin-card">
-        <summary>Admin</summary>
-        <div class="admin-card__content">
-          <label class="toggle-control">
-            <input id="rigged-toggle" type="checkbox">
-            <span aria-hidden="true"></span>
-            <b>Enable</b>
-          </label>
-          <label class="field">
-            <span>Choose what the wheel lands on</span>
-            <select id="rigged-winner" disabled>
-              <option value="">Choose a reward</option>
-            </select>
-          </label>
-        </div>
-      </details>
 
       <p class="editor-status" id="editor-status" role="status" aria-live="polite"></p>
     </aside>
@@ -153,6 +139,23 @@
     </aside>
   </main>
 
+  <div class="utility-chips utility-chips--left setup-only" aria-label="Admin controls">
+    <button class="admin-chip" id="admin-toggle" type="button" aria-expanded="false" aria-controls="admin-popover">Admin</button>
+    <section class="admin-popover" id="admin-popover" aria-label="Wheel administration" tabindex="-1" hidden>
+      <label class="toggle-control">
+        <input id="rigged-toggle" type="checkbox">
+        <span aria-hidden="true"></span>
+        <b>Enable</b>
+      </label>
+      <label class="field">
+        <span>Choose what the wheel lands on</span>
+        <select id="rigged-winner" disabled>
+          <option value="">Choose a reward</option>
+        </select>
+      </label>
+    </section>
+  </div>
+
   <div class="utility-chips" aria-label="Page utilities">
     <a class="feedback-chip" href="https://forms.gle/cAHrPmv7hJ1EaCwV8" target="_blank" rel="noopener noreferrer">Feedback</a>
     <button class="sound-chip" id="sound-toggle" type="button" aria-pressed="true">Sound on</button>
@@ -161,45 +164,15 @@
   <dialog class="wheel-dialog" id="reward-dialog" aria-labelledby="composer-heading">
     <section class="entry-composer" id="entry-composer" aria-labelledby="composer-heading">
       <div class="composer-heading">
-        <div><p class="composer-kicker">Structured reward</p><h3 id="composer-heading">Build one wheel reward</h3></div>
+        <h3 id="composer-heading">Advanced Reward Builder</h3>
         <button class="composer-close" id="composer-close" type="button" aria-label="Close reward editor">×</button>
       </div>
 
       <div class="composer-simple" id="composer-simple">
-        <p class="composer-instruction">Choose rewards, then connect them with <b>AND</b> or <b>OR</b>.</p>
         <div class="simple-expression" id="simple-expression" aria-label="Combined reward expression"></div>
-        <p class="composer-simple-note" id="composer-simple-note"></p>
-        <div class="tier-chips composer-tier-chips" aria-label="Combined rewards">
-          <button class="tier-chip tier-chip--ur" type="button" data-composer-reward="ur"><img src="UR_Craft_Asset.png" alt=""><span>1 UR</span></button>
-          <button class="tier-chip tier-chip--packs" type="button" data-composer-reward="packs"><img src="The_Masters_Saga-Pack-Master_Duel.png" alt=""><span>1 Pack</span></button>
-          <button class="tier-chip tier-chip--bans" type="button" data-composer-reward="bans"><img src="Ban_Asset.png" alt=""><span>1 Ban</span></button>
-          <button class="tier-chip tier-chip--sr" type="button" data-composer-reward="sr"><img src="SR_Craft_asset.png" alt=""><span>1 SR</span></button>
-          <button class="tier-chip tier-chip--r" type="button" data-composer-reward="r"><img src="R_Craft_asset.png" alt=""><span>1 R</span></button>
-          <button class="tier-chip tier-chip--n" type="button" data-composer-reward="n"><img src="N_Craft_asset.png" alt=""><span>1 N</span></button>
-          <button class="tier-chip tier-chip--nr" type="button" data-composer-reward="nr"><img src="N_R_Craft_asset.png" alt=""><span>1 N/R</span></button>
-          <button class="tier-chip tier-chip--gems" type="button" data-composer-reward="gems"><img src="Master_Duel_Gem.png" alt=""><span>?</span></button>
-        </div>
-        <div class="composer-custom-token">
-          <input id="composer-simple-custom" type="text" maxlength="48" autocomplete="off" placeholder="Custom reward">
-          <button class="small-button" id="composer-simple-custom-add" type="button">Add custom</button>
-        </div>
       </div>
 
-      <details class="composer-advanced" id="composer-advanced">
-        <summary>Advanced structure</summary>
-        <div class="composer-advanced__content">
-          <div class="component-adder">
-            <label class="field"><span>Component</span><select id="component-type"></select></label>
-            <label class="field component-custom-field" id="component-custom-field" hidden><span>Custom text</span><input id="component-custom-text" type="text" maxlength="48" autocomplete="off" placeholder="eg. legacy craft"></label>
-            <label class="field"><span>Add to</span><select id="component-target"><option value="always">Always receive</option></select></label>
-            <button class="small-button component-add" id="component-add" type="button">Add component</button>
-          </div>
-          <div class="composer-zone"><p class="composer-zone__label">Always receive</p><div class="component-list" id="always-components"></div></div>
-          <div class="composer-zone composer-zone--options"><div class="composer-zone__heading"><p class="composer-zone__label">Choose one</p><button class="small-button" id="add-alternative" type="button">Add alternative</button></div><div class="alternative-list" id="alternative-list"></div></div>
-        </div>
-      </details>
-
-      <div class="composer-preview"><span>Preview</span><output id="composer-preview">Add a component to begin.</output></div>
+      <section class="composer-source" id="composer-source-mount" aria-label="Reward choices"></section>
       <p class="composer-validation" id="composer-validation" role="alert"></p>
       <div class="composer-actions"><button class="small-button" id="composer-reset" type="button">Reset</button><button class="add-button" id="composer-submit" type="button">Add reward to wheel</button></div>
     </section>
@@ -215,10 +188,9 @@
     </form>
   </dialog>
 
-  <dialog class="confirm-dialog" id="confirm-dialog" aria-labelledby="confirm-title" aria-describedby="confirm-message">
+  <dialog class="confirm-dialog" id="confirm-dialog" aria-label="Warning" aria-describedby="confirm-message">
     <form method="dialog">
-      <p class="dialog-kicker">Confirm action</p>
-      <h2 id="confirm-title">Continue?</h2>
+      <p class="dialog-kicker dialog-kicker--warning">Warning!</p>
       <p id="confirm-message"></p>
       <div class="dialog-actions">
         <button class="dialog-button dialog-button--cancel" value="cancel">Cancel</button>

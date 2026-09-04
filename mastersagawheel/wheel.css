@@ -24,7 +24,6 @@
   --reward-text-r: #54d1f3;
   --reward-text-n: #c4cbd4;
   --reward-text-nr: #8dc4dc;
-  --reward-text-gems: #8a83ff;
   --reward-text-custom: #8a83ff;
   --font-body: "Michroma", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-display: "Zen Dots", "Michroma", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -204,6 +203,8 @@ summary:focus-visible {
   letter-spacing: 0.2em;
   text-transform: uppercase;
 }
+
+.dialog-kicker--warning { color: #ff6f88; }
 
 .wheel-shell {
   position: relative;
@@ -596,13 +597,13 @@ summary:focus-visible {
   cursor: not-allowed;
 }
 
-.tier-chip span,
+.tier-chip span:not(.sr-only),
 .tier-chip small {
   position: relative;
   display: block;
 }
 
-.tier-chip span {
+.tier-chip span:not(.sr-only) {
   color: currentColor;
   font-weight: 780;
 }
@@ -613,11 +614,11 @@ summary:focus-visible {
   font-size: 0.62rem;
 }
 
-.tier-chip--gems { color: var(--reward-text-gems); }
+.tier-chip--custom { color: var(--reward-text-custom); }
 
 .custom-entry {
   display: grid;
-  grid-template-columns: 1fr 78px;
+  grid-template-columns: 1fr;
   gap: 9px;
   align-items: end;
 }
@@ -727,8 +728,9 @@ summary:focus-visible {
   min-height: 0;
   flex: 0 1 auto;
   max-height: none;
-  overflow: auto;
-  padding-right: 3px;
+  overflow-x: clip;
+  overflow-y: auto;
+  padding: 3px 3px 3px 0;
   align-content: start;
   grid-auto-rows: min-content;
 }
@@ -753,12 +755,11 @@ summary:focus-visible {
 
 .slice-row:hover,
 .slice-row:focus-within {
-  transform: translateX(2px) scale(1.01);
   border-color: color-mix(in srgb, var(--entry-trim, var(--cyan)) 52%, var(--line));
   background:
     linear-gradient(90deg, color-mix(in srgb, var(--entry-trim, var(--cyan)) 15%, rgba(3, 6, 13, .78)), rgba(3, 6, 13, .48)),
     var(--entry-gradient, rgba(3, 6, 13, .5));
-  box-shadow: 0 5px 14px color-mix(in srgb, var(--entry-trim, var(--cyan)) 14%, transparent);
+  box-shadow: 0 5px 14px color-mix(in srgb, var(--entry-trim, var(--cyan)) 18%, transparent);
 }
 
 .slice-row::before {
@@ -874,15 +875,15 @@ summary:focus-visible {
    keeps its red warning language and its armed state remains visually authoritative. */
 .slice-row .icon-button:not(.icon-button--remove):not(:disabled):hover,
 .slice-row .icon-button:not(.icon-button--remove):not(:disabled):focus-visible {
-  transform: translateY(-1px) scale(1.08);
   border-color: var(--entry-trim, var(--cyan));
   color: #fff;
   background: color-mix(in srgb, var(--entry-trim, var(--cyan)) 28%, rgba(12, 18, 30, .96));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--entry-trim, var(--cyan)) 42%, transparent);
 }
 
 .slice-row .icon-button--remove:not(:disabled):not(.is-armed):hover,
 .slice-row .icon-button--remove:not(:disabled):not(.is-armed):focus-visible {
-  transform: translateY(-1px) scale(1.05);
+  box-shadow: inset 0 0 0 1px rgba(255, 100, 143, .54);
 }
 
 .save-preset {
@@ -1106,44 +1107,6 @@ summary:focus-visible {
   padding: 0 24px 22px;
 }
 
-.admin-card {
-  padding: 0;
-  border-top: 1px solid var(--line);
-  border-bottom: 0;
-  background: linear-gradient(145deg, rgba(17, 48, 65, 0.32), rgba(8, 13, 25, 0.18));
-}
-
-.admin-card summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 19px 24px;
-  cursor: pointer;
-  list-style: none;
-  font-family: var(--font-display);
-  font-size: .92rem;
-  font-weight: 680;
-}
-
-.admin-card summary::-webkit-details-marker { display: none; }
-
-.admin-card summary::after {
-  content: "+";
-  color: var(--cyan);
-  font-size: 1.2rem;
-  font-weight: 400;
-}
-
-.admin-card[open] summary::after { content: "−"; }
-
-.admin-card__content {
-  padding: 0 24px 22px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
 .toggle-control {
   display: inline-flex;
   align-items: center;
@@ -1198,8 +1161,14 @@ summary:focus-visible {
   transition: opacity 320ms ease, transform 420ms cubic-bezier(.2, .84, .28, 1), visibility 0s;
 }
 
+.utility-chips--left {
+  right: auto;
+  left: 22px;
+}
+
 .feedback-chip,
-.sound-chip {
+.sound-chip,
+.admin-chip {
   appearance: none;
   padding: 8px 13px;
   border: 1px solid rgba(190, 213, 255, 0.22);
@@ -1217,7 +1186,10 @@ summary:focus-visible {
 .feedback-chip:hover,
 .feedback-chip:focus-visible,
 .sound-chip:hover,
-.sound-chip:focus-visible {
+.sound-chip:focus-visible,
+.admin-chip:hover,
+.admin-chip:focus-visible,
+.admin-chip[aria-expanded="true"] {
   border-color: rgba(61, 229, 255, 0.5);
   color: var(--ink);
 }
@@ -1226,6 +1198,25 @@ summary:focus-visible {
   border-color: rgba(255, 175, 101, 0.3);
   color: #ffc88e;
 }
+
+.admin-popover {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 0;
+  display: grid;
+  width: 252px;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid var(--line-bright);
+  border-radius: 11px;
+  color: var(--ink);
+  background: linear-gradient(145deg, rgba(19, 29, 47, .98), rgba(5, 9, 18, .98));
+  box-shadow: 0 18px 42px rgba(0, 0, 0, .5);
+}
+
+.admin-popover[hidden] { display: none; }
+.admin-popover .field { gap: 7px; }
+.admin-popover select { width: 100%; }
 
 .editor-status[data-tone="warning"] {
   color: #ffc75b;
@@ -1379,7 +1370,7 @@ summary:focus-visible {
   }
 }
 
-/* Structured reward controls stay route-local and intentionally desktop-first. */
+/* Reward controls stay route-local and intentionally desktop-first. */
 .side-rail--left {
   overflow-y: auto;
 }
@@ -1405,22 +1396,21 @@ summary:focus-visible {
   filter: drop-shadow(0 3px 6px rgba(0, 0, 0, .45));
 }
 
-/* The main reward picker gets a short entry pop, then holds a little larger while hovered.
-   The smaller builder tokens deliberately stay still so assembling combinations remains calm. */
-.editor-section--add > .tier-chips .tier-chip img {
+/* The one shared reward picker stays visually consistent in normal and Builder contexts. */
+.reward-source .tier-chip img {
   transform-origin: center;
   transition: transform 180ms cubic-bezier(.2, .84, .28, 1), filter 180ms ease;
 }
 
-.editor-section--add > .tier-chips .tier-chip:not(:disabled):hover,
-.editor-section--add > .tier-chips .tier-chip:not(:disabled):focus-visible {
+.reward-source .tier-chip:not(:disabled):hover,
+.reward-source .tier-chip:not(:disabled):focus-visible {
   transform: translateY(-3px) scale(1.02);
   border-color: currentColor;
   background: rgba(12, 18, 31, 0.9);
 }
 
-.editor-section--add > .tier-chips .tier-chip:not(:disabled):hover img,
-.editor-section--add > .tier-chips .tier-chip:not(:disabled):focus-visible img {
+.reward-source .tier-chip:not(:disabled):hover img,
+.reward-source .tier-chip:not(:disabled):focus-visible img {
   animation: reward-tile-pop 250ms cubic-bezier(.2, .84, .28, 1) both;
   filter:
     drop-shadow(0 3px 6px rgba(0, 0, 0, .45))
@@ -1456,7 +1446,6 @@ summary:focus-visible {
 [data-reward-type="r"] { --reward-text: var(--reward-text-r); }
 [data-reward-type="n"] { --reward-text: var(--reward-text-n); }
 [data-reward-type="nr"] { --reward-text: var(--reward-text-nr); }
-[data-reward-type="gems"] { --reward-text: var(--reward-text-gems); }
 [data-reward-type="custom"] { --reward-text: var(--reward-text-custom); }
 
 .composer-toggle {
@@ -1471,43 +1460,31 @@ summary:focus-visible {
   font-weight: 750;
 }
 
+.reward-source .tier-chips {
+  margin-bottom: 14px;
+}
+
+.reward-source .tier-chip {
+  min-height: 70px;
+  grid-template-columns: auto auto;
+  gap: 6px;
+}
+
+.reward-source .tier-chip > span {
+  order: 1;
+  font-size: .9rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.reward-source .tier-chip > img {
+  order: 2;
+}
+
 .composer-instruction {
   margin: 12px 0 8px;
   color: var(--muted-bright);
   font-size: .68rem;
   line-height: 1.45;
-}
-
-.composer-tier-chips {
-  margin: 9px 0;
-  gap: 6px;
-}
-
-.composer-tier-chips .tier-chip {
-  min-height: 61px;
-}
-
-.composer-tier-chips .tier-chip img {
-  width: 27px;
-  height: 27px;
-}
-
-.composer-custom-token {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 7px;
-  margin: 8px 0 12px;
-}
-
-.composer-custom-token input {
-  min-width: 0;
-  height: 34px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 0 9px;
-  color: var(--ink);
-  background: #080d19;
-  font-size: .68rem;
 }
 
 .simple-expression {
@@ -1516,6 +1493,7 @@ summary:focus-visible {
 }
 
 .simple-slot {
+  position: relative;
   display: grid;
   grid-template-columns: 38px 1fr auto;
   gap: 8px;
@@ -1554,58 +1532,6 @@ summary:focus-visible {
   font-weight: 650;
 }
 
-.simple-slot__reward {
-  display: flex;
-  min-width: 0;
-  align-items: center;
-  gap: 7px;
-}
-
-.simple-slot__reward img {
-  width: 34px;
-  height: 34px;
-  border-radius: 7px;
-  object-fit: contain;
-}
-
-.simple-slot__reward img[data-crop="pack"],
-
-.simple-slot__reward b {
-  min-width: 0;
-  overflow: hidden;
-  font-size: .7rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.simple-slot__controls {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.simple-slot__amount {
-  width: 48px;
-  height: 29px;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  padding: 0 5px;
-  color: var(--ink);
-  background: #080d19;
-  font-size: .64rem;
-}
-
-.simple-slot__type {
-  width: 74px;
-  height: 29px;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  padding: 0 4px;
-  color: var(--ink);
-  background: #080d19;
-  font-size: .58rem;
-}
-
 .simple-relation {
   display: flex;
   align-items: center;
@@ -1641,6 +1567,57 @@ summary:focus-visible {
   background: rgba(98, 60, 159, .55);
 }
 
+/* The standard editor deliberately stops at three visible components. Connectors between
+   the cards carry the existing AND/OR semantics without reintroducing the removed editor. */
+.simple-expression {
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: stretch;
+  gap: 8px;
+}
+
+.simple-slot {
+  grid-template-columns: 1fr;
+  grid-template-rows: auto 1fr auto;
+  min-height: 174px;
+  padding: 13px 9px;
+  justify-items: center;
+  text-align: center;
+}
+
+.simple-slot[data-slot-index="0"] { grid-column: 1; }
+.simple-slot[data-slot-index="1"] { grid-column: 3; }
+.simple-slot[data-slot-index="2"] { grid-column: 5; }
+
+.simple-slot__number {
+  align-self: start;
+  color: #8a76bd;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.simple-slot.is-locked .simple-slot__number { color: #59657a; }
+
+.simple-slot__empty {
+  align-self: center;
+  font-size: .64rem;
+  letter-spacing: .04em;
+  text-align: center;
+}
+
+.simple-relation {
+  min-width: 52px;
+  min-height: 0;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.simple-relation[data-relation-index="0"] { grid-column: 2; }
+.simple-relation[data-relation-index="1"] { grid-column: 4; }
+
+.simple-relation span { font-size: .5rem; }
+.simple-relation .relation-button { min-width: 48px; }
+
 .composer-simple-note {
   min-height: 17px;
   margin: 7px 0 0;
@@ -1653,21 +1630,12 @@ summary:focus-visible {
   opacity: .5;
 }
 
-.composer-advanced {
-  margin-top: 12px;
-  border-top: 1px solid rgba(190, 213, 255, .12);
-}
+.composer-simple { margin-top: 24px; }
 
-.composer-advanced > summary {
-  padding: 11px 2px 4px;
-  color: #8290a7;
-  cursor: pointer;
-  font-size: .64rem;
-  font-weight: 700;
-}
-
-.composer-advanced__content {
-  padding-top: 2px;
+.composer-source {
+  margin-top: 22px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(190, 213, 255, .16);
 }
 
 .entry-composer {
@@ -1681,8 +1649,6 @@ summary:focus-visible {
 .entry-composer[hidden] { display: none; }
 
 .composer-heading,
-.composer-zone__heading,
-.alternative-card__heading,
 .composer-actions {
   display: flex;
   align-items: center;
@@ -1697,14 +1663,24 @@ summary:focus-visible {
   letter-spacing: 0;
 }
 
-.composer-kicker,
-.composer-zone__label {
+.composer-heading {
+  position: relative;
+  min-height: 34px;
+  justify-content: center;
+}
+
+.composer-heading h3 {
   margin: 0;
-  color: #bba0ef;
-  font-size: .58rem;
+  color: #d7bdff;
+  font-size: 1.12rem;
   font-weight: 800;
-  letter-spacing: .14em;
-  text-transform: uppercase;
+  letter-spacing: .025em;
+  text-align: center;
+}
+
+.composer-heading .composer-close {
+  position: absolute;
+  right: 0;
 }
 
 .composer-close {
@@ -1715,72 +1691,6 @@ summary:focus-visible {
   color: var(--muted-bright);
   background: rgba(255, 255, 255, .06);
   font-size: 1.1rem;
-}
-
-.component-adder {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin: 14px 0;
-}
-
-.component-adder .component-custom-field,
-.component-adder .component-add { grid-column: 1 / -1; }
-.component-add { min-height: 34px; }
-
-.composer-zone {
-  display: grid;
-  gap: 7px;
-  margin-top: 13px;
-}
-
-.component-list,
-.alternative-list {
-  display: grid;
-  gap: 7px;
-}
-
-.alternative-card {
-  display: grid;
-  gap: 6px;
-  padding: 8px;
-  border: 1px solid rgba(190, 213, 255, .13);
-  border-radius: 9px;
-  background: rgba(13, 18, 31, .74);
-}
-
-.alternative-card__heading b {
-  color: var(--muted-bright);
-  font-size: .64rem;
-}
-
-.component-row {
-  display: grid;
-  grid-template-columns: 44px minmax(76px, 1fr) auto;
-  gap: 5px;
-  align-items: center;
-}
-
-.component-row:has(.component-row__text) {
-  grid-template-columns: 44px 86px 1fr auto;
-}
-
-.component-row input,
-.component-row select {
-  min-width: 0;
-  height: 30px;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  padding: 0 6px;
-  color: var(--ink);
-  background: #080d19;
-  font-size: .63rem;
-}
-
-.component-row__actions,
-.alternative-card__heading > span {
-  display: flex;
-  gap: 3px;
 }
 
 .mini-icon {
@@ -1797,37 +1707,6 @@ summary:focus-visible {
 .mini-icon:disabled { opacity: .28; }
 .mini-icon--remove { color: #ff9ab6; }
 
-.composer-empty {
-  margin: 0;
-  padding: 7px;
-  color: #6e7b91;
-  font-size: .62rem;
-  text-align: center;
-}
-
-.composer-preview {
-  display: grid;
-  gap: 5px;
-  margin-top: 14px;
-  padding: 10px;
-  border-radius: 8px;
-  background: rgba(61, 229, 255, .065);
-}
-
-.composer-preview > span {
-  color: var(--cyan);
-  font-size: .57rem;
-  font-weight: 800;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-}
-
-.composer-preview output {
-  color: var(--ink);
-  font-size: .7rem;
-  line-height: 1.45;
-}
-
 .composer-validation {
   min-height: 17px;
   margin: 7px 0;
@@ -1836,6 +1715,75 @@ summary:focus-visible {
 }
 
 .composer-actions .add-button { flex: 1; }
+
+/* Filled cards deliberately expose just an icon and an immediate remove control. Their
+   full meaning remains in button labels and the preview, while the selected card edits
+   through the shared Quantity and reward source rather than growing local controls. */
+.simple-slot.is-filled {
+  grid-template-rows: 1fr;
+  padding: 11px;
+}
+
+.simple-slot__select {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  min-height: 132px;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+}
+
+.simple-slot__quantity {
+  color: var(--token-color, var(--ink));
+  font-size: 1.15rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.simple-slot__select img {
+  width: 74px;
+  height: 74px;
+  border-radius: 10px;
+  object-fit: contain;
+  filter: drop-shadow(0 5px 9px rgba(0, 0, 0, .4));
+}
+
+.simple-slot__select img[data-crop="pack"] { object-fit: cover; object-position: 50% 30%; }
+
+.simple-slot__remove {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 1;
+}
+
+.simple-slot.is-editing {
+  border-color: var(--token-color, var(--cyan));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--token-color, var(--cyan)) 24%, transparent);
+}
+
+.composer-simple.has-editing .simple-slot.is-filled:not(.is-editing) {
+  opacity: .32;
+  filter: saturate(.55);
+}
+
+.simple-slot.is-editing .simple-slot__select:focus-visible,
+.simple-slot__select:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 2px;
+}
+
+.simple-slot__empty {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.simple-slot.is-locked .simple-slot__empty { color: #536075; }
 
 .slice-structured-label {
   min-width: 0;
