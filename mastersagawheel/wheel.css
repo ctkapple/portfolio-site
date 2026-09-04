@@ -1378,6 +1378,35 @@ summary:focus-visible {
   filter: drop-shadow(0 3px 6px rgba(0, 0, 0, .45));
 }
 
+/* The main reward picker gets a short entry pop, then holds a little larger while hovered.
+   The smaller builder tokens deliberately stay still so assembling combinations remains calm. */
+.editor-section--add > .tier-chips .tier-chip img {
+  transform-origin: center;
+  transition: transform 180ms cubic-bezier(.2, .84, .28, 1), filter 180ms ease;
+}
+
+.editor-section--add > .tier-chips .tier-chip:not(:disabled):hover,
+.editor-section--add > .tier-chips .tier-chip:not(:disabled):focus-visible {
+  transform: translateY(-3px) scale(1.02);
+  border-color: currentColor;
+  background: rgba(12, 18, 31, 0.9);
+}
+
+.editor-section--add > .tier-chips .tier-chip:not(:disabled):hover img,
+.editor-section--add > .tier-chips .tier-chip:not(:disabled):focus-visible img {
+  animation: reward-tile-pop 250ms cubic-bezier(.2, .84, .28, 1) both;
+  filter:
+    drop-shadow(0 3px 6px rgba(0, 0, 0, .45))
+    drop-shadow(0 0 10px color-mix(in srgb, currentColor 58%, transparent));
+}
+
+@keyframes reward-tile-pop {
+  0% { transform: scale(1) rotate(0deg); }
+  48% { transform: scale(1.16) rotate(-2deg); }
+  74% { transform: scale(1.08) rotate(1deg); }
+  100% { transform: scale(1.1) rotate(0deg); }
+}
+
 .tier-chip--packs img {
   object-fit: cover;
 }
