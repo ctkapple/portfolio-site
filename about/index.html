@@ -28,7 +28,7 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin
       href="../assets/fonts/inter-latin.woff2">
 
-<link rel="stylesheet" href="../assets/styles.css?v=a28">
+<link rel="stylesheet" href="../assets/styles.css?v=a34">
 
 <script>document.documentElement.classList.add('js');</script>
 </head>
@@ -46,18 +46,12 @@
            alt="William Dooling with his poodle Gatsby." width="360" height="360">
     </div>
 
-    <p class="case-sub">
-      I’m a product-minded project manager who builds practical systems to
-      solve complex issues. I run BevFantasy and am solo-developing and
-      launching <em>Into the Storm</em>.
-    </p>
-
     <hr class="rule case-rule">
 
     <dl class="case-facts">
       <div class="case-fact case-fact--role"><dt>Role</dt><dd>Risk Enablement Specialist at <span class="about-draftkings">DraftKings</span></dd></div>
       <div class="case-fact"><dt>Based</dt><dd>Baltimore, Maryland</dd></div>
-      <div class="case-fact case-fact--building"><dt>Building</dt><dd><a class="about-fact-link about-fact-link--bev" href="../work/bevfantasy/">BevFantasy</a> · <a class="about-fact-link about-fact-link--storm" href="../work/into-the-storm/">Into the Storm</a></dd></div>
+      <div class="case-fact case-fact--building"><dt>Personal Projects</dt><dd><a class="about-fact-link about-fact-link--bev" href="../work/bevfantasy/">BevFantasy</a> · <a class="about-fact-link about-fact-link--storm" href="../work/into-the-storm/">Into the Storm</a></dd></div>
     </dl>
   </header>
 
@@ -71,13 +65,13 @@
         <div class="about-entry__head">
           <div>
             <h3><a class="about-project-link about-project-link--bev" href="../work/bevfantasy/">BevFantasy.com</a></h3>
-            <p class="about-entry__role">Founder &amp; Designer</p>
+            <p class="about-entry__role">Designer &amp; Developer</p>
           </div>
-          <p class="about-entry__meta">16+ members · 3 leagues · 40+ rosters</p>
+          <p class="about-entry__meta">30+ members · 5 leagues · 500+ matchups</p>
         </div>
         <p>
           A production fantasy-football platform built on Sleeper’s API with a
-          PostgreSQL database, serving stat views through a static front end.
+          Supabase (Postgres) database, serving stat views through a static front end.
         </p>
         <ul>
           <li>Designed and shipped the platform end-to-end, turning league history into rivalry stats, a filterable trade archive, and a live earnings ledger.</li>
@@ -91,7 +85,7 @@
         <div class="about-entry__head">
           <div>
             <h3><a class="about-project-link about-project-link--storm" href="../work/into-the-storm/">Into the Storm</a></h3>
-            <p class="about-entry__role">Studio Director, Game &amp; Systems Designer · <a href="https://studiogibbles.com/" target="_blank" rel="noopener noreferrer">Studio Gibbles</a></p>
+            <p class="about-entry__role">Director, Designer &amp; Developer · <a href="https://studiogibbles.com/" target="_blank" rel="noopener noreferrer">Studio Gibbles</a></p>
           </div>
           <p class="about-entry__meta">50+ hours observing playtesters · Alpha</p>
         </div>
@@ -101,7 +95,8 @@
         </p>
         <ul>
           <li>Self-taught game design from scratch, then built and directed a team of 4+ freelance artists, steering the game’s visual identity through reference boards and annotated feedback.</li>
-          <li>Built feedback capture into the game itself (one tap logs a screenshot, session data, and note straight to the playtester Discord) and tied every report to full run analytics, so balance decisions are grounded in data instead of guesswork.</li>
+          <li>Built feedback capture into the game itself (one tap logs a screenshot, session data, and note straight to the playtester Discord), then tied every report to a custom SQL analytics integration that collects anonymized player activity.</li>
+          <li>Use that data as the statistical justification behind balance, economy, and design decisions, so changes are grounded in evidence instead of guesswork.</li>
           <li>Ran structured blind playtests and translated observed friction and confusion into 200+ concrete iterations across the core gameplay loop and interface.</li>
         </ul>
       </article>
@@ -111,8 +106,8 @@
     <section class="about-section about-section--experience about-section--wide" aria-labelledby="experience">
       <h2 class="about-title about-title--dk" id="experience">Experience</h2>
 
-      <div class="about-experience-grid">
-        <article class="about-entry">
+      <div class="about-experience-stack">
+        <article class="about-entry about-entry--lead">
           <div class="about-entry__head">
             <div>
               <h3><span class="about-draftkings">DraftKings</span></h3>
@@ -121,16 +116,23 @@
             </div>
             <p class="about-entry__meta">Remote<br>June 2025–Present<br>August 2023–June 2025</p>
           </div>
+          <p class="about-entry__group">Automation &amp; AI</p>
           <ul>
-            <li>Lead a six-person team as PM on the Risk Case Reduction Strategy, a top 2026 organizational priority targeting a 20% reduction in case volume through automation, AI, and process redesign.</li>
-            <li>Designed and built an internal anomaly-detection tool for Risk Operations work queues, iterating from manager feedback to add a three-way tagging system (false positive, expected, confirmed issue) that surfaced real upstream data-quality issues.</li>
-            <li>Appointed Head of the Fraud Mitigation Taskforce, ensuring Risk Operations regulatory compliance across all regulated U.S. states, Canada, and international jurisdictions; built DraftKings’ centralized Regulatory Library.</li>
-            <li>Led cross-functional workflow automation initiatives generating approximately $1.5 million in annual impact.</li>
-            <li>Promoted from Senior Risk Withdrawals Associate after a competitive internal Project Management internship.</li>
+            <li>Led the automation of Alfred, a 110,000-case-a-year self-exclusion queue in ServiceNow, to 90% automated. Manual case volume fell 75% (roughly 29,000 cases a year), saving about 1.8 FTE ($110K) annually, with Engineering delivering the final build.</li>
+            <li>Ran the discovery and business case behind it: identified the compliance gaps, reviewed the underlying codebase, and mapped every state’s regulatory requirements into a requirements matrix and product spec with both near- and long-term solutions. Secured approval from senior leadership across Responsible Gaming, Regulatory Operations, Compliance, and Legal over six months of alignment.</li>
+            <li>Partnered with Product, Engineering, and Platform to launch AI agents for deposit and withdrawal inquiries, the highest-volume Risk Payments Operations categories. Payments inquiry case volume fell about 30% year over year, freeing an estimated 2.4 FTE ($145K) of annual associate capacity; contributed product specs, QA of agent-handled cases, and SME coordination.</li>
           </ul>
+
+          <p class="about-entry__group">Compliance &amp; strategy</p>
+          <ul>
+            <li>One of six Risk Specialists owning workstreams on the Risk Case Reduction Strategy, a top 2026 organizational priority targeting a 20% reduction in case volume, coordinating four workstreams across Risk Payments Operations, Product, Engineering, and Platform.</li>
+            <li>Built a full inventory of Risk Operations’ compliance-related work, plus a resolver ticket dashboard and its automations. Serve as Risk’s primary representative for regulatory and compliance operations across teams, contributing to audits, state and product launches, and ad-hoc regulator requests.</li>
+          </ul>
+
+          <p class="about-entry__note">Promoted from Senior Risk Withdrawals Associate, where I was consistently the team’s highest performer, after a competitive internal project management internship.</p>
         </article>
 
-        <div class="about-experience-grid__side">
+        <div class="about-experience-row">
           <article class="about-entry">
             <div class="about-entry__head">
               <div>
@@ -176,12 +178,14 @@
       <section aria-labelledby="skills">
         <h2 class="about-title about-title--blue" id="skills">Skills</h2>
         <ul class="about-skills" aria-labelledby="skills">
-          <li>0-to-1 product design</li>
-          <li>Design systems</li>
-          <li>User research &amp; iteration</li>
-          <li>Cross-functional collaboration</li>
           <li>Workflow automation</li>
-          <li>Data analysis</li>
+          <li>AI integration</li>
+          <li>Regulatory compliance</li>
+          <li>Cross-team partnerships</li>
+          <li>Project management</li>
+          <li>Product specs</li>
+          <li>0-to-1 product design</li>
+          <li>User research &amp; iteration</li>
         </ul>
       </section>
     </div>
@@ -199,7 +203,6 @@
 
     <section class="about-section about-contact" aria-labelledby="get-in-touch">
       <h2 class="about-title about-title--blue" id="get-in-touch">Get in touch</h2>
-      <p>Want to talk product, systems, games, or a project of your own?</p>
       <div class="about-contact__links">
         <a class="about-contact__link" href="mailto:me@williamdooling.com">
           <svg viewBox="0 0 24 24" aria-hidden="true">
