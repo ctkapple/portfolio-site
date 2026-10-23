@@ -2189,30 +2189,51 @@ img { max-width: 100%; display: block; }
   border-bottom: 1px solid var(--line);
 }
 
-.about-experience-grid {
+/* DraftKings carries the most weight on the page, so it runs full width with
+   the two shorter roles paired beneath it. Its prose is capped to a readable
+   measure independently of the rule, which stays full width. */
+.about-experience-row {
   display: grid;
-  grid-template-columns: 1.3fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0 3rem;
 }
 
-.about-experience-grid__side {
-  display: flex;
-  flex-direction: column;
-}
-
-.about-experience-grid > .about-entry,
-.about-experience-grid__side .about-entry {
+.about-experience-stack > .about-entry,
+.about-experience-row .about-entry {
   border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
 }
 
-.about-experience-grid > .about-entry:first-child,
-.about-experience-grid__side .about-entry:last-child {
-  border-bottom: 1px solid var(--line);
+/* In rem, not ch, so the bullets and the note below them share one measure
+   and their rules line up despite the note's smaller type. */
+.about-entry--lead { --lead-measure: 43rem; }
+
+.about-entry--lead > ul,
+.about-entry--lead > .about-entry__note { max-width: var(--lead-measure); }
+
+.about-entry__group {
+  margin: 1.5rem 0 .6rem;
+  color: var(--ygr);
+  font-size: .7rem;
+  font-weight: 500;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+.about-entry--lead > .about-entry__group:first-of-type { margin-top: 0; }
+
+.about-entry__note {
+  margin: 1.35rem 0 0;
+  padding-top: 1.1rem;
+  border-top: 1px solid var(--line);
+  color: var(--text-dim);
+  font-size: .88rem;
 }
 
 @media (max-width: 780px) {
   .about-entries,
-  .about-experience-grid { grid-template-columns: 1fr; }
+  .about-experience-row { grid-template-columns: 1fr; }
+  .about-experience-row .about-entry:not(:last-child) { border-bottom: 0; }
 }
 
 .about-page .about-fact-link--bev,
